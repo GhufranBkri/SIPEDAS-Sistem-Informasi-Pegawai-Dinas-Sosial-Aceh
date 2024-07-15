@@ -1,4 +1,4 @@
-require('dotenv').config(); // Pastikan ini berada di bagian paling atas
+require('dotenv').config(); // Memastikan ini berada di bagian paling atas
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -11,11 +11,7 @@ const port = 3000;
 console.log('Mongo URI:', process.env.MONGO_URI);
 
 // Koneksi MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-});
+mongoose.connect(process.env.MONGO_URI);
 
 const db = mongoose.connection;
 db.on('error', (error) => console.error('Connection error:', error));
