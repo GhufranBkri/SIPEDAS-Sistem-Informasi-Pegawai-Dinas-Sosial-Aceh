@@ -6,7 +6,7 @@ const employeeRoutes = require('./routes/employee');
 require('dotenv').config();
 
 const app = express();
-const port = 3000;
+const port = 'https://dinassosial.zeabur.app/';
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {
