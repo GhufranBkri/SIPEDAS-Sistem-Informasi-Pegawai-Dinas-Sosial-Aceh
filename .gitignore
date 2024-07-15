@@ -1,7 +1,7 @@
 # Build directory for Vite
 .dist/
 # Node.js modules
-node_modules/
+
 # Ignore environment files
 .env
 .env.*
