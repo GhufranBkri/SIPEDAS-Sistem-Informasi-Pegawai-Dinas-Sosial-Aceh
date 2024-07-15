@@ -1,3 +1,4 @@
+// app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -5,10 +6,10 @@ const employeeRoutes = require('./routes/employee');
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 10000;
-const dbURI = "mongodb+srv://a322d4ky4308:75JbqCMaew1DM3BR@dinsosdb.lngowvs.mongodb.net/?retryWrites=true&w=majority&appName=DINSOSDB"
+const port = 3000;
+
 // MongoDB connection
-mongoose.connect(process.env.dbURI, {
+mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
@@ -17,7 +18,6 @@ mongoose.connect(process.env.dbURI, {
 const db = mongoose.connection;
 db.on('error', (error) => console.error(error));
 db.once('open', () => console.log('Connected to MongoDB'));
-
 
 // Middleware
 app.use(bodyParser.json());
