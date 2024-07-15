@@ -11,6 +11,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // Create new employee
 router.post('/', async (req, res) => {
+    console.log('POST /employees - Received data:', req.body); // Debugging log
     const employee = new Employee(req.body);
     try {
         const savedEmployee = await employee.save();
@@ -22,6 +23,7 @@ router.post('/', async (req, res) => {
 
 // Get all employees
 router.get('/', async (req, res) => {
+    console.log('GET /employees'); // Debugging log
     try {
         const employees = await Employee.find();
         res.json(employees);
@@ -32,6 +34,7 @@ router.get('/', async (req, res) => {
 
 // Get one employee by NIP
 router.get('/:nip', async (req, res) => {
+    console.log('GET /employees/:nip', req.params.nip); // Debugging log
     try {
         const employee = await Employee.findOne({ nip: req.params.nip });
         if (!employee) return res.status(404).json({ message: 'Employee not found' });
@@ -43,6 +46,7 @@ router.get('/:nip', async (req, res) => {
 
 // Update an employee by NIP
 router.patch('/:nip', async (req, res) => {
+    console.log('PATCH /employees/:nip', req.params.nip); // Debugging log
     try {
         const updatedEmployee = await Employee.findOneAndUpdate(
             { nip: req.params.nip },
@@ -58,6 +62,7 @@ router.patch('/:nip', async (req, res) => {
 
 // Delete an employee by NIP
 router.delete('/:nip', async (req, res) => {
+    console.log('DELETE /employees/:nip', req.params.nip); // Debugging log
     try {
         const deletedEmployee = await Employee.findOneAndDelete({ nip: req.params.nip });
         if (!deletedEmployee) return res.status(404).json({ message: 'Employee not found' });

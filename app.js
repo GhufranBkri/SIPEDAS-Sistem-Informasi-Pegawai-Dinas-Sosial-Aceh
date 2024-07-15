@@ -12,8 +12,6 @@ const port = 3000;
 mongoose.connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false
 });
 
 const db = mongoose.connection;
@@ -29,6 +27,11 @@ app.use('/employees', employeeRoutes);
 // Root Endpoint (Optional)
 app.post('/', (req, res) => {
     res.status(200).send('Root Endpoint POST Request');
+});
+
+// Handle 404
+app.use((req, res, next) => {
+    res.status(404).send('Not Found');
 });
 
 // Start server
