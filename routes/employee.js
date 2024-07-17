@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
         const employees = await Employee.find();
         res.json(employees);
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ message: err.message })
     }
 });
 
