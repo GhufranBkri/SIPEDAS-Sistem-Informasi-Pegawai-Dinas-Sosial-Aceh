@@ -72,7 +72,6 @@ router.delete('/:nip', async (req, res) => {
     }
 });
 
-
 // Import employees from CSV
 router.post('/import', upload.single('file'), async (req, res) => {
     const results = [];
