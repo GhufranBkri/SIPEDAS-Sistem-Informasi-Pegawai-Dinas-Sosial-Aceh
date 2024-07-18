@@ -129,6 +129,10 @@ const employeeSchema = new mongoose.Schema({
     jenis_tekon: {
         type: String,
         length: 50
+    },
+    Kelas_jabatan: {
+        type: String,
+        length: 50
     }
 });
 

@@ -2,7 +2,7 @@ require('dotenv').config(); // Memastikan ini berada di bagian paling atas
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const employeeRoutes = require('./routes/employee');
+const employeeRoutes = require('./routes/employeeRoutes');
 
 const app = express();
 const port = 3000;

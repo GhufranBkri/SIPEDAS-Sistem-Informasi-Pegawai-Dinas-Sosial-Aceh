@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const Employee = require('../models/Employee');
+const Employee = require('../models/EmployeeModel');
 const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
+const formatResponse = require('../utils/responseFormatter');
 
 // Multer setup
 const upload = multer({ dest: 'uploads/' });
@@ -14,9 +15,9 @@ router.post('/', async (req, res) => {
     const employee = new Employee(req.body);
     try {
         const savedEmployee = await employee.save();
-        res.status(201).json(savedEmployee);
+        res.status(201).json(formatResponse('success', 201, savedEmployee));
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        res.status(400).json(formatResponse('error', 400, null, err.message));
     }
 });
 
@@ -25,9 +26,9 @@ router.get('/', async (req, res) => {
     console.log('GET /employees'); // Debugging log
     try {
         const employees = await Employee.find();
-        res.json(employees);
+        res.status(200).json(formatResponse('success', 200, employees));
     } catch (err) {
-        res.status(500).json({ message: err.message })
+        res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 });
 
@@ -36,10 +37,10 @@ router.get('/:nip', async (req, res) => {
     console.log('GET /employees/:nip', req.params.nip); // Debugging log
     try {
         const employee = await Employee.findOne({ nip: req.params.nip });
-        if (!employee) return res.status(404).json({ message: 'Employee not found' });
-        res.json(employee);
+        if (!employee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
+        res.status(200).json(formatResponse('success', 200, employee));
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 });
 
@@ -50,12 +51,12 @@ router.patch('/:nip', async (req, res) => {
         const updatedEmployee = await Employee.findOneAndUpdate(
             { nip: req.params.nip },
             req.body,
-            { new: true }
+            { new: true, runValidators: true } // Ensure validation is run
         );
-        if (!updatedEmployee) return res.status(404).json({ message: 'Employee not found' });
-        res.json(updatedEmployee);
+        if (!updatedEmployee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
+        res.status(200).json(formatResponse('success', 200, updatedEmployee));
     } catch (err) {
-        res.status(400).json({ message: err.message });
+        res.status(400).json(formatResponse('error', 400, null, err.message));
     }
 });
 
@@ -64,12 +65,13 @@ router.delete('/:nip', async (req, res) => {
     console.log('DELETE /employees/:nip', req.params.nip); // Debugging log
     try {
         const deletedEmployee = await Employee.findOneAndDelete({ nip: req.params.nip });
-        if (!deletedEmployee) return res.status(404).json({ message: 'Employee not found' });
-        res.json({ message: 'Employee deleted' });
+        if (!deletedEmployee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
+        res.status(200).json(formatResponse('success', 200, null, 'Employee deleted'));
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 });
+
 
 // Import employees from CSV
 router.post('/import', upload.single('file'), async (req, res) => {
@@ -80,9 +82,9 @@ router.post('/import', upload.single('file'), async (req, res) => {
         .on('end', async () => {
             try {
                 await Employee.insertMany(results);
-                res.status(200).json({ message: 'Employees imported successfully' });
+                res.status(200).json(formatResponse('success', 200, null, 'Employees imported successfully'));
             } catch (err) {
-                res.status(500).json({ message: err.message });
+                res.status(500).json(formatResponse('error', 500, null, err.message));
             } finally {
                 // Remove the uploaded file
                 fs.unlinkSync(req.file.path);
