@@ -12,6 +12,8 @@
     "express": "^4.17.1",
     "mongoose": "^6.0.0",
     "multer": "^1.4.3",
-    "csv-parser": "^3.0.0"
+    "csv-parser": "^3.0.0",
+    "debug": "^4.3.4",
+    "mquery": "^4.0.3"
   }
 }
