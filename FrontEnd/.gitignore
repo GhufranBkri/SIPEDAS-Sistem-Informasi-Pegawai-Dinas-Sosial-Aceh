@@ -1,0 +1,103 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Production build
+build/
+
+# Dependency directories for Electron projects
+electron-builder-output/
+
+# Static directory for Next.js
+.next/
+
+# SvelteKit
+.svelte-kit/
+
+# Testing
+coverage/
+
+# Parcel cache
+.cache/
+.parcel-cache/
+
+# Next.js
+.next/
+out/
+
+# Nuxt.js
+.nuxt/
+dist/
+
+# Gatsby files
+.cache/
+public/
+
+# Expo files
+.expo/
+
+# Storybook files
+.storybook/
+
+# Stylelint cache
+.stylelintcache
+
+# Temporary files
+tmp/
+temp/
+
+# MacOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+
+# Visual Studio Code directories
+.vscode/
+.vscode-test/
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+
+# Local environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.editorconfig
+
+# Yarn v2 files
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Parcel v2 cache
+.cache/
+.parcel-cache/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Pnpm
+.pnpm-debug.log*
+.pnpm-store/
+
+# React Native files
+*.keystore
+*.jks
+*.p8
+*.p12
+*.cer
+*.crt
+*.pem
