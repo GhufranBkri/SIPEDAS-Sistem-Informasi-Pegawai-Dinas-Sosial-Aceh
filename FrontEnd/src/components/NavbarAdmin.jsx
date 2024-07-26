@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect, useRef } from 'react';
 import { FaBell, FaUser } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import logoIcon from '../assets/logo_text.svg';
 import logoutIcon from '../assets/logout.svg';
 
@@ -9,6 +10,7 @@ function NavbarAdmin() {
     const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
     const profileDropdownRef = useRef(null);
     const notificationDropdownRef = useRef(null);
+    const navigate = useNavigate();
 
     const toggleProfileDropdown = () => {
       setIsProfileDropdownOpen(!isProfileDropdownOpen);
@@ -16,6 +18,12 @@ function NavbarAdmin() {
 
     const toggleNotificationDropdown = () => {
         setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userRole');
+        navigate('/');
     };
 
     useEffect(() => {
@@ -83,7 +91,7 @@ function NavbarAdmin() {
                         />
                         {isProfileDropdownOpen && (
                             <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-lg py-1">
-                                <a href="#" className="flex items-center justify-between font-medium px-4 py-2 text-sm hover:bg-gray-100">
+                                <a href="#" className="flex items-center justify-between font-medium px-4 py-2 text-sm hover:bg-gray-100" onClick={handleLogout}>
                                     Logout
                                     <img src={logoutIcon}/>
                                     </a>
