@@ -32,17 +32,21 @@ function Login() {
         {
           headers: {
             "Content-Type": "application/json",
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
           },
           withCredentials: true, // Include this if your server requires credentials
         }
       );
 
       if (response.status === 200) {
-        // Store the token in local storage
-        localStorage.setItem("authToken", response.data.token);
+        const { token, user } = response.data;
+
+        // Store the token and role in local storage
+        localStorage.setItem("authToken", token);
+        localStorage.setItem("userRole", user.role);
 
         // Navigate to the desired page after successful login
-        // navigate("/Dashboard");
+        navigate("/Dashboard");
         console.log("Login successful:", response.data);
       } else {
         // Handle login failure
