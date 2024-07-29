@@ -16,8 +16,6 @@ function Layout() {
     const storedRole = localStorage.getItem("userRole");
     const token = localStorage.getItem("authToken");
     if (token) {
-      // Verifikasi token di server (opsional, jika Anda menggunakan JWT atau sejenisnya)
-      // Anda bisa melakukan verifikasi token di sini jika perlu
       setIsAuthenticated(true);
       setRole(storedRole);
     } else {
@@ -32,11 +30,6 @@ function Layout() {
       {isAuthenticated && role === "admin" && <NavbarAdmin />}
       {isAuthenticated && role === "employee" && <NavbarUser />}
       {location.pathname === "/" && <Navbar />}
-      {/* {role === 'admin' && <NavbarAdmin />}
-      {role === 'employee' && <NavbarUser />} */}
-      {/* {location.pathname === '/DataKaryawan' && <NavbarAdmin />}
-      {location.pathname === '/Dashboard' && <NavbarAdmin />}
-      {location.pathname === '/Struktur' && <NavbarAdmin />} */}
       <main>
         <Outlet />
       </main>
