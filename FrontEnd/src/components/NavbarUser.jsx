@@ -45,7 +45,7 @@ function NavbarAdmin() {
     return (
         <nav className="bg-custom-blue p-4">
           <div className="container mx-auto flex justify-between items-center">
-            <a href="/" className="inline w-52">
+            <a href="/Dashboard" className="inline w-52">
               <img src={logoIcon} alt="Logo" />
             </a>
             <div className="flex items-center gap-6">

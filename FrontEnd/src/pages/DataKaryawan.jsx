@@ -6,8 +6,18 @@ import "./Data.css";
 import { FaEdit } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa";
 import axios from "axios";
+import * as XLSX from "xlsx";
+import { useNavigate } from 'react-router-dom';
 
 const DataKaryawan = () => {
+  const [records, setRecords] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredRecords, setFilteredRecords] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const navigate = useNavigate();
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [showExportPopup, setShowExportPopup] = useState(false);
+
   const customStyles = {
     headCells: {
       style: {
@@ -30,8 +40,31 @@ const DataKaryawan = () => {
   };
 
   const columns = [
-    { name: "No.", selector: (row) => row.no, sortable: true },
-    { name: "Foto", selector: (row) => row.foto, sortable: true },
+    {
+      name: "No.",
+      selector: (row) => row.no,
+      sortable: true,
+      style: {
+        position: "sticky",
+        left: "0",
+        zIndex: 1,
+        backgroundColor: "white",
+      },
+    },
+    {
+      name: "Foto",
+      selector: (row) => row.foto,
+      sortable: true,
+      cell: (row) => (
+        <div className="flex justify-center items-center w-full">
+          <img
+            src={row.foto}
+            alt="Foto Karyawan"
+            className="w-12 h-12 rounded-full"
+          />
+        </div>
+      ),
+    },
     {
       name: "Nama",
       selector: (row) => row.nama,
@@ -48,1347 +81,198 @@ const DataKaryawan = () => {
     },
     { name: "NIP/REG", selector: (row) => row.nip, sortable: true },
     { name: "Bidang", selector: (row) => row.bidang, sortable: true },
-    { name: "Sub Bidang", selector: (row) => row.subBidang, sortable: true },
-    { name: "Jabatan", selector: (row) => row.jabatan, sortable: true },
-    { name: "Golongan/Ruang", selector: (row) => row.golRuang, sortable: true },
+    { name: "Eselon", selector: (row) => row.eselon, sortable: true },
+    { name: "Sub Bidang", selector: (row) => row.sub_bidang, sortable: true },
+    {
+      name: "Jabatan",
+      selector: (row) => row.jabatan_terakhir,
+      sortable: true,
+    },
+    {
+      name: "Golongan/Ruang",
+      selector: (row) => row.gol_ruang,
+      sortable: true,
+    },
     { name: "Jenjang", selector: (row) => row.jenjang, sortable: true },
     { name: "Jenis", selector: (row) => row.jenis, sortable: true },
     {
       name: "Jenis Kelamin",
-      selector: (row) => row.jenisKelamin,
+      selector: (row) => row.jenis_kelamin,
       sortable: true,
     },
     {
       name: "Tempat Lahir",
-      selector: (row) => row.tempatLahir,
+      selector: (row) => row.tempat_lahir,
       sortable: true,
     },
     {
       name: "Tanggal Lahir",
-      selector: (row) => row.tanggalLahir,
+      selector: (row) => row.tanggal_lahir,
       sortable: true,
     },
     { name: "Umur", selector: (row) => row.umur, sortable: true },
     { name: "NIK", selector: (row) => row.nik, sortable: true },
     { name: "NPWP", selector: (row) => row.npwp, sortable: true },
-    { name: "No. Rek.", selector: (row) => row.noRek, sortable: true },
-    { name: "No. KK", selector: (row) => row.noKK, sortable: true },
-    { name: "Gol. Darah", selector: (row) => row.golDarah, sortable: true },
-    { name: "No. HP", selector: (row) => row.noHP, sortable: true },
+    { name: "No. Rek.", selector: (row) => row.no_rekening, sortable: true },
+    { name: "No. KK", selector: (row) => row.no_kk, sortable: true },
+    {
+      name: "Gol. Darah",
+      selector: (row) => row.golongan_darah,
+      sortable: true,
+    },
+    { name: "No. HP", selector: (row) => row.no_telepon, sortable: true },
     { name: "Email", selector: (row) => row.email, sortable: true },
-    { name: "Email Gov", selector: (row) => row.emailGov, sortable: true },
+    { name: "Email Gov", selector: (row) => row.email_gov, sortable: true },
     { name: "Pendidikan", selector: (row) => row.pendidikan, sortable: true },
     { name: "Jurusan", selector: (row) => row.jurusan, sortable: true },
-    { name: "Tahun Tamat", selector: (row) => row.tahunTamat, sortable: true },
+    { name: "Tahun Tamat", selector: (row) => row.tahun_tamat, sortable: true },
     { name: "Jalan", selector: (row) => row.jalan, sortable: true },
     { name: "Desa", selector: (row) => row.desa, sortable: true },
     { name: "Kecamatan", selector: (row) => row.kecamatan, sortable: true },
     {
       name: "Kabupaten/Kota",
-      selector: (row) => row.kabupatenKota,
+      selector: (row) => row.kabupaten,
       sortable: true,
     },
-    { name: "Alamat", selector: (row) => row.alamat, sortable: true },
+    { name: "Alamat", selector: (row) => row.alamat_lengkap, sortable: true },
     {
       name: "Tahun SK Awal",
-      selector: (row) => row.tahunSKAwal,
+      selector: (row) => row.tahun_sk_awal,
       sortable: true,
     },
     {
       name: "Tahun SK Akhir",
-      selector: (row) => row.tahunSKAkhir,
+      selector: (row) => row.tahun_sk_akhir,
       sortable: true,
     },
-    { name: "Masa Kerja", selector: (row) => row.masaKerja, sortable: true },
-    { name: "No. Reg. BKN", selector: (row) => row.noRegBKN, sortable: true },
-    { name: "Jenis Tekon", selector: (row) => row.jenisTekon, sortable: true },
+    { name: "Masa Kerja", selector: (row) => row.masa_kerja, sortable: true },
+    { name: "No. Reg. BKN", selector: (row) => row.no_req_bkn, sortable: true },
+    { name: "Jenis Tekon", selector: (row) => row.jenis_tekon, sortable: true },
     {
       name: "Kelas Jabatan",
-      selector: (row) => row.kelasJabatan,
+      selector: (row) => row.Kelas_jabatan,
       sortable: true,
     },
   ];
 
   useEffect(() => {
     const fetchData = async () => {
-      axios.get("http://localhost:3000/employees/")
-      .then(res => setRecords(res.data))
-      .catch(err => console.log(err));
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          throw new Error("No token found");
+        }
+
+        const response = await axios.get("http://localhost:3000/employees/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const dataWithIds = response.data.data.map((item, index) => ({
+          ...item,
+          no: index + 1,
+        }));
+        setRecords(dataWithIds);
+        setFilteredRecords(dataWithIds);
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      }
     };
+
     fetchData();
   }, []);
 
-  // const data = [
-  //   {
-  //     id: 1,
-  //     no: 1,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 2,
-  //     no: 2,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 3,
-  //     no: 3,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 4,
-  //     no: 4,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 5,
-  //     no: 5,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 6,
-  //     no: 6,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 7,
-  //     no: 7,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 8,
-  //     no: 8,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 9,
-  //     no: 9,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 10,
-  //     no: 10,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 11,
-  //     no: 11,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 12,
-  //     no: 12,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
+  useEffect(() => {
+    const filtered = records.filter((row) => {
+      return Object.values(row).some((val) =>
+        String(val).toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+    setFilteredRecords(filtered);
+  }, [searchQuery, records]);
 
-  //   {
-  //     id: 3,
-  //     no: 3,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 4,
-  //     no: 4,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 5,
-  //     no: 5,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 6,
-  //     no: 6,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 7,
-  //     no: 7,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 8,
-  //     no: 8,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 9,
-  //     no: 9,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 10,
-  //     no: 10,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 11,
-  //     no: 11,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 12,
-  //     no: 12,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
+  const handleSelectedRowsChange = (state) => {
+    setSelectedRows(state.selectedRows);
+  };
 
-  //   {
-  //     id: 3,
-  //     no: 3,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 4,
-  //     no: 4,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 5,
-  //     no: 5,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 6,
-  //     no: 6,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 7,
-  //     no: 7,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 8,
-  //     no: 8,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 9,
-  //     no: 9,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 10,
-  //     no: 10,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  //   {
-  //     id: 11,
-  //     no: 11,
-  //     foto: "Foto1",
-  //     nama: "John Doe",
-  //     nip: "123456789",
-  //     bidang: "IT",
-  //     subBidang: "Development",
-  //     jabatan: "Manager",
-  //     golRuang: "IV/a",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Laki-laki",
-  //     tempatLahir: "Jakarta",
-  //     tanggalLahir: "1990-01-01",
-  //     umur: 34,
-  //     nik: "1234567890123456",
-  //     npwp: "01.234.567.8-901.000",
-  //     noRek: "1234567890",
-  //     noKK: "1234567890123456",
-  //     golDarah: "A",
-  //     noHP: "08123456789",
-  //     email: "john.doe@example.com",
-  //     emailGov: "john.doe@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Informatika",
-  //     tahunTamat: 2012,
-  //     jalan: "Jl. Merdeka",
-  //     desa: "Desa Maju",
-  //     kecamatan: "Kecamatan Sejahtera",
-  //     kabupatenKota: "Kota Makmur",
-  //     alamat: "Jl. Merdeka No. 1",
-  //     tahunSKAwal: 2013,
-  //     tahunSKAkhir: 2023,
-  //     masaKerja: "10 Tahun",
-  //     noRegBKN: "1234567890",
-  //     jenisTekon: "Tekon A",
-  //     kelasJabatan: "Kelas 1",
-  //   },
-  //   {
-  //     id: 12,
-  //     no: 12,
-  //     foto: "Foto2",
-  //     nama: "Jane Smith",
-  //     nip: "987654321",
-  //     bidang: "HR",
-  //     subBidang: "Recruitment",
-  //     jabatan: "Staff",
-  //     golRuang: "III/b",
-  //     jenjang: "S1",
-  //     jenis: "PNS",
-  //     jenisKelamin: "Perempuan",
-  //     tempatLahir: "Bandung",
-  //     tanggalLahir: "1992-05-15",
-  //     umur: 32,
-  //     nik: "6543210987654321",
-  //     npwp: "09.876.543.2-109.000",
-  //     noRek: "0987654321",
-  //     noKK: "6543210987654321",
-  //     golDarah: "B",
-  //     noHP: "08987654321",
-  //     email: "jane.smith@example.com",
-  //     emailGov: "jane.smith@gov.com",
-  //     pendidikan: "S1",
-  //     jurusan: "Psikologi",
-  //     tahunTamat: 2014,
-  //     jalan: "Jl. Kebangsaan",
-  //     desa: "Desa Sejahtera",
-  //     kecamatan: "Kecamatan Maju",
-  //     kabupatenKota: "Kota Damai",
-  //     alamat: "Jl. Kebangsaan No. 2",
-  //     tahunSKAwal: 2015,
-  //     tahunSKAkhir: 2025,
-  //     masaKerja: "8 Tahun",
-  //     noRegBKN: "0987654321",
-  //     jenisTekon: "Tekon B",
-  //     kelasJabatan: "Kelas 2",
-  //   },
-  // ];
+  const handleAddData = () => {
+    navigate('/TambahData');
+  };
 
-  // const handleEdit = (id) => {
-  //   console.log(`Edit row with id: ${id}`);
-  //   // Implement edit functionality
-  // };
+  const handleDelete = () => {
+    if (selectedRows.length > 0) {
+      setShowDeletePopup(true);
+    }
+  };
 
-  // const handleDelete = (id) => {
-  //   console.log(`Delete row with id: ${id}`);
-  //   // Implement delete functionality
-  // };
+  const confirmDelete = () => {
+    // Implement delete logic here
+    setShowDeletePopup(false);
+  };
 
-  const [records, setRecords] = useState();
+  const cancelDelete = () => {
+    setShowDeletePopup(false);
+  };
 
-  // function handleFilter(event) {
-  //   const newData = fetchData.filter((row) => {
-  //     return row.nama.toLowerCase().includes(event.target.value.toLowerCase());
-  //   });
-  //   setRecords(newData);
-  // }
+  const handleExport = () => {
+    setShowExportPopup(true);
+  };
+
+  const confirmExport = () => {
+    const headers = columns.map((col) => col.name);
+
+    // Prepare data for export
+    const data = filteredRecords.map((record) =>
+      columns.map((col) => {
+        if (typeof col.selector === "function") {
+          return col.selector(record);
+        }
+        return record[col.selector];
+      })
+    );
+
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+
+    // Function to auto fit column width
+    const autoFitColumns = (worksheet, data) => {
+      const objectMaxLength = [];
+
+      data.forEach((row) => {
+        Object.keys(row).forEach((key, colIndex) => {
+          const cellValue = row[key] ? row[key].toString() : "";
+          const cellLength = cellValue.length;
+          objectMaxLength[colIndex] = Math.max(objectMaxLength[colIndex] || 0, cellLength);
+        });
+      });
+
+      worksheet['!cols'] = objectMaxLength.map((length) => ({ width: length + 2 }));
+    };
+
+    // Prepare data in key-value pairs for autoFitColumns function
+    const exportData = [headers, ...filteredRecords.map((record) =>
+      columns.reduce((acc, col) => {
+        acc[col.name] = typeof col.selector === "function" ? col.selector(record) : record[col.selector];
+        return acc;
+      }, {})
+    )];
+  
+    // Adjust column widths
+    autoFitColumns(ws, exportData);
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "DataKaryawan");
+
+    // Export to Excel
+    XLSX.writeFile(wb, "data_karyawan.xlsx");
+
+    setShowExportPopup(false);
+  };
+
+  const cancelExport = () => {
+    setShowExportPopup(false);
+  };
 
   return (
     <div className="min-h-screen">
@@ -1399,43 +283,110 @@ const DataKaryawan = () => {
             <h1 className="text-2xl font-bold">Data Karyawan</h1>
             <div className="container mt-8">
               <div className="flex flex-row justify-between items-center mb-4">
-                <button
-                  className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
-                >
-                  Tambah Data
-                </button>
+                <div className="space-x-4">
+                  <button className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onClick={handleAddData}>
+                    Tambah Data
+                  </button>
+                  <button
+                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    onClick={handleExport}
+                  >
+                    Export
+                  </button>
+                </div>
                 <div className="flex basis-1/3 items-center space-x-4">
                   <p className="font-semibold">Search:</p>
                   <input
                     type="text"
                     className="border border-gray-300 rounded-md p-2 w-full"
-                    // onChange={handleFilter}
-                    placeholder="Filter by Name"
+                    placeholder="Filter by"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                   <div className="flex justify-center items-center space-x-2">
                     <FaEdit
-                      className=" hover:bg-blue-700 bg-custom-blue fill-white hover:text-custom-blue cursor-pointer rounded-xl p-2 transition duration-300 ease-in-out"
+                      className={`${
+                        selectedRows.length === 1
+                          ? "hover:bg-green-700 cursor-pointer"
+                          : "cursor-not-allowed opacity-50"
+                      } bg-green-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
                       size={36}
+                      onClick={() =>
+                        selectedRows.length === 1 && alert("Edit clicked")
+                      }
                     />
                     <FaTrash
-                      className=" hover:bg-blue-700 bg-custom-blue fill-white hover:text-custom-blue cursor-pointer rounded-xl  p-2 transition duration-300 ease-in-out"
+                      className={`${
+                        selectedRows.length > 0
+                          ? "hover:bg-red-700 cursor-pointer"
+                          : "cursor-not-allowed opacity-50"
+                      } bg-red-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
                       size={36}
+                      onClick={handleDelete}
                     />
                   </div>
                 </div>
               </div>
               <DataTable
                 columns={columns}
-                data={records}
+                data={filteredRecords}
                 customStyles={customStyles}
                 selectableRows
                 fixedHeader
                 pagination
+                onSelectedRowsChange={handleSelectedRowsChange}
               />
             </div>
           </div>
         </div>
       </main>
+
+      {showDeletePopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-lg font-semibold mb-8">Konfirmasi</h2>
+            <p className="mb-8">Apakah anda yakin ingin menghapus data ini ?</p>
+            <div className="flex justify-center space-x-4 mt-4">
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                onClick={confirmDelete}
+              >
+                Yes
+              </button>
+              <button
+                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
+                onClick={cancelDelete}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExportPopup && (
+        <div className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="popup bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-lg font-semibold mb-8">Konfirmasi</h2>
+            <p className="mb-8">Apakah anda ingin export data ke excel ?</p>
+            <div className="flex justify-center space-x-4 mt-4">
+              <button
+                onClick={confirmExport}
+                className="bg-blue-600 text-white py-2 px-4 rounded mr-2 hover:bg-blue-700"
+              >
+                Yes
+              </button>
+              <button
+                onClick={cancelExport}
+                className="bg-gray-300 text-white py-2 px-4 rounded hover:bg-gray-400"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
