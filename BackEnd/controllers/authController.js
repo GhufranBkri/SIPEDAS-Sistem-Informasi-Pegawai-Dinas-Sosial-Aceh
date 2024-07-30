@@ -87,8 +87,8 @@ const login = async (req, res) => {
             }
         }
 
-        // Create and assign a token
-        const token = jwt.sign({ _id: user._id, role: user.role, nip: nip }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+        // Create and assign a token                                                                            // expier
+        const token = jwt.sign({ _id: user._id, role: user.role, nip: nip }, process.env.ACCESS_TOKEN_SECRET, {});
 
         // Return response with token and optionally nip
         res.header('Authorization', token).json({

@@ -20,6 +20,10 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         length: 10
     },
+    sub_bidang: {
+        type: String,
+        length: 50
+    },
     jabatan_terakhir: {
         type: String,
         length: 50
@@ -46,6 +50,9 @@ const employeeSchema = new mongoose.Schema({
     },
     tanggal_lahir: {
         type: Date
+    },
+    umur: {
+        type: Number
     },
     nik: {
         type: String,
@@ -134,6 +141,20 @@ const employeeSchema = new mongoose.Schema({
         type: String,
         length: 50
     }
+});
+
+employeeSchema.pre('save', function (next) {
+    if (this.tanggal_lahir) {
+        const today = new Date();
+        const birthDate = new Date(this.tanggal_lahir);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDifference = today.getMonth() - birthDate.getMonth();
+        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        this.umur = age;
+    }
+    next();
 });
 
 module.exports = mongoose.model('Employee', employeeSchema);
