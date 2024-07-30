@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import DataKaryawan from './pages/DataKaryawan';
 import Struktur from './pages/Struktur';
+import TambahData from './pages/TambahData';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/Dashboard" element={<Dashboard />} />
             <Route path="/DataKaryawan" element={<DataKaryawan />} />
             <Route path="/Struktur" element={<Struktur />} />
+            <Route path="/Tambahdata" element={<TambahData />} />
           </Route>
           <Route path="/Login" element={<Login />} />
           

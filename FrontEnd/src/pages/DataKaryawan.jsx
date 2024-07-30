@@ -6,13 +6,17 @@ import "./Data.css";
 import { FaEdit } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa";
 import axios from "axios";
+import * as XLSX from "xlsx";
+import { useNavigate } from 'react-router-dom';
 
 const DataKaryawan = () => {
   const [records, setRecords] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
+  const navigate = useNavigate();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [showExportPopup, setShowExportPopup] = useState(false);
 
   const customStyles = {
     headCells: {
@@ -191,6 +195,10 @@ const DataKaryawan = () => {
     setSelectedRows(state.selectedRows);
   };
 
+  const handleAddData = () => {
+    navigate('/TambahData');
+  };
+
   const handleDelete = () => {
     if (selectedRows.length > 0) {
       setShowDeletePopup(true);
@@ -206,12 +214,65 @@ const DataKaryawan = () => {
     setShowDeletePopup(false);
   };
 
-  // function handleFilter(event) {
-  //   const newData = fetchData.filter((row) => {
-  //     return row.nama.toLowerCase().includes(event.target.value.toLowerCase());
-  //   });
-  //   setRecords(newData);
-  // }
+  const handleExport = () => {
+    setShowExportPopup(true);
+  };
+
+  const confirmExport = () => {
+    const headers = columns.map((col) => col.name);
+
+    // Prepare data for export
+    const data = filteredRecords.map((record) =>
+      columns.map((col) => {
+        if (typeof col.selector === "function") {
+          return col.selector(record);
+        }
+        return record[col.selector];
+      })
+    );
+
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+
+    // Function to auto fit column width
+    const autoFitColumns = (worksheet, data) => {
+      const objectMaxLength = [];
+
+      data.forEach((row) => {
+        Object.keys(row).forEach((key, colIndex) => {
+          const cellValue = row[key] ? row[key].toString() : "";
+          const cellLength = cellValue.length;
+          objectMaxLength[colIndex] = Math.max(objectMaxLength[colIndex] || 0, cellLength);
+        });
+      });
+
+      worksheet['!cols'] = objectMaxLength.map((length) => ({ width: length + 2 }));
+    };
+
+    // Prepare data in key-value pairs for autoFitColumns function
+    const exportData = [headers, ...filteredRecords.map((record) =>
+      columns.reduce((acc, col) => {
+        acc[col.name] = typeof col.selector === "function" ? col.selector(record) : record[col.selector];
+        return acc;
+      }, {})
+    )];
+  
+    // Adjust column widths
+    autoFitColumns(ws, exportData);
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "DataKaryawan");
+
+    // Export to Excel
+    XLSX.writeFile(wb, "data_karyawan.xlsx");
+
+    setShowExportPopup(false);
+  };
+
+  const cancelExport = () => {
+    setShowExportPopup(false);
+  };
 
   return (
     <div className="min-h-screen">
@@ -222,9 +283,18 @@ const DataKaryawan = () => {
             <h1 className="text-2xl font-bold">Data Karyawan</h1>
             <div className="container mt-8">
               <div className="flex flex-row justify-between items-center mb-4">
-                <button className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700">
-                  Tambah Data
-                </button>
+                <div className="space-x-4">
+                  <button className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onClick={handleAddData}>
+                    Tambah Data
+                  </button>
+                  <button
+                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    onClick={handleExport}
+                  >
+                    Export
+                  </button>
+                </div>
                 <div className="flex basis-1/3 items-center space-x-4">
                   <p className="font-semibold">Search:</p>
                   <input
@@ -275,8 +345,8 @@ const DataKaryawan = () => {
       {showDeletePopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <h2 className="text-lg font-semibold mb-6">Hapus Data</h2>
-            <p className="mb-6">Apakah anda yakin ingin menghapus data ini?</p>
+            <h2 className="text-lg font-semibold mb-8">Konfirmasi</h2>
+            <p className="mb-8">Apakah anda yakin ingin menghapus data ini ?</p>
             <div className="flex justify-center space-x-4 mt-4">
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
@@ -287,6 +357,29 @@ const DataKaryawan = () => {
               <button
                 className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
                 onClick={cancelDelete}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExportPopup && (
+        <div className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="popup bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-lg font-semibold mb-8">Konfirmasi</h2>
+            <p className="mb-8">Apakah anda ingin export data ke excel ?</p>
+            <div className="flex justify-center space-x-4 mt-4">
+              <button
+                onClick={confirmExport}
+                className="bg-blue-600 text-white py-2 px-4 rounded mr-2 hover:bg-blue-700"
+              >
+                Yes
+              </button>
+              <button
+                onClick={cancelExport}
+                className="bg-gray-300 text-white py-2 px-4 rounded hover:bg-gray-400"
               >
                 No
               </button>
