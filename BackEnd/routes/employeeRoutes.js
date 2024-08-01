@@ -13,7 +13,6 @@ const bcrypt = require('bcrypt');
 const formatResponse = require('../utils/responseFormatter');
 const { authenticateToken, authorizeRoles, authorizeEmployeeAccess } = require('../middleware/authMiddleware');
 
-// Multer setup
 const uploadCsv = multer({ dest: 'uploads/' });
 
 
@@ -233,8 +232,22 @@ router.delete('/:nip', authenticateToken, authorizeRoles('admin'), async (req, r
 });
 
 
+// Set storage engine for CSV upload
+const storageCsv = multer.diskStorage({
+    destination: './uploads/',
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+// Initialize upload for CSV
+const uploadCsv = multer({
+    storage: storageCsv,
+    limits: { fileSize: 10000000 } // Batas ukuran file 10MB
+}).single('file');
+
 // Import employees from CSV (Admin only)
-router.post('/import', authenticateToken, authorizeRoles('admin'), uploadCsv.single('file'), async (req, res) => {
+router.post('/import', authenticateToken, authorizeRoles('admin'), uploadCsv, async (req, res) => {
     const results = [];
     fs.createReadStream(req.file.path)
         .pipe(csvParser())
