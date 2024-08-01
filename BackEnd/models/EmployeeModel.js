@@ -3,13 +3,11 @@ const mongoose = require('mongoose');
 const employeeSchema = new mongoose.Schema({
     nip: {
         type: String,
-        required: true,
         unique: true,
         length: 20
     },
     nama: {
         type: String,
-        required: true,
         length: 100
     },
     bidang: {
@@ -80,7 +78,6 @@ const employeeSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: true,
         length: 100
     },
     email_gov: {
