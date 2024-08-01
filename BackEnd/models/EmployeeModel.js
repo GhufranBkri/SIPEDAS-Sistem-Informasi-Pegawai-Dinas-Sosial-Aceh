@@ -128,7 +128,7 @@ const employeeSchema = new mongoose.Schema({
         length: 20
     },
     foto: {
-        type: Buffer
+        type: String
     },
     jenis_tekon: {
         type: String,
