@@ -195,6 +195,12 @@ const DataKaryawan = () => {
     setSelectedRows(state.selectedRows);
   };
 
+  const handleEditData = () => {
+    if (selectedRows.length === 1) {
+      navigate("/EditData", { state: { data: selectedRows[0] } });
+    }
+  };
+
   const handleAddData = () => {
     navigate("/TambahData");
   };
@@ -353,9 +359,7 @@ const DataKaryawan = () => {
                           : "cursor-not-allowed opacity-50"
                       } bg-green-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
                       size={36}
-                      onClick={() =>
-                        selectedRows.length === 1 && alert("Edit clicked")
-                      }
+                      onClick={handleEditData}
                     />
                     <FaTrash
                       className={`${
@@ -393,13 +397,13 @@ const DataKaryawan = () => {
                 className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
                 onClick={cancelDelete}
               >
-                No
+                Batal
               </button>
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
                 onClick={confirmDelete}
               >
-                Yes
+                Ya
               </button>
             </div>
           </div>

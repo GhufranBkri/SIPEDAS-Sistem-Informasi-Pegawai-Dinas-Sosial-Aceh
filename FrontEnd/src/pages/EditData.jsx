@@ -1,9 +1,10 @@
-// src/pages/TambahData.jsx
+// src/pages/EditData.jsx
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const TambahData = () => {
+const EditData = () => {
   const [formData, setFormData] = useState({
     nama: "",
     nip: "",
@@ -50,6 +51,17 @@ const TambahData = () => {
   const golonganDarahOptions = ["A", "B", "AB", "O"];
   const jenisOptions = ["PNS", "Tenaga Kontrak"];
   const kelasJabatanOptions = ["I", "II", "III", "IV"];
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (location.state && location.state.data) {
+      setFormData(location.state.data);
+    } else {
+      // Handle the case where no data is passed (e.g., redirect to DataKaryawan)
+      navigate("/DataKaryawan");
+    }
+  }, [location.state, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -162,6 +174,8 @@ const TambahData = () => {
     }
 
     try {
+      console.log("Data yang akan dikirim:", formData);
+
       const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("No token found");
@@ -170,40 +184,49 @@ const TambahData = () => {
       const formDataToSend = new FormData();
       Object.keys(formData).forEach((key) => {
         if (key === "foto" && formData[key]) {
-          console.log("Adding file to FormData:", formData[key]);
           formDataToSend.append(key, formData[key]);
         } else {
           formDataToSend.append(key, formData[key]);
         }
       });
 
-      await axios.post("http://localhost:3000/employees/", formDataToSend, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      alert("Data berhasil ditambahkan");
-      window.location.href = "/DataKaryawan";
+      console.log(
+        "FormData yang akan dikirim:",
+        Array.from(formDataToSend.entries())
+      );
+
+      const response = await axios.patch(
+        `http://localhost:3000/employees/${formData.nip}`,
+        formDataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Data berhasil diperbarui:", response.data);
+      alert("Data berhasil diperbarui");
+      navigate("/DataKaryawan");
     } catch (error) {
-      if (
-        error.response &&
-        error.response.data.message.includes("duplicate key error")
-      ) {
-        alert(
-          "An employee with this NIP already exists. Please use a different NIP."
-        );
-      } else {
-        console.error(
-          "Error adding data: ",
-          error.response ? error.response.data : error.message
-        );
-        alert(
-          `Failed to add data: ${
-            error.response ? error.response.data.message : error.message
-          }`
-        );
+      let errorMessage = "An error occurred. Please try again later.";
+
+      if (error.response) {
+        const { data } = error.response;
+        if (data && data.message) {
+          errorMessage = data.message;
+          if (data.message.includes("duplicate key error")) {
+            errorMessage =
+              "An employee with this NIP already exists. Please use a different NIP.";
+          }
+        }
       }
+
+      console.error(
+        "Error adding data: ",
+        error.response ? error.response.data : error.message
+      );
+      alert(errorMessage);
     }
   };
 
@@ -231,7 +254,7 @@ const TambahData = () => {
       <main className="py-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
-            Tambah Data Karyawan
+            Edit Data Karyawan
           </h1>
           <form onSubmit={handleSubmitWithConfirmation}>
             <div className="form-2 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
@@ -311,7 +334,8 @@ const TambahData = () => {
                     )}
                     {name === "foto" && (
                       <p className="text-gray-500 text-sm mt-1">
-                        * Only .png, .jpg, .jpeg files are allowed with 1 MB size
+                        * Only .png, .jpg, .jpeg files are allowed with 1 MB
+                        size
                       </p>
                     )}
                   </div>
@@ -443,11 +467,6 @@ const TambahData = () => {
                         {errors[name]}
                       </p>
                     )}
-                    {(name === "sub_bidang" || name === "eselon") && (
-                      <p className="text-gray-500 text-sm mt-1">
-                        * Isi ( - ) jika tidak ada
-                      </p>
-                    )}
                   </div>
                 ))}
               </div>
@@ -476,9 +495,7 @@ const TambahData = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-4">Konfirmasi</h2>
-            <p className="mb-4">
-              Apakah Anda yakin ingin menambahkan data ini?
-            </p>
+            <p className="mb-4">Apakah Anda yakin ingin mengubah data ini?</p>
             <div className="flex justify-end">
               <button
                 onClick={handleCancelModal}
@@ -500,4 +517,4 @@ const TambahData = () => {
   );
 };
 
-export default TambahData;
+export default EditData;
