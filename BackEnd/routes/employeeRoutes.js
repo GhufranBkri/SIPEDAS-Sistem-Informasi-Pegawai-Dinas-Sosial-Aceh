@@ -112,11 +112,10 @@ router.get('/request/update-requests', authenticateToken, authorizeRoles('admin'
 
 
 // Admin approves or rejects an update request
-// Admin approves or rejects an update request
 router.patch('/update-request/:id', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     const { id } = req.params;
     const { status, adminResponse } = req.body;
-    
+
     // Check if the status is either 'approved' or 'rejected'
     if (!['approved', 'rejected'].includes(status)) {
         return res.status(400).json(formatResponse('error', 400, null, 'Invalid status'));
@@ -182,13 +181,22 @@ router.patch('/:nip', authenticateToken, authorizeEmployeeAccess, async (req, re
 router.delete('/:nip', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     console.log('DELETE /employees/:nip', req.params.nip); // Debugging log
     try {
+        // Find the employee to delete
         const deletedEmployee = await Employee.findOneAndDelete({ nip: req.params.nip });
         if (!deletedEmployee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
-        res.status(200).json(formatResponse('success', 200, null, 'Employee deleted'));
+
+        // Find and delete the corresponding user
+        const deletedUser = await User.findOneAndDelete({ email: deletedEmployee.email });
+        if (!deletedUser) {
+            return res.status(404).json(formatResponse('error', 404, null, 'User not found'));
+        }
+
+        res.status(200).json(formatResponse('success', 200, null, 'Employee and corresponding user deleted'));
     } catch (err) {
         res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 });
+
 
 // Import employees from CSV (Admin only)
 router.post('/import', authenticateToken, authorizeRoles('admin'), upload.single('file'), async (req, res) => {
