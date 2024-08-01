@@ -7,28 +7,63 @@ const User = require('../models/UserModel');
 const UpdateRequest = require('../models/UpdateRequestModel'); // Tambahkan ini
 const multer = require('multer');
 const csvParser = require('csv-parser');
+const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const formatResponse = require('../utils/responseFormatter');
 const { authenticateToken, authorizeRoles, authorizeEmployeeAccess } = require('../middleware/authMiddleware');
 
 // Multer setup
-const upload = multer({ dest: 'uploads/' });
+const uploadCsv = multer({ dest: 'uploads/' });
+
+
+// Set storage engine
+const storage = multer.diskStorage({
+    destination: './uploads/',
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+// Initialize upload
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 1000000 }, // Batas ukuran file 1MB
+    fileFilter: function (req, file, cb) {
+        checkFileType(file, cb);
+    }
+}).single('foto');
+
+// Check File Type
+function checkFileType(file, cb) {
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb('Error: Hanya gambar!');
+    }
+}
 
 // Create new employee (Admin only)
-router.post('/', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('admin'), upload, async (req, res) => {
     console.log('POST /employees - Received data:', req.body); // Debugging log
+
+    if (req.file) {
+        req.body.foto = req.file.path;
+    }
+
     const employee = new Employee(req.body);
     try {
         const savedEmployee = await employee.save();
 
-        // Hash password (NIP)
         const hashedPassword = await bcrypt.hash(req.body.nip, 10);
 
-        // Create new user
         const user = new User({
             email: req.body.email,
-            password: hashedPassword, // Menggunakan hashed password
+            password: hashedPassword,
             role: 'employee',
         });
 
@@ -199,7 +234,7 @@ router.delete('/:nip', authenticateToken, authorizeRoles('admin'), async (req, r
 
 
 // Import employees from CSV (Admin only)
-router.post('/import', authenticateToken, authorizeRoles('admin'), upload.single('file'), async (req, res) => {
+router.post('/import', authenticateToken, authorizeRoles('admin'), uploadCsv.single('file'), async (req, res) => {
     const results = [];
     fs.createReadStream(req.file.path)
         .pipe(csvParser())
