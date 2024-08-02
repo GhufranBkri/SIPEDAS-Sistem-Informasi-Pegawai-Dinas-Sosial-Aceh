@@ -7,7 +7,7 @@ import { FaEdit } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa";
 import axios from "axios";
 import * as XLSX from "xlsx";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const DataKaryawan = () => {
   const [records, setRecords] = useState([]);
@@ -195,8 +195,14 @@ const DataKaryawan = () => {
     setSelectedRows(state.selectedRows);
   };
 
+  const handleEditData = () => {
+    if (selectedRows.length === 1) {
+      navigate("/EditData", { state: { data: selectedRows[0] } });
+    }
+  };
+
   const handleAddData = () => {
-    navigate('/TambahData');
+    navigate("/TambahData");
   };
 
   const handleDelete = () => {
@@ -205,9 +211,37 @@ const DataKaryawan = () => {
     }
   };
 
-  const confirmDelete = () => {
-    // Implement delete logic here
-    setShowDeletePopup(false);
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No token found");
+      }
+
+      const deletePromises = selectedRows.map((row) =>
+        axios.delete(`http://localhost:3000/employees/${row.nip}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+      );
+
+      await Promise.all(deletePromises);
+
+      const updatedRecords = records.filter(
+        (record) => !selectedRows.some((row) => row.id === record.id)
+      );
+
+      setRecords(updatedRecords);
+      setFilteredRecords(updatedRecords);
+      setSelectedRows([]);
+      alert("Data berhasil dihapus");
+      setShowDeletePopup(false);
+    } catch (error) {
+      console.error("Error deleting data: ", error);
+      alert("Gagal menghapus data");
+      setShowDeletePopup(false);
+    }
   };
 
   const cancelDelete = () => {
@@ -242,21 +276,32 @@ const DataKaryawan = () => {
         Object.keys(row).forEach((key, colIndex) => {
           const cellValue = row[key] ? row[key].toString() : "";
           const cellLength = cellValue.length;
-          objectMaxLength[colIndex] = Math.max(objectMaxLength[colIndex] || 0, cellLength);
+          objectMaxLength[colIndex] = Math.max(
+            objectMaxLength[colIndex] || 0,
+            cellLength
+          );
         });
       });
 
-      worksheet['!cols'] = objectMaxLength.map((length) => ({ width: length + 2 }));
+      worksheet["!cols"] = objectMaxLength.map((length) => ({
+        width: length + 2,
+      }));
     };
 
     // Prepare data in key-value pairs for autoFitColumns function
-    const exportData = [headers, ...filteredRecords.map((record) =>
-      columns.reduce((acc, col) => {
-        acc[col.name] = typeof col.selector === "function" ? col.selector(record) : record[col.selector];
-        return acc;
-      }, {})
-    )];
-  
+    const exportData = [
+      headers,
+      ...filteredRecords.map((record) =>
+        columns.reduce((acc, col) => {
+          acc[col.name] =
+            typeof col.selector === "function"
+              ? col.selector(record)
+              : record[col.selector];
+          return acc;
+        }, {})
+      ),
+    ];
+
     // Adjust column widths
     autoFitColumns(ws, exportData);
 
@@ -284,8 +329,10 @@ const DataKaryawan = () => {
             <div className="container mt-8">
               <div className="flex flex-row justify-between items-center mb-4">
                 <div className="space-x-4">
-                  <button className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={handleAddData}>
+                  <button
+                    className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
+                    onClick={handleAddData}
+                  >
                     Tambah Data
                   </button>
                   <button
@@ -312,9 +359,7 @@ const DataKaryawan = () => {
                           : "cursor-not-allowed opacity-50"
                       } bg-green-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
                       size={36}
-                      onClick={() =>
-                        selectedRows.length === 1 && alert("Edit clicked")
-                      }
+                      onClick={handleEditData}
                     />
                     <FaTrash
                       className={`${
@@ -349,16 +394,16 @@ const DataKaryawan = () => {
             <p className="mb-8">Apakah anda yakin ingin menghapus data ini ?</p>
             <div className="flex justify-center space-x-4 mt-4">
               <button
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                onClick={confirmDelete}
-              >
-                Yes
-              </button>
-              <button
                 className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
                 onClick={cancelDelete}
               >
-                No
+                Batal
+              </button>
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                onClick={confirmDelete}
+              >
+                Ya
               </button>
             </div>
           </div>
