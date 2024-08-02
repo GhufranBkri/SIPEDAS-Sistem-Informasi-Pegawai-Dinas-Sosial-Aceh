@@ -13,20 +13,17 @@ const bcrypt = require('bcrypt');
 const formatResponse = require('../utils/responseFormatter');
 const { authenticateToken, authorizeRoles, authorizeEmployeeAccess } = require('../middleware/authMiddleware');
 
-const uploadCsv = multer({ dest: 'uploads/' });
-
-
-// Set storage engine
-const storage = multer.diskStorage({
+// Set storage engine for images
+const imageStorage = multer.diskStorage({
     destination: './uploads/',
     filename: function (req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
 });
 
-// Initialize upload
+// Initialize upload for images
 const upload = multer({
-    storage: storage,
+    storage: imageStorage,
     limits: { fileSize: 1000000 }, // Batas ukuran file 1MB
     fileFilter: function (req, file, cb) {
         checkFileType(file, cb);
@@ -90,7 +87,7 @@ router.get('/:nip', authenticateToken, authorizeEmployeeAccess, async (req, res)
     console.log('GET /employees/:nip', req.params.nip); // Debugging log
     try {
         const employee = await Employee.findOne({ nip: req.params.nip });
-        if (!employee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found  1'));
+        if (!employee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
         res.status(200).json(formatResponse('success', 200, employee));
     } catch (err) {
         res.status(500).json(formatResponse('error', 500, null, err.message));
@@ -125,8 +122,6 @@ router.post('/update-request', authenticateToken, async (req, res) => {
     }
 });
 
-
-
 // Get all update requests (Admin only)
 router.get('/request/update-requests', authenticateToken, authorizeRoles('admin'), async (req, res) => {
     try {
@@ -143,7 +138,6 @@ router.get('/request/update-requests', authenticateToken, authorizeRoles('admin'
         res.status(500).json(formatResponse('error', 500, null, 'Internal server error'));
     }
 });
-
 
 // Admin approves or rejects an update request
 router.patch('/update-request/:id', authenticateToken, authorizeRoles('admin'), async (req, res) => {
@@ -194,11 +188,13 @@ router.patch('/update-request/:id', authenticateToken, authorizeRoles('admin'), 
     }
 });
 
-
 // Update an employee by NIP (Employee can only update their own data)
-router.patch('/:nip', authenticateToken, authorizeEmployeeAccess, async (req, res) => {
+router.patch('/:nip', authenticateToken, authorizeEmployeeAccess, upload, async (req, res) => {
     console.log('PATCH /employees/:nip', req.params.nip); // Debugging log
     try {
+        if (req.file) {
+            req.body.foto = req.file.path;
+        }
         const updatedEmployee = await Employee.findOneAndUpdate(
             { nip: req.params.nip },
             req.body,
@@ -231,9 +227,8 @@ router.delete('/:nip', authenticateToken, authorizeRoles('admin'), async (req, r
     }
 });
 
-
 // Set storage engine for CSV upload
-const storageCsv = multer.diskStorage({
+const csvStorage = multer.diskStorage({
     destination: './uploads/',
     filename: function (req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
@@ -242,7 +237,7 @@ const storageCsv = multer.diskStorage({
 
 // Initialize upload for CSV
 const uploadCsv = multer({
-    storage: storageCsv,
+    storage: csvStorage,
     limits: { fileSize: 10000000 } // Batas ukuran file 10MB
 }).single('file');
 
