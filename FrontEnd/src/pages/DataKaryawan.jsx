@@ -39,6 +39,15 @@ const DataKaryawan = () => {
     },
   };
 
+  const formatDate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   const columns = [
     {
       name: "No.",
@@ -109,6 +118,7 @@ const DataKaryawan = () => {
       name: "Tanggal Lahir",
       selector: (row) => row.tanggal_lahir,
       sortable: true,
+      cell: (row) => formatDate(row.tanggal_lahir),
     },
     { name: "Umur", selector: (row) => row.umur, sortable: true },
     { name: "NIK", selector: (row) => row.nik, sortable: true },
@@ -258,10 +268,11 @@ const DataKaryawan = () => {
     // Prepare data for export
     const data = filteredRecords.map((record) =>
       columns.map((col) => {
-        if (typeof col.selector === "function") {
-          return col.selector(record);
+        const value = typeof col.selector === "function" ? col.selector(record) : record[col.selector];
+        if (col.name === "Tanggal Lahir") {
+          return formatDate(value);
         }
-        return record[col.selector];
+        return value;
       })
     );
 
