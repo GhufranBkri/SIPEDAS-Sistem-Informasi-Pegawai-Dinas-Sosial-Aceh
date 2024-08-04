@@ -13,25 +13,22 @@ const bcrypt = require('bcrypt');
 const formatResponse = require('../utils/responseFormatter');
 const { authenticateToken, authorizeRoles, authorizeEmployeeAccess } = require('../middleware/authMiddleware');
 
-// Set storage engine for images
-const imageStorage = multer.diskStorage({
-    destination: './uploads/',
-    filename: function (req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
+// Konfigurasi multer untuk menyimpan buffer
+const storage = multer.memoryStorage(); // Gunakan memoryStorage untuk buffer
 
-// Initialize upload for images
+// Inisialisasi multer dengan konfigurasi penyimpanan dan batas ukuran file
 const upload = multer({
-    storage: imageStorage,
+    storage: storage,
     limits: { fileSize: 1000000 }, // Batas ukuran file 1MB
     fileFilter: function (req, file, cb) {
+        // Validasi tipe file (hanya menerima gambar)
         checkFileType(file, cb);
     }
-}).single('foto');
+}).single('foto'); // 'foto' adalah nama field input dari form
 
-// Check File Type
+// Fungsi untuk memeriksa tipe file
 function checkFileType(file, cb) {
+    // Menentukan ekstensi file yang diperbolehkan
     const filetypes = /jpeg|jpg|png/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
@@ -39,19 +36,26 @@ function checkFileType(file, cb) {
     if (mimetype && extname) {
         return cb(null, true);
     } else {
-        cb('Error: Hanya gambar!');
+        cb('Error: Hanya gambar dengan format JPEG, JPG, atau PNG yang diperbolehkan!');
     }
 }
 
-// Create new employee (Admin only)
+// Membuat karyawan baru (hanya Admin)
 router.post('/', authenticateToken, authorizeRoles('admin'), upload, async (req, res) => {
     console.log('POST /employees - Received data:', req.body); // Debugging log
 
-    if (req.file) {
-        req.body.foto = req.file.path;
+    if (!req.file) {
+        return res.status(400).json(formatResponse('error', 400, null, 'Foto harus diunggah'));
     }
 
-    const employee = new Employee(req.body);
+    // Mengambil buffer dari file yang diunggah
+    const fotoBuffer = req.file.buffer;
+
+    const employee = new Employee({
+        ...req.body,
+        foto: fotoBuffer // Menyimpan buffer foto ke database
+    });
+
     try {
         const savedEmployee = await employee.save();
 
@@ -98,12 +102,12 @@ router.get('/:nip', authenticateToken, authorizeEmployeeAccess, async (req, res)
 router.post('/update-request', authenticateToken, async (req, res) => {
     const { nip, updatedData } = req.body;
 
-    // Validasi input
+    // Validate input
     if (!nip || !updatedData) {
         return res.status(400).json(formatResponse('error', 400, null, 'NIP and updatedData are required'));
     }
 
-    // Validasi peran pengguna dan NIP
+    // Validate user role and NIP
     if (req.user.role !== 'employee' || req.user.nip !== nip) {
         return res.status(403).json(formatResponse('error', 403, null, 'Access denied'));
     }
@@ -127,7 +131,7 @@ router.get('/request/update-requests', authenticateToken, authorizeRoles('admin'
     try {
         const updateRequests = await UpdateRequest.find({ status: 'pending' });
 
-        // Jika tidak ada permintaan update yang ditemukan
+        // If no update requests are found
         if (!updateRequests.length) {
             return res.status(404).json(formatResponse('error', 404, null, 'No pending update requests found'));
         }
@@ -189,15 +193,19 @@ router.patch('/update-request/:id', authenticateToken, authorizeRoles('admin'), 
 });
 
 // Update an employee by NIP (Employee can only update their own data)
-router.patch('/:nip', authenticateToken, authorizeEmployeeAccess, upload, async (req, res) => {
+router.patch('/:nip', authenticateToken, authorizeEmployeeAccess, async (req, res) => {
     console.log('PATCH /employees/:nip', req.params.nip); // Debugging log
     try {
-        if (req.file) {
-            req.body.foto = req.file.path;
+        const { foto, ...updateData } = req.body;
+
+        // Check if a new Base64 encoded foto is provided
+        if (foto) {
+            updateData.foto = foto;
         }
+
         const updatedEmployee = await Employee.findOneAndUpdate(
             { nip: req.params.nip },
-            req.body,
+            updateData,
             { new: true, runValidators: true } // Ensure validation is run
         );
         if (!updatedEmployee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
@@ -238,7 +246,7 @@ const csvStorage = multer.diskStorage({
 // Initialize upload for CSV
 const uploadCsv = multer({
     storage: csvStorage,
-    limits: { fileSize: 10000000 } // Batas ukuran file 10MB
+    limits: { fileSize: 10000000 } // Limit file size to 10MB
 }).single('file');
 
 // Import employees from CSV (Admin only)

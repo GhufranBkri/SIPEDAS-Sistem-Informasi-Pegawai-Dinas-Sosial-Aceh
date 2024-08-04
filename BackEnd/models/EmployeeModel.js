@@ -1,3 +1,5 @@
+// EmployeeModel.js
+
 const mongoose = require('mongoose');
 
 const employeeSchema = new mongoose.Schema({
@@ -47,7 +49,7 @@ const employeeSchema = new mongoose.Schema({
         length: 50
     },
     tanggal_lahir: {
-        type: Date
+        type: String
     },
     umur: {
         type: Number
@@ -128,7 +130,7 @@ const employeeSchema = new mongoose.Schema({
         length: 20
     },
     foto: {
-        type: String
+        type: Buffer // Ubah tipe menjadi Buffer
     },
     jenis_tekon: {
         type: String,
@@ -140,6 +142,7 @@ const employeeSchema = new mongoose.Schema({
     }
 });
 
+// Age calculation logic remains unchanged
 employeeSchema.pre('save', function (next) {
     if (this.tanggal_lahir) {
         const today = new Date();
