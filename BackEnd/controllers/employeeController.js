@@ -61,6 +61,30 @@ const getEmployeeByNip = async (req, res) => {
     }
 };
 
+// Get user by ID (only allow access to their own data)
+const getUserById = async (req, res) => {
+    console.log('GET /users/:id', req.params.id); // Debugging log
+
+    try {
+        const { id } = req.params;
+
+        // Check if the authenticated user is trying to access their own data
+        if (req.user._id !== id) {
+            return res.status(403).json(formatResponse('error', 403, null, 'Access denied: You can only access your own data'));
+        }
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json(formatResponse('error', 404, null, 'User not found'));
+        }
+
+        res.status(200).json(formatResponse('success', 200, user));
+    } catch (err) {
+        res.status(500).json(formatResponse('error', 500, null, err.message));
+    }
+};
+
+
 // Update an employee by NIP (Employee can only update their own data)
 const updateEmployeeByNip = async (req, res) => {
     const { nip } = req.params;
@@ -129,4 +153,5 @@ module.exports = {
     updateEmployeeByNip,
     deleteEmployeeByNip,
     importEmployeesFromCsv,
+    getUserById
 };
