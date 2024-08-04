@@ -1,5 +1,4 @@
 // routes/employees.js
-
 const express = require('express');
 const router = express.Router();
 
@@ -10,6 +9,7 @@ const {
     updateEmployeeByNip,
     deleteEmployeeByNip,
     importEmployeesFromCsv,
+    getUserById
 } = require('../controllers/employeeController');
 
 const { uploadPhoto } = require('../controllers/photoController');
@@ -29,10 +29,12 @@ router.get('/', authenticateToken, authorizeRoles('admin'), getAllEmployees);
 router.get('/:nip', authenticateToken, authorizeEmployeeAccess, getEmployeeByNip);
 router.patch('/:nip', authenticateToken, authorizeEmployeeAccess, updateEmployeeByNip);
 router.delete('/:nip', authenticateToken, authorizeRoles('admin'), deleteEmployeeByNip);
-router.post('/import', authenticateToken, authorizeRoles('admin'), uploadCsv, importEmployeesFromCsv); // Use uploadCsv
+router.post('/import', authenticateToken, authorizeRoles('admin'), uploadCsv, importEmployeesFromCsv);
 router.post('/upload-foto', authenticateToken, uploadPhoto);
 router.post('/update-request', authenticateToken, requestEmployeeUpdate);
 router.get('/request/update-requests', authenticateToken, authorizeRoles('admin'), getAllUpdateRequests);
 router.patch('/update-request/:id', authenticateToken, authorizeRoles('admin'), updateRequestStatus);
+// Get user data by ID (self-access only)
+router.get('/:id', authenticateToken, getUserById);
 
 module.exports = router;
