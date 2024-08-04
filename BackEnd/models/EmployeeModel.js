@@ -1,5 +1,3 @@
-// EmployeeModel.js
-
 const mongoose = require('mongoose');
 
 const employeeSchema = new mongoose.Schema({
@@ -51,9 +49,7 @@ const employeeSchema = new mongoose.Schema({
     tanggal_lahir: {
         type: String
     },
-    umur: {
-        type: Number
-    },
+    // Remove the umur field from here as it's now virtual
     nik: {
         type: String,
         length: 20
@@ -130,7 +126,7 @@ const employeeSchema = new mongoose.Schema({
         length: 20
     },
     foto: {
-        type: Buffer // Ubah tipe menjadi Buffer
+        type: String
     },
     jenis_tekon: {
         type: String,
@@ -142,19 +138,24 @@ const employeeSchema = new mongoose.Schema({
     }
 });
 
-// Age calculation logic remains unchanged
-employeeSchema.pre('save', function (next) {
-    if (this.tanggal_lahir) {
-        const today = new Date();
-        const birthDate = new Date(this.tanggal_lahir);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDifference = today.getMonth() - birthDate.getMonth();
-        if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-        this.umur = age;
+// Virtual field to calculate age
+employeeSchema.virtual('umur').get(function () {
+    if (!this.tanggal_lahir) return null; // Return null if tanggal_lahir is not set
+
+    const [month, day, year] = this.tanggal_lahir.split('/').map(Number);
+    const birthDate = new Date(year, month - 1, day);
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
     }
-    next();
+    return age;
 });
+
+// Ensure virtual fields are included in JSON output
+employeeSchema.set('toJSON', { virtuals: true });
+employeeSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Employee', employeeSchema);
