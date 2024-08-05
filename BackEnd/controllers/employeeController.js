@@ -25,6 +25,7 @@ const createEmployee = async (req, res) => {
             email: req.body.email,
             password: hashedPassword,
             role: 'employee',
+            employeeNip: req.body.nip
         });
 
         await user.save();

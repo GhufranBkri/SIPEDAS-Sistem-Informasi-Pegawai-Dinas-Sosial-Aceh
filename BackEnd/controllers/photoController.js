@@ -16,10 +16,6 @@ const uploadPhoto = async (req, res) => {
     console.log('POST /employees/upload-foto'); // Debugging log
 
     try {
-        // Ensure that a file is uploaded
-        if (!req.file) {
-            return res.status(400).json(formatResponse('error', 400, null, 'No file uploaded'));
-        }
 
         // Upload image to Cloudinary using the buffer
         const result = await new Promise((resolve, reject) => {
