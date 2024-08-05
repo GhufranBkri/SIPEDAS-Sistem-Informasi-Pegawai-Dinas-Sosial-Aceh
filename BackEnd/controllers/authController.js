@@ -105,4 +105,38 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { createFirstAdmin, registerAdmin, login };
+
+// authController.js
+const updateUserDetails = async (req, res) => {
+    const { nip, newEmail, newPassword } = req.body;
+
+    try {
+        // Cari user berdasarkan NIP
+        const user = await User.findOne({ employeeNip: nip });
+        if (!user) return res.status(400).json({ message: 'User not found' });
+
+        // Cari employee berdasarkan NIP
+        const employee = await Employee.findOne({ nip });
+        if (!employee) return res.status(400).json({ message: 'Employee not found' });
+
+        // Update email dan password jika ada perubahan
+        if (newEmail) {
+            user.email = newEmail;
+            employee.email = newEmail; // Update email di tabel Employee
+        }
+
+        if (newPassword) {
+            user.password = await bcrypt.hash(newPassword, 10);
+        }
+
+        await user.save();
+        await employee.save(); // Simpan perubahan di tabel Employee
+
+        res.status(200).json({ message: 'User details updated successfully' });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+
+module.exports = { createFirstAdmin, registerAdmin, login, updateUserDetails };

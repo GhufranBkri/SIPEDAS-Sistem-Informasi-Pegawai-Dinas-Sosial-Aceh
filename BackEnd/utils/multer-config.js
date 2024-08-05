@@ -1,9 +1,10 @@
+// utils/multer-config.js
 const multer = require('multer');
 
-// Menggunakan penyimpanan di memori
+// Using memory storage
 const storage = multer.memoryStorage();
 
-// Konfigurasi upload
+// Configuring upload
 const upload = multer({ storage: storage });
 
 module.exports = upload;

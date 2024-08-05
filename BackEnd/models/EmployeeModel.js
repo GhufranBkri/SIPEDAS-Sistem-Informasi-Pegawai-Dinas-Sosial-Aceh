@@ -4,7 +4,7 @@ const employeeSchema = new mongoose.Schema({
     nip: {
         type: String,
         unique: true,
-        length: 20
+        required: [true, 'NIP is required']
     },
     nama: {
         type: String,
@@ -76,7 +76,8 @@ const employeeSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        length: 100
+        required: [true, 'Email is required'],
+        unique: true,
     },
     email_gov: {
         type: String,

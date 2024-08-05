@@ -1,3 +1,4 @@
+// models/UserModel.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -15,6 +16,11 @@ const userSchema = new mongoose.Schema({
         enum: ['admin', 'employee'],
         default: 'employee',
     },
+    employeeNip: {
+        type: String,
+        ref: 'Employee',
+        required: function () { return this.role === 'employee'; } // Hanya diperlukan jika role adalah employee
+    }
 });
 
 module.exports = mongoose.model('User', userSchema);
