@@ -142,7 +142,8 @@ const employeeSchema = new mongoose.Schema({
 employeeSchema.virtual('umur').get(function () {
     if (!this.tanggal_lahir) return null; // Return null if tanggal_lahir is not set
 
-    const [month, day, year] = this.tanggal_lahir.split('/').map(Number);
+    // Change the split order to match DD/MM/YYYY
+    const [day, month, year] = this.tanggal_lahir.split('/').map(Number);
     const birthDate = new Date(year, month - 1, day);
 
     const today = new Date();
