@@ -1,23 +1,3 @@
-/* .rdt_TableHead .rdt_TableHeadRow .rdt_TableCol:nth-child(1),
-.rdt_TableBody .rdt_TableRow .rdt_TableCol:nth-child(1) {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-} */
-
-.no-cell {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-  background-color: inherit;
-}
-
-.rdt_TableHead .rdt_TableHeadRow .rdt_TableCol:nth-child(2) {
-  position: sticky;
-  left: 0;
-  z-index: 1;
-}
-
 .nama-cell {
   position: sticky;
   left: 126px;

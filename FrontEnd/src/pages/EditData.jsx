@@ -56,9 +56,15 @@ const EditData = () => {
 
   useEffect(() => {
     if (location.state && location.state.data) {
-      setFormData(location.state.data);
+      const initialData = location.state.data;
+      if (initialData.tanggal_lahir) {
+        // Convert the date from ISO format to "yyyy-MM-dd"
+        initialData.tanggal_lahir = new Date(initialData.tanggal_lahir)
+          .toISOString()
+          .split("T")[0];
+      }
+      setFormData(initialData);
     } else {
-      // Handle the case where no data is passed (e.g., redirect to DataKaryawan)
       navigate("/DataKaryawan");
     }
   }, [location.state, navigate]);
@@ -201,7 +207,7 @@ const EditData = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );
@@ -246,7 +252,21 @@ const EditData = () => {
   };
 
   const handleCancel = () => {
-    window.location.href = "/DataKaryawan";
+    window.location.href = "/Dashboard";
+  };
+
+  const renderValue = (key) => {
+    const value = formData[key] || ""; // Default to empty string if value is null or undefined
+    if (key === "foto") {
+      return value ? (
+        <img
+          src={value}
+          alt="Foto"
+          className="w-32 h-32 items-center object-cover"
+        />
+      ) : null;
+    }
+    return null;
   };
 
   return (
@@ -286,6 +306,7 @@ const EditData = () => {
                     <label className="block text-gray-700 mb-2" htmlFor={name}>
                       {name.replace("_", " ").toUpperCase()}
                     </label>
+                    {renderValue(name, type, options)}
                     {type === "select" ? (
                       <select
                         id={name}
@@ -309,10 +330,11 @@ const EditData = () => {
                         id={name}
                         name={name}
                         type={type}
-                        accept=".png, .jpg, .jpeg"
+                        value={type === "file" ? undefined : formData[name]}
                         onChange={handleChange}
                         ref={(el) => (inputRefs.current[name] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
+                        accept={type === "file" ? "image/*" : undefined}
                       />
                     ) : (
                       <input
@@ -336,6 +358,11 @@ const EditData = () => {
                       <p className="text-gray-500 text-sm mt-1">
                         * Only .png, .jpg, .jpeg files are allowed with 1 MB
                         size
+                      </p>
+                    )}
+                    {name === "tanggal_lahir" && (
+                      <p className="text-gray-500 text-sm mt-1">
+                        * format bulan/tanggal/tahun
                       </p>
                     )}
                   </div>

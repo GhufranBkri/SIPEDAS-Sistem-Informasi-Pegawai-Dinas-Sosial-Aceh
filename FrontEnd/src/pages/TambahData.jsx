@@ -311,7 +311,13 @@ const TambahData = () => {
                     )}
                     {name === "foto" && (
                       <p className="text-gray-500 text-sm mt-1">
-                        * Only .png, .jpg, .jpeg files are allowed with 1 MB size
+                        * Only .png, .jpg, .jpeg files are allowed with 1 MB
+                        size
+                      </p>
+                    )}
+                    {name === "tanggal_lahir" && (
+                      <p className="text-gray-500 text-sm mt-1">
+                        * format bulan/tanggal/tahun
                       </p>
                     )}
                   </div>

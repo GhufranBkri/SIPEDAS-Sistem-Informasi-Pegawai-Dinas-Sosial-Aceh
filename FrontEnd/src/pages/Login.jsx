@@ -32,7 +32,7 @@ function Login() {
         {
           headers: {
             "Content-Type": "application/json",
-            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
           },
           withCredentials: true, // Include this if your server requires credentials
         }
@@ -44,6 +44,7 @@ function Login() {
         // Store the token and role in local storage
         localStorage.setItem("authToken", token);
         localStorage.setItem("userRole", user.role);
+        localStorage.setItem("formData", JSON.stringify(user));
 
         // Navigate to the desired page after successful login
         navigate("/Dashboard");
@@ -68,13 +69,11 @@ function Login() {
     }
   };
 
-
   const handleSubmit = (e) => {
     e.preventDefault();
     handleLogin();
     // Add your debug code here
     console.log(email, password);
-
   };
 
   return (
