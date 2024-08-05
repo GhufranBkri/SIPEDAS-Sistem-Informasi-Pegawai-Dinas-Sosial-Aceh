@@ -42,8 +42,8 @@ const DataKaryawan = () => {
   const formatDate = (date) => {
     if (!date) return "";
     const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
     return `${day}/${month}/${year}`;
   };
@@ -53,12 +53,6 @@ const DataKaryawan = () => {
       name: "No.",
       selector: (row) => row.no,
       sortable: true,
-      style: {
-        position: "sticky",
-        left: "0",
-        zIndex: 1,
-        backgroundColor: "white",
-      },
     },
     {
       name: "Foto",
@@ -69,7 +63,7 @@ const DataKaryawan = () => {
           <img
             src={row.foto}
             alt="Foto Karyawan"
-            className="w-12 h-12 rounded-full"
+            className="w-lvw rounded-sm p-1"
           />
         </div>
       ),
@@ -268,7 +262,10 @@ const DataKaryawan = () => {
     // Prepare data for export
     const data = filteredRecords.map((record) =>
       columns.map((col) => {
-        const value = typeof col.selector === "function" ? col.selector(record) : record[col.selector];
+        const value =
+          typeof col.selector === "function"
+            ? col.selector(record)
+            : record[col.selector];
         if (col.name === "Tanggal Lahir") {
           return formatDate(value);
         }
@@ -331,72 +328,68 @@ const DataKaryawan = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <main className="py-8">
-        <div className="mx-auto sm:px-6 lg:px-8">
-          {/* Konten Dashboard */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
-            <h1 className="text-2xl font-bold">Data Karyawan</h1>
-            <div className="container mt-8">
-              <div className="flex flex-row justify-between items-center mb-4">
-                <div className="space-x-4">
-                  <button
-                    className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
-                    onClick={handleAddData}
-                  >
-                    Tambah Data
-                  </button>
-                  <button
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                    onClick={handleExport}
-                  >
-                    Export
-                  </button>
-                </div>
-                <div className="flex basis-1/3 items-center space-x-4">
-                  <p className="font-semibold">Search:</p>
-                  <input
-                    type="text"
-                    className="border border-gray-300 rounded-md p-2 w-full"
-                    placeholder="Filter by"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <div className="flex justify-center items-center space-x-2">
-                    <FaEdit
-                      className={`${
-                        selectedRows.length === 1
-                          ? "hover:bg-green-700 cursor-pointer"
-                          : "cursor-not-allowed opacity-50"
-                      } bg-green-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
-                      size={36}
-                      onClick={handleEditData}
-                    />
-                    <FaTrash
-                      className={`${
-                        selectedRows.length > 0
-                          ? "hover:bg-red-700 cursor-pointer"
-                          : "cursor-not-allowed opacity-50"
-                      } bg-red-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
-                      size={36}
-                      onClick={handleDelete}
-                    />
-                  </div>
-                </div>
-              </div>
-              <DataTable
-                columns={columns}
-                data={filteredRecords}
-                customStyles={customStyles}
-                selectableRows
-                fixedHeader
-                pagination
-                onSelectedRowsChange={handleSelectedRowsChange}
+    <div className="py-6 sm:px-6 lg:px-8">
+      <div className="bg-white shadow sm:rounded-lg p-6">
+        <h1 className="text-2xl font-bold mb-10">Data Karyawan</h1>
+        <div className="flex flex-row justify-between items-center mb-4">
+          <div className="space-x-4">
+            <button
+              className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
+              onClick={handleAddData}
+            >
+              Tambah Data
+            </button>
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              onClick={handleExport}
+            >
+              Export
+            </button>
+          </div>
+          <div className="flex basis-1/3 items-center space-x-4">
+            <p className="font-semibold">Search:</p>
+            <input
+              type="text"
+              className="border border-gray-300 rounded-md p-2 w-full"
+              placeholder="Filter by"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="flex justify-center items-center space-x-2">
+              <FaEdit
+                className={`${
+                  selectedRows.length === 1
+                    ? "hover:bg-green-700 cursor-pointer"
+                    : "cursor-not-allowed opacity-50"
+                } bg-green-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
+                size={36}
+                onClick={handleEditData}
+              />
+              <FaTrash
+                className={`${
+                  selectedRows.length > 0
+                    ? "hover:bg-red-700 cursor-pointer"
+                    : "cursor-not-allowed opacity-50"
+                } bg-red-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
+                size={36}
+                onClick={handleDelete}
               />
             </div>
           </div>
         </div>
-      </main>
+        <div className="bg-white shadow p-4 rounded w-full">
+          <DataTable
+            columns={columns}
+            data={filteredRecords}
+            customStyles={customStyles}
+            selectableRows
+            fixedHeader
+            pagination
+            onSelectedRowsChange={handleSelectedRowsChange}
+            responsive
+          />
+        </div>
+      </div>
 
       {showDeletePopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">

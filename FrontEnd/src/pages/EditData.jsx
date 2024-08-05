@@ -58,9 +58,10 @@ const EditData = () => {
     if (location.state && location.state.data) {
       const initialData = location.state.data;
       if (initialData.tanggal_lahir) {
+        // Convert the date from ISO format to "yyyy-MM-dd"
         initialData.tanggal_lahir = new Date(initialData.tanggal_lahir)
           .toISOString()
-          .split("T")[0]; // Convert date to "yyyy-MM-dd" format
+          .split("T")[0];
       }
       setFormData(initialData);
     } else {
@@ -206,7 +207,7 @@ const EditData = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "application/json",
           },
         }
       );
