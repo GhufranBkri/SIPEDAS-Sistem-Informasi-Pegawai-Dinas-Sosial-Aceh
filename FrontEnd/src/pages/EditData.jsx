@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./Number.css"
+import "./Number.css";
 
 const EditData = () => {
   const [formData, setFormData] = useState({
@@ -409,9 +409,9 @@ const EditData = () => {
                       </p>
                     )}
                     {name === "foto" && (
-                      <p className="text-gray-500 text-sm mt-1">
-                        * Only .png, .jpg, .jpeg files are allowed with 1 MB
-                        size
+                      <p className="text-red-400 text-sm mt-1">
+                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB yang
+                        diterima
                       </p>
                     )}
                     {name === "foto" && (
@@ -426,8 +426,8 @@ const EditData = () => {
                       </div>
                     )}
                     {name === "tanggal_lahir" && (
-                      <p className="text-gray-500 text-sm mt-1">
-                        * format bulan/tanggal/tahun
+                      <p className="text-red-400 text-sm mt-1">
+                        * format : bulan/tanggal/tahun
                       </p>
                     )}
                   </div>
@@ -492,7 +492,7 @@ const EditData = () => {
                       type="text"
                       id={key}
                       name={key}
-                      value={formData[name] || ""}
+                      value={formData[key] || ""}
                       onChange={handleChange}
                       ref={(el) => (inputRefs.current[key] = el)}
                       className="border border-gray-300 rounded-md p-2 w-full"
@@ -520,7 +520,7 @@ const EditData = () => {
                         type={isNumberField ? "number" : "text"}
                         id={key}
                         name={key}
-                        value={formData[name] || ""}
+                        value={formData[key] || ""}
                         onChange={handleChange}
                         onKeyDown={
                           isNumberField === "number"
@@ -604,6 +604,11 @@ const EditData = () => {
                     {errors[name] && (
                       <p className="text-red-500 text-sm mt-1">
                         {errors[name]}
+                      </p>
+                    )}
+                    {(name === "sub_bidang" || name === "eselon") && (
+                      <p className="text-red-400 text-sm mt-1">
+                        * Isi ( - ) jika tidak ada
                       </p>
                     )}
                   </div>

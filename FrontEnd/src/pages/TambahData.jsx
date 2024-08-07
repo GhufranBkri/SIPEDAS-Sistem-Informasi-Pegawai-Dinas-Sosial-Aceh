@@ -2,7 +2,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import "./Number.css"
+import "./Number.css";
 
 const TambahData = () => {
   const [formData, setFormData] = useState({
@@ -328,7 +328,9 @@ const TambahData = () => {
                         type={type}
                         value={formData[name]}
                         onChange={handleChange}
-                        onKeyDown={type === "number" ? preventInvalidInput : null}
+                        onKeyDown={
+                          type === "number" ? preventInvalidInput : null
+                        }
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
@@ -341,12 +343,12 @@ const TambahData = () => {
                       </p>
                     )}
                     {name === "foto" && (
-                      <p className="text-gray-500 text-sm mt-1">
-                        * Only .png, .jpg, .jpeg files are allowed with 1 MB
-                        size
+                      <p className="text-red-400 text-sm mt-1">
+                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB yang
+                        diterima
                       </p>
                     )}
-                    {name === "foto" && (
+                    {name === "foto" && fotoPreview && (
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mt-4">
                           Photo Preview
@@ -358,8 +360,8 @@ const TambahData = () => {
                       </div>
                     )}
                     {name === "tanggal_lahir" && (
-                      <p className="text-gray-500 text-sm mt-1">
-                        * format bulan/tanggal/tahun
+                      <p className="text-red-400 text-sm mt-1">
+                        * format : bulan/tanggal/tahun
                       </p>
                     )}
                   </div>
@@ -415,7 +417,11 @@ const TambahData = () => {
                         name={key}
                         value={formData[key]}
                         onChange={handleChange}
-                        onKeyDown={isNumberField === "number" ? preventInvalidInput : null}
+                        onKeyDown={
+                          isNumberField === "number"
+                            ? preventInvalidInput
+                            : null
+                        }
                         ref={(el) => (inputRefs.current[key] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
                       />
@@ -481,7 +487,9 @@ const TambahData = () => {
                         type={type}
                         value={formData[name]}
                         onChange={handleChange}
-                        onKeyDown={type === "number" ? preventInvalidInput : null}
+                        onKeyDown={
+                          type === "number" ? preventInvalidInput : null
+                        }
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
@@ -494,7 +502,7 @@ const TambahData = () => {
                       </p>
                     )}
                     {(name === "sub_bidang" || name === "eselon") && (
-                      <p className="text-gray-500 text-sm mt-1">
+                      <p className="text-red-400 text-sm mt-1">
                         * Isi ( - ) jika tidak ada
                       </p>
                     )}
