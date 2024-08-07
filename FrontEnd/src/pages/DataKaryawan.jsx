@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Table, Button, Modal } from "antd";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import axios from "axios";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { useNavigate } from "react-router-dom";
 
 const DataKaryawan = () => {
@@ -33,7 +33,7 @@ const DataKaryawan = () => {
       align: "center",
       render: (text) => (
         <div className="flex justify-center items-center w-full">
-          <img src={text} alt="Foto" className="w-24 rounded-sm" />
+          <img src={text} alt="Foto" className="w-20 rounded-sm" />
         </div>
       ),
     },
@@ -122,11 +122,11 @@ const DataKaryawan = () => {
       sorter: (a, b) => new Date(a.tanggal_lahir) - new Date(b.tanggal_lahir),
       render: (text) => {
         const date = new Date(text);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
-      }
+      },
     },
     {
       title: "Umur",
@@ -285,8 +285,8 @@ const DataKaryawan = () => {
     },
     {
       title: "Kelas Jabatan",
-      dataIndex: "kelas_jabatan",
-      key: "kelas_jabatan",
+      dataIndex: "Kelas_jabatan",
+      key: "Kelas_jabatan",
       align: "center",
       sorter: (a, b) => a.kelas_jabatan.localeCompare(b.kelas_jabatan),
     },
@@ -337,7 +337,9 @@ const DataKaryawan = () => {
 
   const handleEditData = () => {
     if (selectedRowKeys.length === 1) {
-      const selectedData = records.find(record => record.nip === selectedRowKeys[0]);
+      const selectedData = records.find(
+        (record) => record.nip === selectedRowKeys[0]
+      );
       navigate("/EditData", { state: { data: selectedData } });
     }
   };
@@ -382,57 +384,102 @@ const DataKaryawan = () => {
     }
   };
 
-  const confirmExport = () => {
+  const confirmExport = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("DataKaryawan");
+
+    // Add headers
     const headers = [
       "No.",
       ...columns
-        .filter((col) => col.dataIndex !== "no") // Exclude original "No." column
+        .filter((col) => col.dataIndex !== "no")
         .map((col) => col.title),
     ];
+    worksheet.addRow(headers);
 
-    // Prepare data for export with a new sequential "No." column
-    const data = filteredRecords.map((record, index) => [
-      index + 1, // New sequential "No." column
-      ...columns
-        .filter((col) => col.dataIndex !== "no") // Exclude original "No." column
-        .map((col) => record[col.dataIndex]),
-    ]);
+    // Format header row
+    worksheet.getRow(1).height = 30;
+    worksheet.getRow(1).eachCell({ includeEmpty: true }, (cell) => {
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
 
-    // Create worksheet
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    // Prepare and add data
+    for (let [index, record] of filteredRecords.entries()) {
+      const rowData = [
+        index + 1, // New sequential "No." column
+        ...(await Promise.all(
+          columns
+            .filter((col) => col.dataIndex !== "no")
+            .map(async (col) => {
+              if (col.dataIndex === "tanggal_lahir") {
+                const date = new Date(record[col.dataIndex]);
+                const day = String(date.getDate()).padStart(2, "0");
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+              }
+              if (col.dataIndex === "foto") {
+                return ""; // Handle images separately
+              }
+              return record[col.dataIndex];
+            })
+        )),
+      ];
+      worksheet.addRow(rowData);
 
-    // Function to auto fit column width
-    const autoFitColumns = (worksheet, data) => {
-      const objectMaxLength = [];
-
-      data.forEach((row) => {
-        row.forEach((cell, colIndex) => {
-          const cellValue = cell ? cell.toString() : "";
-          const cellLength = cellValue.length;
-          objectMaxLength[colIndex] = Math.max(
-            objectMaxLength[colIndex] || 0,
-            cellLength
-          );
-        });
+      // Format data rows
+      worksheet.getRow(index + 2).eachCell({ includeEmpty: true }, (cell) => {
+        cell.alignment = { horizontal: 'center', vertical: 'middle' };
       });
+    }
 
-      worksheet["!cols"] = objectMaxLength.map((length) => ({
-        width: length + 2,
-      }));
-    };
+    
 
-    // Prepare data for autoFitColumns function
-    const exportData = [headers, ...data];
+    // Add images after data rows are added
+    for (let [index, record] of filteredRecords.entries()) {
+      if (record.foto) {
+        try {
+          const response = await fetch(record.foto);
+          const buffer = await response.arrayBuffer();
+          const imageId = workbook.addImage({
+            buffer: buffer,
+            extension: "png",
+          });
 
-    // Adjust column widths
-    autoFitColumns(ws, exportData);
+          worksheet.getRow(index + 2).height = 80; // Adjust row height for images
 
-    // Create workbook
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "DataKaryawan");
+          worksheet.addImage(imageId, {
+            tl: { col: headers.indexOf("Foto"), row: index + 1 },
+            br: { col: headers.indexOf("Foto") + 1, row: index + 2 },
+            editAs: "oneCell",
+          });
+        } catch (error) {
+          console.error(`Failed to add image for row ${index + 1}:`, error);
+        }
+      }
+    }
 
-    // Export to Excel
-    XLSX.writeFile(wb, "data_karyawan.xlsx");
+    // Auto-fit columns
+    worksheet.columns.forEach((column) => {
+      let maxLength = 0;
+      column.eachCell({ includeEmpty: true }, (cell) => {
+        let columnLength = cell.value ? cell.value.toString().length : 10;
+        if (columnLength > maxLength) {
+          maxLength = columnLength;
+        }
+      });
+      column.width = maxLength + 2 < 10 ? 10 : maxLength + 2;
+    });
+
+    // Generate Excel file
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "data_karyawan.xlsx";
+    link.click();
 
     setShowExportPopup(false);
   };
