@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./Number.css"
 
 const EditData = () => {
   const [formData, setFormData] = useState({
@@ -316,6 +317,12 @@ const EditData = () => {
     window.location.href = "/Dashboard";
   };
 
+  const preventInvalidInput = (e) => {
+    if (["e", "E", "-", "+", "."].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <main className="py-8 w-full max-w-7xl">
@@ -387,6 +394,9 @@ const EditData = () => {
                         type={type}
                         value={formData[name] || ""}
                         onChange={handleChange}
+                        onKeyDown={
+                          type === "number" ? preventInvalidInput : null
+                        }
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
@@ -512,6 +522,11 @@ const EditData = () => {
                         name={key}
                         value={formData[name] || ""}
                         onChange={handleChange}
+                        onKeyDown={
+                          isNumberField === "number"
+                            ? preventInvalidInput
+                            : null
+                        }
                         ref={(el) => (inputRefs.current[key] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
                       />
@@ -577,6 +592,9 @@ const EditData = () => {
                         type={type}
                         value={formData[name] || ""}
                         onChange={handleChange}
+                        onKeyDown={
+                          type === "number" ? preventInvalidInput : null
+                        }
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
