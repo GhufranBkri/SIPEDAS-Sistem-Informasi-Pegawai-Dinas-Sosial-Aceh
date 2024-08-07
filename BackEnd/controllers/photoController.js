@@ -44,7 +44,7 @@ const editPhoto = async (req, res) => {
         const { imageUrl } = req.body;
 
         // Extract public_id from the URL
-        const public_id = imageUrl.split('/').slice(-1)[0].split('.')[0];
+        const public_id = 'upload-foto' + imageUrl.split('/').slice(-1)[0].split('.')[0];
 
         // Upload gambar baru ke Cloudinary menggunakan buffer
         const result = await new Promise((resolve, reject) => {
@@ -85,7 +85,8 @@ const deletePhoto = async (req, res) => {
 
         const public_id = imageUrl.split('/').slice(-1)[0].split('.')[0];
 
-        await cloudinary.uploader.destroy(public_id);
+        await cloudinary.uploader.destroy('upload-foto/' + public_id);
+        console.log('Deleted image with public_id:', 'upload-foto/' + public_id);
         res.json(formatResponse('success', 200, null, 'Gambar berhasil dihapus'));
     } catch (error) {
         console.error('Error in deletePhoto:', error);
