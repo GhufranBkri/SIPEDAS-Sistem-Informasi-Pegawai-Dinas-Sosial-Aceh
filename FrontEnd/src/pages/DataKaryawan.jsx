@@ -1,10 +1,8 @@
 // src/pages/DataKaryawan.js
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
-import DataTable from "react-data-table-component";
-import "./Data.css";
-import { FaEdit } from "react-icons/fa";
-import { FaTrash } from "react-icons/fa";
+import { Table, Button, Modal } from "antd";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
@@ -13,153 +11,253 @@ const DataKaryawan = () => {
   const [records, setRecords] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredRecords, setFilteredRecords] = useState([]);
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const navigate = useNavigate();
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [showExportPopup, setShowExportPopup] = useState(false);
-
-  const customStyles = {
-    headCells: {
-      style: {
-        backgroundColor: "#1E63B2",
-        color: "white",
-        fontWeight: "bold",
-        borderBottom: "2px solid #0056b3",
-        borderRight: "2px solid gray",
-        display: "flex",
-        justifyContent: "center",
-      },
-    },
-    cells: {
-      style: {
-        borderRight: "2px solid #ddd",
-        display: "flex",
-        justifyContent: "center",
-      },
-    },
-  };
-
-  const formatDate = (date) => {
-    if (!date) return "";
-    const d = new Date(date);
-    const day = String(d.getDate()).padStart(2, "0");
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
+  const [loading, setLoading] = useState(false);
 
   const columns = [
     {
-      name: "No.",
-      selector: (row) => row.no,
-      sortable: true,
+      title: "No.",
+      dataIndex: "no",
+      key: "no",
+      sorter: (a, b) => a.no - b.no,
+      fixed: "left",
     },
     {
-      name: "Foto",
-      selector: (row) => row.foto,
-      sortable: true,
-      cell: (row) => (
+      title: "Foto",
+      dataIndex: "foto",
+      key: "foto",
+      render: (text) => (
         <div className="flex justify-center items-center w-full">
-          <img
-            src={row.foto}
-            alt="Foto Karyawan"
-            className="w-lvw rounded-sm p-1"
-          />
+          <img src={text} alt="Foto" className="w-24 rounded-sm p-1" />
         </div>
       ),
     },
     {
-      name: "Nama",
-      selector: (row) => row.nama,
-      sortable: true,
-      style: {
-        position: "sticky",
-        left: "0",
-        zIndex: 1,
-        backgroundColor: "white",
-      },
-      cell: (row) => (
-        <div className="flex justify-start items-center w-full">{row.nama}</div>
-      ),
-    },
-    { name: "NIP/REG", selector: (row) => row.nip, sortable: true },
-    { name: "Bidang", selector: (row) => row.bidang, sortable: true },
-    { name: "Eselon", selector: (row) => row.eselon, sortable: true },
-    { name: "Sub Bidang", selector: (row) => row.sub_bidang, sortable: true },
-    {
-      name: "Jabatan",
-      selector: (row) => row.jabatan_terakhir,
-      sortable: true,
+      title: "Nama",
+      dataIndex: "nama",
+      key: "nama",
+      sorter: (a, b) => a.nama.localeCompare(b.nama),
+      fixed: "left",
     },
     {
-      name: "Golongan/Ruang",
-      selector: (row) => row.gol_ruang,
-      sortable: true,
-    },
-    { name: "Jenjang", selector: (row) => row.jenjang, sortable: true },
-    { name: "Jenis", selector: (row) => row.jenis, sortable: true },
-    {
-      name: "Jenis Kelamin",
-      selector: (row) => row.jenis_kelamin,
-      sortable: true,
+      title: "NIP/REG",
+      dataIndex: "nip",
+      key: "nip",
+      sorter: (a, b) => a.nip.localeCompare(b.nip),
     },
     {
-      name: "Tempat Lahir",
-      selector: (row) => row.tempat_lahir,
-      sortable: true,
+      title: "Bidang",
+      dataIndex: "bidang",
+      key: "bidang",
+      sorter: (a, b) => a.bidang.localeCompare(b.bidang),
     },
     {
-      name: "Tanggal Lahir",
-      selector: (row) => row.tanggal_lahir,
-      sortable: true,
-      cell: (row) => formatDate(row.tanggal_lahir),
-    },
-    { name: "Umur", selector: (row) => row.umur, sortable: true },
-    { name: "NIK", selector: (row) => row.nik, sortable: true },
-    { name: "NPWP", selector: (row) => row.npwp, sortable: true },
-    { name: "No. Rek.", selector: (row) => row.no_rekening, sortable: true },
-    { name: "No. KK", selector: (row) => row.no_kk, sortable: true },
-    {
-      name: "Gol. Darah",
-      selector: (row) => row.golongan_darah,
-      sortable: true,
-    },
-    { name: "No. HP", selector: (row) => row.no_telepon, sortable: true },
-    { name: "Email", selector: (row) => row.email, sortable: true },
-    { name: "Email Gov", selector: (row) => row.email_gov, sortable: true },
-    { name: "Pendidikan", selector: (row) => row.pendidikan, sortable: true },
-    { name: "Jurusan", selector: (row) => row.jurusan, sortable: true },
-    { name: "Tahun Tamat", selector: (row) => row.tahun_tamat, sortable: true },
-    { name: "Jalan", selector: (row) => row.jalan, sortable: true },
-    { name: "Desa", selector: (row) => row.desa, sortable: true },
-    { name: "Kecamatan", selector: (row) => row.kecamatan, sortable: true },
-    {
-      name: "Kabupaten/Kota",
-      selector: (row) => row.kabupaten,
-      sortable: true,
-    },
-    { name: "Alamat", selector: (row) => row.alamat_lengkap, sortable: true },
-    {
-      name: "Tahun SK Awal",
-      selector: (row) => row.tahun_sk_awal,
-      sortable: true,
+      title: "Eselon",
+      dataIndex: "eselon",
+      key: "eselon",
+      sorter: (a, b) => a.eselon.localeCompare(b.eselon),
     },
     {
-      name: "Tahun SK Akhir",
-      selector: (row) => row.tahun_sk_akhir,
-      sortable: true,
+      title: "Sub Bidang",
+      dataIndex: "sub_bidang",
+      key: "sub_bidang",
+      sorter: (a, b) => a.sub_bidang.localeCompare(b.sub_bidang),
     },
-    { name: "Masa Kerja", selector: (row) => row.masa_kerja, sortable: true },
-    { name: "No. Reg. BKN", selector: (row) => row.no_req_bkn, sortable: true },
-    { name: "Jenis Tekon", selector: (row) => row.jenis_tekon, sortable: true },
     {
-      name: "Kelas Jabatan",
-      selector: (row) => row.Kelas_jabatan,
-      sortable: true,
+      title: "Jabatan",
+      dataIndex: "jabatan_terakhir",
+      key: "jabatan_terakhir",
+      sorter: (a, b) => a.jabatan_terakhir.localeCompare(b.jabatan_terakhir),
+    },
+    {
+      title: "Golongan/Ruang",
+      dataIndex: "gol_ruang",
+      key: "gol_ruang",
+      sorter: (a, b) => a.gol_ruang.localeCompare(b.gol_ruang),
+    },
+    {
+      title: "Jenjang",
+      dataIndex: "jenjang",
+      key: "jenjang",
+      sorter: (a, b) => a.jenjang.localeCompare(b.jenjang),
+    },
+    {
+      title: "Jenis",
+      dataIndex: "jenis",
+      key: "jenis",
+      sorter: (a, b) => a.jenis.localeCompare(b.jenis),
+    },
+    {
+      title: "Jenis Kelamin",
+      dataIndex: "jenis_kelamin",
+      key: "jenis_kelamin",
+      sorter: (a, b) => a.jenis_kelamin.localeCompare(b.jenis_kelamin),
+    },
+    {
+      title: "Tempat Lahir",
+      dataIndex: "tempat_lahir",
+      key: "tempat_lahir",
+      sorter: (a, b) => a.tempat_lahir.localeCompare(b.tempat_lahir),
+    },
+    {
+      title: "Tanggal Lahir",
+      dataIndex: "tanggal_lahir",
+      key: "tanggal_lahir",
+      sorter: (a, b) => new Date(a.tanggal_lahir) - new Date(b.tanggal_lahir),
+      render: (text) => {
+        const date = new Date(text);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      }
+    },
+    {
+      title: "Umur",
+      dataIndex: "umur",
+      key: "umur",
+      sorter: (a, b) => a.umur - b.umur,
+    },
+    {
+      title: "NIK",
+      dataIndex: "nik",
+      key: "nik",
+      sorter: (a, b) => a.nik.localeCompare(b.nik),
+    },
+    {
+      title: "NPWP",
+      dataIndex: "npwp",
+      key: "npwp",
+      sorter: (a, b) => a.npwp.localeCompare(b.npwp),
+    },
+    {
+      title: "No. Rek.",
+      dataIndex: "no_rekening",
+      key: "no_rekening",
+      sorter: (a, b) => a.no_rekening.localeCompare(b.no_rekening),
+    },
+    {
+      title: "No. KK",
+      dataIndex: "no_kk",
+      key: "no_kk",
+      sorter: (a, b) => a.no_kk.localeCompare(b.no_kk),
+    },
+    {
+      title: "Gol. Darah",
+      dataIndex: "golongan_darah",
+      key: "golongan_darah",
+      sorter: (a, b) => a.golongan_darah.localeCompare(b.golongan_darah),
+    },
+    {
+      title: "No. HP",
+      dataIndex: "no_telepon",
+      key: "no_telepon",
+      sorter: (a, b) => a.no_telepon.localeCompare(b.no_telepon),
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+      sorter: (a, b) => a.email.localeCompare(b.email),
+    },
+    {
+      title: "Email Gov",
+      dataIndex: "email_gov",
+      key: "email_gov",
+      sorter: (a, b) => a.email_gov.localeCompare(b.email_gov),
+    },
+    {
+      title: "Pendidikan",
+      dataIndex: "pendidikan",
+      key: "pendidikan",
+      sorter: (a, b) => a.pendidikan.localeCompare(b.pendidikan),
+    },
+    {
+      title: "Jurusan",
+      dataIndex: "jurusan",
+      key: "jurusan",
+      sorter: (a, b) => a.jurusan.localeCompare(b.jurusan),
+    },
+    {
+      title: "Tahun Tamat",
+      dataIndex: "tahun_tamat",
+      key: "tahun_tamat",
+      sorter: (a, b) => a.tahun_tamat - b.tahun_tamat,
+    },
+    {
+      title: "Jalan",
+      dataIndex: "jalan",
+      key: "jalan",
+      sorter: (a, b) => a.jalan.localeCompare(b.jalan),
+    },
+    {
+      title: "Desa",
+      dataIndex: "desa",
+      key: "desa",
+      sorter: (a, b) => a.desa.localeCompare(b.desa),
+    },
+    {
+      title: "Kecamatan",
+      dataIndex: "kecamatan",
+      key: "kecamatan",
+      sorter: (a, b) => a.kecamatan.localeCompare(b.kecamatan),
+    },
+    {
+      title: "Kabupaten/Kota",
+      dataIndex: "kabupaten",
+      key: "kabupaten",
+      sorter: (a, b) => a.kabupaten.localeCompare(b.kabupaten),
+    },
+    {
+      title: "Alamat",
+      dataIndex: "alamat_lengkap",
+      key: "alamat_lengkap",
+      sorter: (a, b) => a.alamat_lengkap.localeCompare(b.alamat_lengkap),
+      editable: true,
+    },
+    {
+      title: "Tahun SK Awal",
+      dataIndex: "tahun_sk_awal",
+      key: "tahun_sk_awal",
+      sorter: (a, b) => a.tahun_sk_awal - b.tahun_sk_awal,
+    },
+    {
+      title: "Tahun SK Akhir",
+      dataIndex: "tahun_sk_akhir",
+      key: "tahun_sk_akhir",
+      sorter: (a, b) => a.tahun_sk_akhir - b.tahun_sk_akhir,
+    },
+    {
+      title: "Masa Kerja",
+      dataIndex: "masa_kerja",
+      key: "masa_kerja",
+      sorter: (a, b) => a.masa_kerja - b.masa_kerja,
+    },
+    {
+      title: "No. Reg. BKN",
+      dataIndex: "no_req_bkn",
+      key: "no_req_bkn",
+      sorter: (a, b) => a.no_req_bkn.localeCompare(b.no_req_bkn),
+    },
+    {
+      title: "Jenis Tekon",
+      dataIndex: "jenis_tekon",
+      key: "jenis_tekon",
+      sorter: (a, b) => a.jenis_tekon.localeCompare(b.jenis_tekon),
+    },
+    {
+      title: "Kelas Jabatan",
+      dataIndex: "kelas_jabatan",
+      key: "kelas_jabatan",
+      sorter: (a, b) => a.kelas_jabatan.localeCompare(b.kelas_jabatan),
     },
   ];
 
   useEffect(() => {
+    setLoading(true);
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("authToken");
@@ -174,10 +272,12 @@ const DataKaryawan = () => {
         });
         const dataWithIds = response.data.data.map((item, index) => ({
           ...item,
+          key: item.nip,
           no: index + 1,
         }));
         setRecords(dataWithIds);
         setFilteredRecords(dataWithIds);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching data: ", error);
       }
@@ -195,83 +295,72 @@ const DataKaryawan = () => {
     setFilteredRecords(filtered);
   }, [searchQuery, records]);
 
-  const handleSelectedRowsChange = (state) => {
-    setSelectedRows(state.selectedRows);
-  };
-
-  const handleEditData = () => {
-    if (selectedRows.length === 1) {
-      navigate("/EditData", { state: { data: selectedRows[0] } });
-    }
-  };
-
   const handleAddData = () => {
     navigate("/TambahData");
   };
 
-  const handleDelete = () => {
-    if (selectedRows.length > 0) {
+  const handleEditData = () => {
+    if (selectedRowKeys.length === 1) {
+      const selectedData = records.find(record => record.nip === selectedRowKeys[0]);
+      navigate("/EditData", { state: { data: selectedData } });
+    }
+  };
+
+  const handleDeleteData = () => {
+    if (selectedRowKeys.length > 0) {
       setShowDeletePopup(true);
     }
   };
 
-  const confirmDelete = async () => {
+  const handleRowSelection = (selectedRowKeys) => {
+    setSelectedRowKeys(selectedRowKeys);
+  };
+
+  const handleDeleteSelectedRows = async () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("No token found");
       }
 
-      const deletePromises = selectedRows.map((row) =>
-        axios.delete(`http://localhost:3000/employees/${row.nip}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+      await axios.delete("http://localhost:3000/employees/", {
+        data: { nips: selectedRowKeys },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setRecords((prevRecords) =>
+        prevRecords.filter((record) => !selectedRowKeys.includes(record.nip))
       );
 
-      await Promise.all(deletePromises);
-
-      const updatedRecords = records.filter(
-        (record) => !selectedRows.some((row) => row.id === record.id)
+      setFilteredRecords((prevRecords) =>
+        prevRecords.filter((record) => !selectedRowKeys.includes(record.nip))
       );
 
-      setRecords(updatedRecords);
-      setFilteredRecords(updatedRecords);
-      setSelectedRows([]);
-      alert("Data berhasil dihapus");
+      setSelectedRowKeys([]);
       setShowDeletePopup(false);
     } catch (error) {
-      console.error("Error deleting data: ", error);
-      alert("Gagal menghapus data");
+      console.error("Failed to delete selected rows:", error);
       setShowDeletePopup(false);
     }
   };
 
-  const cancelDelete = () => {
-    setShowDeletePopup(false);
-  };
-
-  const handleExport = () => {
-    setShowExportPopup(true);
-  };
-
   const confirmExport = () => {
-    const headers = columns.map((col) => col.name);
+    const headers = [
+      "No.",
+      ...columns
+        .filter((col) => col.dataIndex !== "no") // Exclude original "No." column
+        .map((col) => col.title),
+    ];
 
-    // Prepare data for export
-    const data = filteredRecords.map((record) =>
-      columns.map((col) => {
-        const value =
-          typeof col.selector === "function"
-            ? col.selector(record)
-            : record[col.selector];
-        if (col.name === "Tanggal Lahir") {
-          return formatDate(value);
-        }
-        return value;
-      })
-    );
+    // Prepare data for export with a new sequential "No." column
+    const data = filteredRecords.map((record, index) => [
+      index + 1, // New sequential "No." column
+      ...columns
+        .filter((col) => col.dataIndex !== "no") // Exclude original "No." column
+        .map((col) => record[col.dataIndex]),
+    ]);
 
     // Create worksheet
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
@@ -281,8 +370,8 @@ const DataKaryawan = () => {
       const objectMaxLength = [];
 
       data.forEach((row) => {
-        Object.keys(row).forEach((key, colIndex) => {
-          const cellValue = row[key] ? row[key].toString() : "";
+        row.forEach((cell, colIndex) => {
+          const cellValue = cell ? cell.toString() : "";
           const cellLength = cellValue.length;
           objectMaxLength[colIndex] = Math.max(
             objectMaxLength[colIndex] || 0,
@@ -296,19 +385,8 @@ const DataKaryawan = () => {
       }));
     };
 
-    // Prepare data in key-value pairs for autoFitColumns function
-    const exportData = [
-      headers,
-      ...filteredRecords.map((record) =>
-        columns.reduce((acc, col) => {
-          acc[col.name] =
-            typeof col.selector === "function"
-              ? col.selector(record)
-              : record[col.selector];
-          return acc;
-        }, {})
-      ),
-    ];
+    // Prepare data for autoFitColumns function
+    const exportData = [headers, ...data];
 
     // Adjust column widths
     autoFitColumns(ws, exportData);
@@ -323,119 +401,103 @@ const DataKaryawan = () => {
     setShowExportPopup(false);
   };
 
-  const cancelExport = () => {
-    setShowExportPopup(false);
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: handleRowSelection,
   };
 
   return (
     <div className="py-6 sm:px-6 lg:px-8">
       <div className="bg-white shadow sm:rounded-lg p-6">
         <h1 className="text-2xl font-bold mb-10">Data Karyawan</h1>
-        <div className="flex flex-row justify-between items-center mb-4">
+        <div className="flex flex-row justify-between items-center mb-4 ml-2">
           <div className="space-x-4">
-            <button
-              className="bg-custom-blue text-white px-4 py-2 rounded hover:bg-blue-700"
+            <Button
+              type="secondary"
+              className="bg-custom-blue text-white px-4 py-2 rounded-md hover:bg-blue-700"
               onClick={handleAddData}
             >
               Tambah Data
-            </button>
-            <button
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-              onClick={handleExport}
+            </Button>
+            <Button
+              type="secondary"
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+              onClick={() => setShowExportPopup(true)}
             >
               Export
-            </button>
+            </Button>
           </div>
-          <div className="flex basis-1/3 items-center space-x-4">
+          <div className="flex items-center space-x-4 mr-2">
             <p className="font-semibold">Search:</p>
             <input
               type="text"
-              className="border border-gray-300 rounded-md p-2 w-full"
+              className="border border-gray-300 rounded-md p-2"
               placeholder="Filter by"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: 250 }}
             />
+
             <div className="flex justify-center items-center space-x-2">
               <FaEdit
                 className={`${
-                  selectedRows.length === 1
+                  selectedRowKeys.length === 1
                     ? "hover:bg-green-700 cursor-pointer"
                     : "cursor-not-allowed opacity-50"
-                } bg-green-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
+                } bg-green-600 fill-white hover:text-custom-blue rounded-lg p-2 transition duration-300 ease-in-out`}
                 size={36}
                 onClick={handleEditData}
+                disabled={selectedRowKeys.length !== 1}
               />
               <FaTrash
                 className={`${
-                  selectedRows.length > 0
+                  selectedRowKeys.length > 0
                     ? "hover:bg-red-700 cursor-pointer"
                     : "cursor-not-allowed opacity-50"
-                } bg-red-600 fill-white hover:text-custom-blue rounded-xl p-2 transition duration-300 ease-in-out`}
+                } bg-red-600 fill-white hover:text-custom-blue rounded-lg p-2 transition duration-300 ease-in-out`}
                 size={36}
-                onClick={handleDelete}
+                disabled={selectedRowKeys.length === 0}
+                onClick={handleDeleteData}
               />
             </div>
           </div>
         </div>
         <div className="bg-white shadow p-4 rounded w-full">
-          <DataTable
+          <Table
             columns={columns}
-            data={filteredRecords}
-            customStyles={customStyles}
-            selectableRows
-            fixedHeader
-            pagination
-            onSelectedRowsChange={handleSelectedRowsChange}
-            responsive
+            dataSource={filteredRecords}
+            rowSelection={rowSelection}
+            pagination={true}
+            bordered
+            loading={loading}
+            scroll={{ x: "max-content" }}
           />
         </div>
       </div>
 
-      {showDeletePopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-            <h2 className="text-lg font-semibold mb-8">Konfirmasi</h2>
-            <p className="mb-8">Apakah anda yakin ingin menghapus data ini ?</p>
-            <div className="flex justify-center space-x-4 mt-4">
-              <button
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-                onClick={cancelDelete}
-              >
-                Batal
-              </button>
-              <button
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                onClick={confirmDelete}
-              >
-                Ya
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Confirmation Modal */}
+      <Modal
+        title="Hapus Data"
+        open={showDeletePopup}
+        onOk={handleDeleteSelectedRows}
+        onCancel={() => setShowDeletePopup(false)}
+        okText="Ya"
+        cancelText="Batal"
+      >
+        <p>Apakah anda yakin ingin menghapus data yang dipilih?</p>
+      </Modal>
 
-      {showExportPopup && (
-        <div className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="popup bg-white p-8 rounded-lg shadow-lg text-center">
-            <h2 className="text-lg font-semibold mb-8">Konfirmasi</h2>
-            <p className="mb-8">Apakah anda ingin export data ke excel ?</p>
-            <div className="flex justify-center space-x-4 mt-4">
-              <button
-                onClick={confirmExport}
-                className="bg-blue-600 text-white py-2 px-4 rounded mr-2 hover:bg-blue-700"
-              >
-                Yes
-              </button>
-              <button
-                onClick={cancelExport}
-                className="bg-gray-300 text-white py-2 px-4 rounded hover:bg-gray-400"
-              >
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Export Confirmation Modal */}
+      <Modal
+        title="Export Data"
+        open={showExportPopup}
+        onOk={confirmExport}
+        onCancel={() => setShowExportPopup(false)}
+        okText="Ya"
+        cancelText="Batal"
+      >
+        <p>Apakah anda yakin ingin mengekspor data ini ke Excel?</p>
+      </Modal>
     </div>
   );
 };

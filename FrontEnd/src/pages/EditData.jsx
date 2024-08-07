@@ -8,7 +8,7 @@ const EditData = () => {
   const [formData, setFormData] = useState({
     nama: "",
     nip: "",
-    foto: null,
+    foto: "",
     bidang: "",
     eselon: "",
     sub_bidang: "",
@@ -25,8 +25,9 @@ const EditData = () => {
     no_kk: "",
     golongan_darah: "",
     no_telepon: "",
-    email: "",
     email_gov: "",
+    email: "",
+    // password: null,
     pendidikan: "",
     jurusan: "",
     tahun_tamat: "",
@@ -43,9 +44,11 @@ const EditData = () => {
     no_req_bkn: "",
   });
 
+  const [fotoPreview, setFotoPreview] = useState(null);
   const [errors, setErrors] = useState({});
   const inputRefs = useRef({});
   const [showModal, setShowModal] = useState(false);
+  const [oldImageUrl, setOldImageUrl] = useState("");
 
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
@@ -57,17 +60,32 @@ const EditData = () => {
   useEffect(() => {
     if (location.state && location.state.data) {
       const initialData = location.state.data;
+
+      // Convert date string to input date format
       if (initialData.tanggal_lahir) {
-        // Convert the date from ISO format to "yyyy-MM-dd"
-        initialData.tanggal_lahir = new Date(initialData.tanggal_lahir)
-          .toISOString()
-          .split("T")[0];
+        initialData.tanggal_lahir = formatDateForInput(
+          initialData.tanggal_lahir
+        );
       }
+
       setFormData(initialData);
+      if (initialData.foto) {
+        setFotoPreview(initialData.foto);
+        setOldImageUrl(initialData.foto);
+      }
     } else {
       navigate("/DataKaryawan");
     }
   }, [location.state, navigate]);
+
+  const formatDateForInput = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0]; // Converts to 'yyyy-MM-dd' format
+  };
+
+  const parseDateForServer = (dateString) => {
+    return new Date(dateString).toISOString(); // Converts to 'yyyy-MM-ddTHH:mm:ss.sssZ' format
+  };
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -80,13 +98,16 @@ const EditData = () => {
         if (!allowedTypes.includes(file.type)) {
           newErrors[name] =
             "Invalid file type. Only PNG, JPG, and JPEG are allowed.";
-          setFormData({ ...formData, [name]: null });
+          setFormData({ ...formData, [name]: "" });
+          setFotoPreview(null);
         } else {
-          setFormData({ ...formData, [name]: file });
+          setFormData({ ...formData, [name]: file, foto_lama: oldImageUrl });
+          setFotoPreview(URL.createObjectURL(file));
           delete newErrors[name];
         }
       } else {
-        setFormData({ ...formData, [name]: null });
+        setFormData({ ...formData, [name]: "" });
+        setFotoPreview(null);
         newErrors[name] = "This field is required";
       }
     } else {
@@ -187,23 +208,60 @@ const EditData = () => {
         throw new Error("No token found");
       }
 
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key === "foto" && formData[key]) {
-          formDataToSend.append(key, formData[key]);
-        } else {
-          formDataToSend.append(key, formData[key]);
+      // Convert date before sending to the server
+      if (formData.tanggal_lahir) {
+        formData.tanggal_lahir = parseDateForServer(formData.tanggal_lahir);
+      }
+
+      let imageUrl = formData.foto;
+      if (formData.foto && typeof formData.foto !== "string") {
+        const fotoFormData = new FormData();
+
+        fotoFormData.append("image", formData.foto);
+        fotoFormData.append("imageUrl", oldImageUrl);
+
+        console.log("Mengirim foto baru:", formData.foto);
+        console.log("URL foto lama:", oldImageUrl);
+
+        try {
+          const uploadResponse = await axios.put(
+            `http://localhost:3000/profile/edit-foto`,
+            fotoFormData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+
+          console.log("Respons lengkap dari server:", uploadResponse);
+
+          if (
+            uploadResponse.data &&
+            uploadResponse.data.status === "success" &&
+            uploadResponse.data.data &&
+            uploadResponse.data.data.imageUrl
+          ) {
+            imageUrl = uploadResponse.data.data.imageUrl;
+            console.log("Foto berhasil diunggah:", imageUrl);
+          } else {
+            console.error(
+              "Respons server tidak sesuai format yang diharapkan:",
+              uploadResponse.data
+            );
+            throw new Error("Format respons server tidak sesuai");
+          }
+        } catch (error) {
+          console.error("Error saat mengunggah foto:", error);
+          throw error;
         }
-      });
+      }
 
-      console.log(
-        "FormData yang akan dikirim:",
-        Array.from(formDataToSend.entries())
-      );
-
+      // Mengirim data lain
       const response = await axios.patch(
         `http://localhost:3000/employees/${formData.nip}`,
-        formDataToSend,
+        { ...formData, foto: imageUrl },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -211,27 +269,30 @@ const EditData = () => {
           },
         }
       );
+
       console.log("Data berhasil diperbarui:", response.data);
       alert("Data berhasil diperbarui");
       navigate("/DataKaryawan");
     } catch (error) {
-      let errorMessage = "An error occurred. Please try again later.";
+      console.error("Error:", error);
+      let errorMessage = "Terjadi kesalahan. Silakan coba lagi nanti.";
 
       if (error.response) {
-        const { data } = error.response;
-        if (data && data.message) {
-          errorMessage = data.message;
-          if (data.message.includes("duplicate key error")) {
-            errorMessage =
-              "An employee with this NIP already exists. Please use a different NIP.";
-          }
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+
+        if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
         }
+      } else if (error.request) {
+        console.error("Request:", error.request);
+        errorMessage = "Tidak ada respons dari server. Periksa koneksi Anda.";
+      } else {
+        console.error("Error message:", error.message);
+        errorMessage = error.message;
       }
 
-      console.error(
-        "Error adding data: ",
-        error.response ? error.response.data : error.message
-      );
       alert(errorMessage);
     }
   };
@@ -253,20 +314,6 @@ const EditData = () => {
 
   const handleCancel = () => {
     window.location.href = "/Dashboard";
-  };
-
-  const renderValue = (key) => {
-    const value = formData[key] || ""; // Default to empty string if value is null or undefined
-    if (key === "foto") {
-      return value ? (
-        <img
-          src={value}
-          alt="Foto"
-          className="w-32 h-32 items-center object-cover"
-        />
-      ) : null;
-    }
-    return null;
   };
 
   return (
@@ -299,14 +346,12 @@ const EditData = () => {
                   { name: "no_kk", type: "number" },
                   { name: "no_telepon", type: "number" },
                   { name: "no_rekening", type: "number" },
-                  { name: "email", type: "text" },
                   { name: "email_gov", type: "text" },
                 ].map(({ name, type, options }) => (
                   <div className="mb-4" key={name}>
                     <label className="block text-gray-700 mb-2" htmlFor={name}>
                       {name.replace("_", " ").toUpperCase()}
                     </label>
-                    {renderValue(name, type, options)}
                     {type === "select" ? (
                       <select
                         id={name}
@@ -330,18 +375,17 @@ const EditData = () => {
                         id={name}
                         name={name}
                         type={type}
-                        value={type === "file" ? undefined : formData[name]}
                         onChange={handleChange}
                         ref={(el) => (inputRefs.current[name] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
-                        accept={type === "file" ? "image/*" : undefined}
+                        accept={"image/*"}
                       />
                     ) : (
                       <input
                         id={name}
                         name={name}
                         type={type}
-                        value={formData[name]}
+                        value={formData[name] || ""}
                         onChange={handleChange}
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
@@ -360,6 +404,17 @@ const EditData = () => {
                         size
                       </p>
                     )}
+                    {name === "foto" && (
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mt-4">
+                          Foto Preview
+                        </label>
+                        <img
+                          src={fotoPreview}
+                          className="mt-2 w-24 object-cover"
+                        />
+                      </div>
+                    )}
                     {name === "tanggal_lahir" && (
                       <p className="text-gray-500 text-sm mt-1">
                         * format bulan/tanggal/tahun
@@ -371,6 +426,45 @@ const EditData = () => {
             </div>
 
             <div className="form-3 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+              <h1 className="text-xl font-bold mb-6 text-start">
+                Akun Login User
+              </h1>
+              <h1 className="text-l mb-6 text-start text-red-600">
+                Hati-hati mengubah data ini !
+              </h1>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { name: "email", type: "text" },
+                  // { name: "password", type: "text" },
+                ].map(({ name, type }) => (
+                  <div className="mb-4" key={name}>
+                    <label className="block text-gray-700 mb-2" htmlFor={name}>
+                      {name.replace("_", " ").toUpperCase()}
+                    </label>
+                    {
+                      <input
+                        id={name}
+                        name={name}
+                        type={type}
+                        value={formData[name] || ""}
+                        onChange={handleChange}
+                        ref={(el) => (inputRefs.current[name] = el)}
+                        className={`border border-gray-300 rounded-md p-2 w-full ${
+                          errors[name] ? "border-red-500" : ""
+                        }`}
+                      />
+                    }
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors[name]}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="form-4 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
               <h1 className="text-xl font-bold mb-6 text-start">Alamat</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
@@ -388,7 +482,7 @@ const EditData = () => {
                       type="text"
                       id={key}
                       name={key}
-                      value={formData[key]}
+                      value={formData[name] || ""}
                       onChange={handleChange}
                       ref={(el) => (inputRefs.current[key] = el)}
                       className="border border-gray-300 rounded-md p-2 w-full"
@@ -401,7 +495,7 @@ const EditData = () => {
               </div>
             </div>
 
-            <div className="form-4 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+            <div className="form-5 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
               <h1 className="text-xl font-bold mb-6 text-start">Pendidikan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {["pendidikan", "jurusan", "tahun_tamat"].map((key) => {
@@ -416,7 +510,7 @@ const EditData = () => {
                         type={isNumberField ? "number" : "text"}
                         id={key}
                         name={key}
-                        value={formData[key]}
+                        value={formData[name] || ""}
                         onChange={handleChange}
                         ref={(el) => (inputRefs.current[key] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
@@ -430,7 +524,7 @@ const EditData = () => {
               </div>
             </div>
 
-            <div className="form-5 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+            <div className="form-6 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
               <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
@@ -481,7 +575,7 @@ const EditData = () => {
                         id={name}
                         name={name}
                         type={type}
-                        value={formData[name]}
+                        value={formData[name] || ""}
                         onChange={handleChange}
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
