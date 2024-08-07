@@ -2,6 +2,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import "./Number.css"
 
 const TambahData = () => {
   const [formData, setFormData] = useState({
@@ -249,6 +250,12 @@ const TambahData = () => {
     window.location.href = "/DataKaryawan";
   };
 
+  const preventInvalidInput = (e) => {
+    if (["e", "E", "-", "+", "."].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <main className="py-8 w-full max-w-7xl">
@@ -321,6 +328,7 @@ const TambahData = () => {
                         type={type}
                         value={formData[name]}
                         onChange={handleChange}
+                        onKeyDown={type === "number" ? preventInvalidInput : null}
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
@@ -407,6 +415,7 @@ const TambahData = () => {
                         name={key}
                         value={formData[key]}
                         onChange={handleChange}
+                        onKeyDown={isNumberField === "number" ? preventInvalidInput : null}
                         ref={(el) => (inputRefs.current[key] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
                       />
@@ -472,6 +481,7 @@ const TambahData = () => {
                         type={type}
                         value={formData[name]}
                         onChange={handleChange}
+                        onKeyDown={type === "number" ? preventInvalidInput : null}
                         ref={(el) => (inputRefs.current[name] = el)}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
