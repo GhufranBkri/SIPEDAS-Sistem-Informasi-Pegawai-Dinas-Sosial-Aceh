@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "antd": "^5.20.0",
     "axios": "^1.7.2",
     "chart.js": "^4.4.3",
     "datatables.net-dt": "^2.1.0",

@@ -42,13 +42,14 @@ const TambahData = () => {
     no_req_bkn: "",
   });
 
+  const [fotoPreview, setFotoPreview] = useState(null);
   const [errors, setErrors] = useState({});
   const inputRefs = useRef({});
   const [showModal, setShowModal] = useState(false);
 
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
-  const jenisOptions = ["PNS", "Tenaga Kontrak"];
+  const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
   const kelasJabatanOptions = ["I", "II", "III", "IV"];
 
   const handleChange = (e) => {
@@ -63,12 +64,15 @@ const TambahData = () => {
           newErrors[name] =
             "Invalid file type. Only PNG, JPG, and JPEG are allowed.";
           setFormData({ ...formData, [name]: null });
+          setFotoPreview(null);
         } else {
           setFormData({ ...formData, [name]: file });
+          setFotoPreview(URL.createObjectURL(file));
           delete newErrors[name];
         }
       } else {
         setFormData({ ...formData, [name]: null });
+        setFotoPreview(null);
         newErrors[name] = "This field is required";
       }
     } else {
@@ -167,20 +171,39 @@ const TambahData = () => {
         throw new Error("No token found");
       }
 
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        if (key === "foto" && formData[key]) {
-          console.log("Adding file to FormData:", formData[key]);
-          formDataToSend.append(key, formData[key]);
-        } else {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+      let fotoURL = "";
+      if (formData.foto instanceof File) {
+        const fotoData = new FormData();
+        fotoData.append("image", formData.foto);
 
-      await axios.post("http://localhost:3000/employees/", formDataToSend, {
+        try {
+          const fotoResponse = await axios.post(
+            "http://localhost:3000/employees/upload-foto",
+            fotoData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+          // Extract the image URL from the response data
+          fotoURL = fotoResponse.data.data.imageUrl;
+        } catch (error) {
+          console.error("Photo upload failed:", error);
+          console.log("Photo Data:", fotoData);
+          console.log("Request Headers:", error.config.headers);
+
+          return; // Stop further execution if photo upload fails
+        }
+      }
+
+      const data = { ...formData, foto: fotoURL };
+
+      await axios.post("http://localhost:3000/employees/", data, {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       });
       alert("Data berhasil ditambahkan");
@@ -314,6 +337,17 @@ const TambahData = () => {
                         * Only .png, .jpg, .jpeg files are allowed with 1 MB
                         size
                       </p>
+                    )}
+                    {name === "foto" && (
+                      <div className="col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mt-4">
+                          Photo Preview
+                        </label>
+                        <img
+                          src={fotoPreview}
+                          className="mt-2 w-24 object-cover"
+                        />
+                      </div>
                     )}
                     {name === "tanggal_lahir" && (
                       <p className="text-gray-500 text-sm mt-1">
