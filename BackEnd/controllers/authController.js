@@ -138,5 +138,29 @@ const updateUserDetails = async (req, res) => {
     }
 };
 
+// Controller untuk mengubah password oleh employee berdasarkan NIP yang sedang login
+const changePassword = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const nip = req.user.nip; // Mendapatkan NIP dari token yang terverifikasi
 
-module.exports = { createFirstAdmin, registerAdmin, login, updateUserDetails };
+    try {
+        // Temukan user berdasarkan NIP yang diperoleh dari token
+        const user = await User.findOne({ employeeNip: nip });
+        if (!user) return res.status(400).json({ message: 'User not found' });
+
+        // Verifikasi apakah oldPassword cocok dengan password yang saat ini tersimpan
+        const validOldPassword = await bcrypt.compare(oldPassword, user.password);
+        if (!validOldPassword) return res.status(400).json({ message: 'Old password is incorrect' });
+
+        // Hash dan simpan password baru
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};
+
+
+module.exports = { createFirstAdmin, registerAdmin, login, updateUserDetails, changePassword };

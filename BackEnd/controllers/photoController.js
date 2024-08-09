@@ -36,22 +36,34 @@ const uploadPhoto = async (req, res) => {
     }
 };
 
-// Edit foto
+// Fungsi controller untuk mengganti foto
 const editPhoto = async (req, res) => {
     console.log('PUT /profile/edit-foto'); // Log debugging
 
     try {
         const { imageUrl } = req.body;
 
-        // Extract public_id from the URL
-        const public_id = 'upload-foto' + imageUrl.split('/').slice(-1)[0].split('.')[0];
+        // Ekstrak public_id dari URL
+        const public_id = 'upload-foto/' + imageUrl.split('/').slice(-1)[0].split('.')[0];
+
+        // Hapus gambar sebelumnya
+        await cloudinary.uploader.destroy(public_id, (error, result) => {
+            if (error) {
+                console.error('Error deleting old image:', error);
+                throw new Error('Error deleting old image');
+            }
+            console.log('Old image deleted successfully:', result);
+        });
 
         // Upload gambar baru ke Cloudinary menggunakan buffer
         const result = await new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
-                { folder: 'upload-foto', public_id: public_id, overwrite: true },
+                { folder: 'upload-foto', public_id: public_id, overwrite: true, invalidate: true },
                 (error, result) => {
-                    if (error) return reject(error);
+                    if (error) {
+                        console.error('Error uploading new image:', error);
+                        return reject(error);
+                    }
                     resolve(result);
                 }
             );
@@ -64,7 +76,7 @@ const editPhoto = async (req, res) => {
         res.json(formatResponse('success', 200, { imageUrl: result.secure_url }));
     } catch (error) {
         console.error('Error in editPhoto:', error);
-        res.status(500).json(formatResponse('error', 500, null, 'Error mengedit gambar di Cloudinary'));
+        res.status(500).json(formatResponse('error', 500, null, 'Error mengganti gambar di Cloudinary'));
     }
 };
 
