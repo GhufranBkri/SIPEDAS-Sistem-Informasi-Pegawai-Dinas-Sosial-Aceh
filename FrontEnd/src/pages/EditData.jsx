@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Number.css";
 
 const EditData = () => {
@@ -28,7 +29,7 @@ const EditData = () => {
     no_telepon: "",
     email_gov: "",
     email: "",
-    // password: null,
+    password: "",
     pendidikan: "",
     jurusan: "",
     tahun_tamat: "",
@@ -50,6 +51,8 @@ const EditData = () => {
   const inputRefs = useRef({});
   const [showModal, setShowModal] = useState(false);
   const [oldImageUrl, setOldImageUrl] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
@@ -196,6 +199,45 @@ const EditData = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Fungsi untuk memperbarui kata sandi
+  const updatePassword = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/auth/update-user-details`,
+        {
+          nip: formData.nip,
+          newPassword: newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Password updated successfully:", response.data);
+      alert("Password berhasil diperbarui");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      if (error.response) {
+        // Server responded with a status other than 200 range
+        alert(`Gagal memperbarui password: ${error.response.data.message}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        alert("Gagal memperbarui password. Tidak ada respons dari server.");
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        alert(`Gagal memperbarui password: ${error.message}`);
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -257,6 +299,10 @@ const EditData = () => {
           console.error("Error saat mengunggah foto:", error);
           throw error;
         }
+      }
+
+      if (newPassword) {
+        await updatePassword();
       }
 
       // Mengirim data lain
@@ -321,6 +367,10 @@ const EditData = () => {
     if (["e", "E", "-", "+", "."].includes(e.key)) {
       e.preventDefault();
     }
+  };
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -443,34 +493,56 @@ const EditData = () => {
                 Hati-hati mengubah data ini !
               </h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  { name: "email", type: "text" },
-                  // { name: "password", type: "text" },
-                ].map(({ name, type }) => (
-                  <div className="mb-4" key={name}>
-                    <label className="block text-gray-700 mb-2" htmlFor={name}>
-                      {name.replace("_", " ").toUpperCase()}
-                    </label>
-                    {
-                      <input
-                        id={name}
-                        name={name}
-                        type={type}
-                        value={formData[name] || ""}
-                        onChange={handleChange}
-                        ref={(el) => (inputRefs.current[name] = el)}
-                        className={`border border-gray-300 rounded-md p-2 w-full ${
-                          errors[name] ? "border-red-500" : ""
-                        }`}
-                      />
-                    }
-                    {errors[name] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        {errors[name]}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                <div className="mb-4 md:col-span-1">
+                  <label className="block text-gray-700 mb-2" htmlFor="email">
+                    EMAIL
+                  </label>
+                  <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    ref={(el) => (inputRefs.current.email = el)}
+                    className="border border-gray-300 rounded-md p-2 w-full"
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs italic mt-2">
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-4 md:col-span-1 relative">
+                  <label
+                    className="block text-gray-700 mb-2"
+                    htmlFor="password"
+                  >
+                    PASSWORD
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="border border-gray-300 rounded-md p-2 w-full"
+                  />
+                  <span
+                    onClick={handleTogglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3 mt-2 flex items-center cursor-pointer"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                  <p className="text-red-400 text-sm mt-1">
+                    * Abaikan jika tidak ingin mengubah password
+                  </p>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs italic mt-2">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
