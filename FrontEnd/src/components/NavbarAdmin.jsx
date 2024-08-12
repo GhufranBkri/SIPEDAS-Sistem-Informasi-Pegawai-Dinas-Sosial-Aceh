@@ -59,7 +59,7 @@ function NavbarAdmin() {
                             onClick={toggleNotificationDropdown}
                         />
                         {isNotificationDropdownOpen && (
-                            <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-md shadow-lg">
+                            <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                             <div className="p-4 border-b border-gray-200">
                                 <span className="font-bold">Notifications</span>
                             </div>

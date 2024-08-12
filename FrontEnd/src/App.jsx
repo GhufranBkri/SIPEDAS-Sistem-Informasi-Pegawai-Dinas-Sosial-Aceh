@@ -11,6 +11,7 @@ import Struktur from './pages/Struktur';
 import TambahData from './pages/TambahData';
 import EditData from './pages/EditData';
 import ProfileUser from './pages/ProfileUser';
+import GantiPassword from './pages/GantiPassword';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             <Route path="/Tambahdata" element={<TambahData />} />
             <Route path="/Editdata" element={<EditData />} />
             <Route path="/ProfileUser" element={<ProfileUser />} />
+            <Route path="/GantiPassword" element={<GantiPassword />} />
           </Route>
           <Route path="/Login" element={<Login />} />
           
