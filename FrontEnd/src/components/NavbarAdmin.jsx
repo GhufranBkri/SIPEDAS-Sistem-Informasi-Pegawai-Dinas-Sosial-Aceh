@@ -78,7 +78,7 @@ function NavbarAdmin() {
                                 </div>
                             </div>
                             <div className="p-2 -mt-2 mb-2 border-gray-200 text-center">
-                                <a href="#" className="font-light text-custom-blue hover:underline">See All</a>
+                                <a href="/Notifikasi" className="font-light text-custom-blue hover:underline">See All</a>
                             </div>
                         </div>
                         )}

@@ -17,6 +17,14 @@ const DataKaryawan = () => {
   const [showExportPopup, setShowExportPopup] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    // Cek userRole dari localStorage
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'admin') {
+      navigate('/Dashboard');
+    }
+  }, [navigate]);
+
   const columns = [
     {
       title: "No.",
