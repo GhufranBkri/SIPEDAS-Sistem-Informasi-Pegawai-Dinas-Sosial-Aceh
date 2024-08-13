@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const employeeRoutes = require('./routes/employeeRoutes');
 const authRoutes = require('./routes/authRoutes');
 const imageUpload = require('./routes/imageRoutes');
+const requestRoutes = require('./routes/requestRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -29,6 +30,7 @@ app.use(bodyParser.json());
 app.use('/employees', employeeRoutes);
 app.use('/auth', authRoutes);
 app.use('/profile', imageUpload);
+app.use('/requests', requestRoutes);
 
 app.post('/', (req, res) => {
     res.status(200).send('Root Endpoint POST Request');

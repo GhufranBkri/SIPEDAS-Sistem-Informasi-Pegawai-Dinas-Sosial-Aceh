@@ -12,6 +12,11 @@ cloudinary.config({
 // Upload foto
 const uploadPhoto = async (req, res) => {
     console.log('POST /profile/upload-foto'); // Log debugging
+    console.log('Request file:', req.file); // Tambahkan log ini
+
+    if (!req.file || !req.file.buffer) {
+        return res.status(400).json(formatResponse('error', 400, null, 'No file uploaded or file buffer missing'));
+    }
 
     try {
         // Upload gambar ke Cloudinary menggunakan buffer

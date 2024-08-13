@@ -73,30 +73,41 @@ const updateRequestStatus = async (req, res) => {
 
         // If the status is approved, update the Employee data
         if (status === 'approved') {
-            // Destructure updatedData from the updateRequest
             const { updatedData } = updateRequest;
+
+            // Ensure updatedData is an object and not empty
+            if (typeof updatedData !== 'object' || !Object.keys(updatedData).length) {
+                return res.status(400).json(formatResponse('error', 400, null, 'Invalid update data'));
+            }
+
+            // Log updatedData for debugging
+            console.log('Updated Data:', updatedData);
+
             // Use findOneAndUpdate to update the Employee document with the provided updatedData
             const updatedEmployee = await Employee.findOneAndUpdate(
                 { nip: updateRequest.employeeNip },
-                { $set: updatedData },
+                { $set: updatedData }, // Use $set to update fields in Employee
                 { new: true, runValidators: true }
             );
 
             // Check if the employee was found and updated
             if (!updatedEmployee) {
+                console.log('Employee not found with NIP:', updateRequest.employeeNip);
                 return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
             }
         }
 
-        // Save the update request
+        // Save the update request after processing
         const savedRequest = await updateRequest.save();
         // Respond with the saved request
         res.status(200).json(formatResponse('success', 200, savedRequest));
     } catch (err) {
         // Handle any errors that occur during the process
+        console.error('Error in updateRequestStatus:', err);
         res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 };
+
 
 module.exports = {
     requestEmployeeUpdate,

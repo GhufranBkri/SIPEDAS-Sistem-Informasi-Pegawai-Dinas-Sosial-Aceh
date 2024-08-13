@@ -31,14 +31,6 @@ router.post('/import', authenticateToken, authorizeRoles('admin'), uploadCsv, em
 // Upload photo
 router.post('/upload-foto', authenticateToken, authorizeRoles('admin'), upload.single('image'), uploadPhoto);
 
-// Request update data
-router.post('/update-request', authenticateToken, requestEmployeeUpdate);
-
-// Get all update requests (Admin only)
-router.get('/request/update-requests', authenticateToken, authorizeRoles('admin'), getAllUpdateRequests);
-
-// Update request status (Admin only)
-router.patch('/update-request/:id', authenticateToken, authorizeRoles('admin'), updateRequestStatus);
 
 // Get user data by ID (self-access only)
 router.get('/:id', authenticateToken, employee.getUserById);

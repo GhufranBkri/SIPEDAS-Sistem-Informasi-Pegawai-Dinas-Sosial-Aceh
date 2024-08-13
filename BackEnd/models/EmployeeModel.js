@@ -8,7 +8,7 @@ const employeeSchema = new mongoose.Schema({
     },
     nama: {
         type: String,
-        maxlength: 100 // Menggunakan maxlength untuk batas panjang string
+        maxlength: 100
     },
     bidang: {
         type: String,
