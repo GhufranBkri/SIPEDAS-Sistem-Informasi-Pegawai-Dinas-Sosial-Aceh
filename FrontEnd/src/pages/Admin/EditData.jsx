@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import "./Number.css";
+import "../Number.css";
 
 const EditData = () => {
   const [formData, setFormData] = useState({

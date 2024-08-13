@@ -154,6 +154,7 @@ const ProfileUser = () => {
       <input
         type="text"
         value={value}
+        disabled
         className="border border-gray-300 rounded-md p-2 w-full"
       />
     );
