@@ -2,7 +2,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import "./Number.css";
+import "../Number.css";
 import { useNavigate } from "react-router-dom";
 
 const TambahData = () => {

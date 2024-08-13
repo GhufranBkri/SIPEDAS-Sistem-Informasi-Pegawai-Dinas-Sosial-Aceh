@@ -1,11 +1,22 @@
 // eslint-disable-next-line no-unused-vars
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Line, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
 
 function LandingPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if the user is logged in
+    const userRole = localStorage.getItem('userRole');
+    if (userRole) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
   const lineData = {
     labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
     datasets: [
