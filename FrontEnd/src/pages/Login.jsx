@@ -14,8 +14,13 @@ function Login() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+  const openErrorModal = () => setIsErrorModalOpen(true);
+  const closeErrorModal = () => setIsErrorModalOpen(false);
 
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
@@ -51,21 +56,16 @@ function Login() {
         console.log("Login successful:", response.data);
       } else {
         // Handle login failure
-        console.error("Login failed:", response.data);
+        setErrorMessage("Login failed. Please try again.");
+        openErrorModal();
       }
     } catch (error) {
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error("Error response:", error.response.data);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error("Error request:", error.request);
+        setErrorMessage(error.response.data.message || "Login failed.");
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error("Error message:", error.message);
+        setErrorMessage("An error occurred. Please try again.");
       }
-      console.error("Error config:", error.config);
+      openErrorModal();
     }
   };
 
@@ -184,6 +184,24 @@ function Login() {
           </div>
         </div>
       )}
+
+      {isErrorModalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-sm mx-4">
+            <h2 className="text-lg font-semibold mb-6">Login Gagal</h2>
+            <p className="mb-6">{errorMessage}</p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={closeErrorModal}
+                className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition duration-300 ease-in-out"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }

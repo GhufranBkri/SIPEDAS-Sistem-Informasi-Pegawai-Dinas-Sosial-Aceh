@@ -6,12 +6,16 @@ import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
-import DataKaryawan from './pages/DataKaryawan';
+import DataKaryawan from './pages/Admin/DataKaryawan';
 import Struktur from './pages/Struktur';
-import TambahData from './pages/TambahData';
-import EditData from './pages/EditData';
-import ProfileUser from './pages/ProfileUser';
-import GantiPassword from './pages/GantiPassword';
+import TambahData from './pages/Admin/TambahData';
+import EditData from './pages/Admin/EditData';
+import ProfileUser from './pages/User/ProfileUser';
+import GantiPassword from './pages/User/GantiPassword';
+import GantiStruktur from './pages/Admin/GantiStruktur';
+import Notifikasi from './pages/Admin/Notifikasi';
+import RequestUser from './pages/Admin/RequestUser';
+import RequestEditData from './pages/User/RequestEditData';
 
 function App() {
   return (
@@ -27,6 +31,10 @@ function App() {
             <Route path="/Editdata" element={<EditData />} />
             <Route path="/ProfileUser" element={<ProfileUser />} />
             <Route path="/GantiPassword" element={<GantiPassword />} />
+            <Route path="/GantiStruktur" element={<GantiStruktur />} />
+            <Route path="/Notifikasi" element={<Notifikasi />} />
+            <Route path="/RequestUser" element={<RequestUser />} />
+            <Route path="/RequestEditData" element={<RequestEditData />} />
           </Route>
           <Route path="/Login" element={<Login />} />
           

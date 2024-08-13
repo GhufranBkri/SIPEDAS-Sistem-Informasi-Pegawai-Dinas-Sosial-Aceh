@@ -1,0 +1,27 @@
+/* src/pages/Struktur.css */
+
+.zoom-container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: auto;
+}
+
+.zoom-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.zoom-rectangle {
+  position: absolute;
+  top: 10px; /* Adjust the position from the top */
+  left: 10px; /* Adjust the position from the left */
+  width: 300px; /* Width of the zoom rectangle */
+  height: 150px; /* Height of the zoom rectangle */
+  pointer-events: none; /* Prevents the rectangle from interfering with cursor events */
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  background-repeat: no-repeat;
+  background-size: 1100%; /* Adjust this for the zoom level */
+  display: block;
+}

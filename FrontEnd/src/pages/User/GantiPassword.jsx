@@ -29,6 +29,14 @@ const GantiPassword = () => {
   };
 
   useEffect(() => {
+    // Cek userRole dari localStorage
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'employee') {
+      navigate('/Dashboard');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         const storedFormData = localStorage.getItem("formData");

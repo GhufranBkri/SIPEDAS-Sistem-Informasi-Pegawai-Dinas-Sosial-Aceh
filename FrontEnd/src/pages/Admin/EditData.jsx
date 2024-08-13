@@ -1,14 +1,16 @@
-// src/pages/TambahData.jsx
+// src/pages/EditData.jsx
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Number.css";
 
-const TambahData = () => {
+const EditData = () => {
   const [formData, setFormData] = useState({
     nama: "",
     nip: "",
-    foto: null,
+    foto: "",
     bidang: "",
     eselon: "",
     sub_bidang: "",
@@ -25,8 +27,9 @@ const TambahData = () => {
     no_kk: "",
     golongan_darah: "",
     no_telepon: "",
-    email: "",
     email_gov: "",
+    email: "",
+    password: "",
     pendidikan: "",
     jurusan: "",
     tahun_tamat: "",
@@ -47,11 +50,54 @@ const TambahData = () => {
   const [errors, setErrors] = useState({});
   const inputRefs = useRef({});
   const [showModal, setShowModal] = useState(false);
+  const [oldImageUrl, setOldImageUrl] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
-  const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
+  const jenisOptions = ["PNS", "Tenaga Kontrak"];
   const kelasJabatanOptions = ["I", "II", "III", "IV"];
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Cek userRole dari localStorage
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'admin') {
+      navigate('/Dashboard');
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    if (location.state && location.state.data) {
+      const initialData = location.state.data;
+
+      // Convert date string to input date format
+      if (initialData.tanggal_lahir) {
+        initialData.tanggal_lahir = formatDateForInput(
+          initialData.tanggal_lahir
+        );
+      }
+
+      setFormData(initialData);
+      if (initialData.foto) {
+        setFotoPreview(initialData.foto);
+        setOldImageUrl(initialData.foto);
+      }
+    } else {
+      navigate("/DataKaryawan");
+    }
+  }, [location.state, navigate]);
+
+  const formatDateForInput = (dateString) => {
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0]; // Converts to 'yyyy-MM-dd' format
+  };
+
+  const parseDateForServer = (dateString) => {
+    return new Date(dateString).toISOString(); // Converts to 'yyyy-MM-ddTHH:mm:ss.sssZ' format
+  };
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -64,15 +110,15 @@ const TambahData = () => {
         if (!allowedTypes.includes(file.type)) {
           newErrors[name] =
             "Invalid file type. Only PNG, JPG, and JPEG are allowed.";
-          setFormData({ ...formData, [name]: null });
+          setFormData({ ...formData, [name]: "" });
           setFotoPreview(null);
         } else {
-          setFormData({ ...formData, [name]: file });
+          setFormData({ ...formData, [name]: file, foto_lama: oldImageUrl });
           setFotoPreview(URL.createObjectURL(file));
           delete newErrors[name];
         }
       } else {
-        setFormData({ ...formData, [name]: null });
+        setFormData({ ...formData, [name]: "" });
         setFotoPreview(null);
         newErrors[name] = "This field is required";
       }
@@ -161,26 +207,77 @@ const TambahData = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Fungsi untuk memperbarui kata sandi
+  const updatePassword = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      throw new Error("No token found");
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/auth/update-user-details`,
+        {
+          nip: formData.nip,
+          newPassword: newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Password updated successfully:", response.data);
+      alert("Password berhasil diperbarui");
+    } catch (error) {
+      console.error("Error updating password:", error);
+      if (error.response) {
+        // Server responded with a status other than 200 range
+        alert(`Gagal memperbarui password: ${error.response.data.message}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        alert("Gagal memperbarui password. Tidak ada respons dari server.");
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        alert(`Gagal memperbarui password: ${error.message}`);
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
 
     try {
+      console.log("Data yang akan dikirim:", formData);
+
       const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("No token found");
       }
 
-      let fotoURL = "";
-      if (formData.foto instanceof File) {
-        const fotoData = new FormData();
-        fotoData.append("image", formData.foto);
+      // Convert date before sending to the server
+      if (formData.tanggal_lahir) {
+        formData.tanggal_lahir = parseDateForServer(formData.tanggal_lahir);
+      }
+
+      let imageUrl = formData.foto;
+      if (formData.foto && typeof formData.foto !== "string") {
+        const fotoFormData = new FormData();
+
+        fotoFormData.append("image", formData.foto);
+        fotoFormData.append("imageUrl", oldImageUrl);
+
+        console.log("Mengirim foto baru:", formData.foto);
+        console.log("URL foto lama:", oldImageUrl);
 
         try {
-          const fotoResponse = await axios.post(
-            "http://localhost:3000/employees/upload-foto",
-            fotoData,
+          const uploadResponse = await axios.put(
+            `http://localhost:3000/profile/edit-foto`,
+            fotoFormData,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -188,46 +285,70 @@ const TambahData = () => {
               },
             }
           );
-          // Extract the image URL from the response data
-          fotoURL = fotoResponse.data.data.imageUrl;
-        } catch (error) {
-          console.error("Photo upload failed:", error);
-          console.log("Photo Data:", fotoData);
-          console.log("Request Headers:", error.config.headers);
 
-          return; // Stop further execution if photo upload fails
+          console.log("Respons lengkap dari server:", uploadResponse);
+
+          if (
+            uploadResponse.data &&
+            uploadResponse.data.status === "success" &&
+            uploadResponse.data.data &&
+            uploadResponse.data.data.imageUrl
+          ) {
+            imageUrl = uploadResponse.data.data.imageUrl;
+            console.log("Foto berhasil diunggah:", imageUrl);
+          } else {
+            console.error(
+              "Respons server tidak sesuai format yang diharapkan:",
+              uploadResponse.data
+            );
+            throw new Error("Format respons server tidak sesuai");
+          }
+        } catch (error) {
+          console.error("Error saat mengunggah foto:", error);
+          throw error;
         }
       }
 
-      const data = { ...formData, foto: fotoURL };
-
-      await axios.post("http://localhost:3000/employees/", data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      alert("Data berhasil ditambahkan");
-      window.location.href = "/DataKaryawan";
-    } catch (error) {
-      if (
-        error.response &&
-        error.response.data.message.includes("duplicate key error")
-      ) {
-        alert(
-          "An employee with this NIP already exists. Please use a different NIP."
-        );
-      } else {
-        console.error(
-          "Error adding data: ",
-          error.response ? error.response.data : error.message
-        );
-        alert(
-          `Failed to add data: ${
-            error.response ? error.response.data.message : error.message
-          }`
-        );
+      if (newPassword) {
+        await updatePassword();
       }
+
+      // Mengirim data lain
+      const response = await axios.patch(
+        `http://localhost:3000/employees/${formData.nip}`,
+        { ...formData, foto: imageUrl },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Data berhasil diperbarui:", response.data);
+      alert("Data berhasil diperbarui");
+      navigate("/DataKaryawan");
+    } catch (error) {
+      console.error("Error:", error);
+      let errorMessage = "Terjadi kesalahan. Silakan coba lagi nanti.";
+
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+        console.error("Response headers:", error.response.headers);
+
+        if (error.response.data && error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.request) {
+        console.error("Request:", error.request);
+        errorMessage = "Tidak ada respons dari server. Periksa koneksi Anda.";
+      } else {
+        console.error("Error message:", error.message);
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
     }
   };
 
@@ -247,7 +368,7 @@ const TambahData = () => {
   };
 
   const handleCancel = () => {
-    window.location.href = "/DataKaryawan";
+    window.location.href = "/Dashboard";
   };
 
   const preventInvalidInput = (e) => {
@@ -256,12 +377,16 @@ const TambahData = () => {
     }
   };
 
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <main className="py-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
-            Tambah Data Karyawan
+            Edit Data Karyawan
           </h1>
           <form onSubmit={handleSubmitWithConfirmation}>
             <div className="form-2 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
@@ -286,7 +411,6 @@ const TambahData = () => {
                   { name: "no_kk", type: "number" },
                   { name: "no_telepon", type: "number" },
                   { name: "no_rekening", type: "number" },
-                  { name: "email", type: "text" },
                   { name: "email_gov", type: "text" },
                 ].map(({ name, type, options }) => (
                   <div className="mb-4" key={name}>
@@ -316,17 +440,17 @@ const TambahData = () => {
                         id={name}
                         name={name}
                         type={type}
-                        accept=".png, .jpg, .jpeg"
                         onChange={handleChange}
                         ref={(el) => (inputRefs.current[name] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
+                        accept={"image/*"}
                       />
                     ) : (
                       <input
                         id={name}
                         name={name}
                         type={type}
-                        value={formData[name]}
+                        value={formData[name] || ""}
                         onChange={handleChange}
                         onKeyDown={
                           type === "number" ? preventInvalidInput : null
@@ -348,10 +472,10 @@ const TambahData = () => {
                         diterima
                       </p>
                     )}
-                    {name === "foto" && fotoPreview && (
+                    {name === "foto" && (
                       <div className="col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mt-4">
-                          Photo Preview
+                          Foto Preview
                         </label>
                         <img
                           src={fotoPreview}
@@ -370,6 +494,67 @@ const TambahData = () => {
             </div>
 
             <div className="form-3 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+              <h1 className="text-xl font-bold mb-6 text-start">
+                Akun Login User
+              </h1>
+              <h1 className="text-l mb-6 text-start text-red-600">
+                Hati-hati mengubah data ini !
+              </h1>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-4 md:col-span-1">
+                  <label className="block text-gray-700 mb-2" htmlFor="email">
+                    EMAIL
+                  </label>
+                  <input
+                    type="text"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    ref={(el) => (inputRefs.current.email = el)}
+                    className="border border-gray-300 rounded-md p-2 w-full"
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs italic mt-2">
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mb-4 md:col-span-1 relative">
+                  <label
+                    className="block text-gray-700 mb-2"
+                    htmlFor="password"
+                  >
+                    PASSWORD
+                  </label>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="border border-gray-300 rounded-md p-2 w-full"
+                  />
+                  <span
+                    onClick={handleTogglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 pr-3 mt-2 flex items-center cursor-pointer"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </span>
+                  <p className="text-red-400 text-sm mt-1">
+                    * Abaikan jika tidak ingin mengubah password
+                  </p>
+                  {errors.password && (
+                    <p className="text-red-500 text-xs italic mt-2">
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="form-4 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
               <h1 className="text-xl font-bold mb-6 text-start">Alamat</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
@@ -387,7 +572,7 @@ const TambahData = () => {
                       type="text"
                       id={key}
                       name={key}
-                      value={formData[key]}
+                      value={formData[key] || ""}
                       onChange={handleChange}
                       ref={(el) => (inputRefs.current[key] = el)}
                       className="border border-gray-300 rounded-md p-2 w-full"
@@ -400,7 +585,7 @@ const TambahData = () => {
               </div>
             </div>
 
-            <div className="form-4 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+            <div className="form-5 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
               <h1 className="text-xl font-bold mb-6 text-start">Pendidikan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {["pendidikan", "jurusan", "tahun_tamat"].map((key) => {
@@ -415,7 +600,7 @@ const TambahData = () => {
                         type={isNumberField ? "number" : "text"}
                         id={key}
                         name={key}
-                        value={formData[key]}
+                        value={formData[key] || ""}
                         onChange={handleChange}
                         onKeyDown={
                           isNumberField === "number"
@@ -434,7 +619,7 @@ const TambahData = () => {
               </div>
             </div>
 
-            <div className="form-5 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+            <div className="form-6 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
               <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
@@ -485,7 +670,7 @@ const TambahData = () => {
                         id={name}
                         name={name}
                         type={type}
-                        value={formData[name]}
+                        value={formData[name] || ""}
                         onChange={handleChange}
                         onKeyDown={
                           type === "number" ? preventInvalidInput : null
@@ -534,9 +719,7 @@ const TambahData = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-4">Konfirmasi</h2>
-            <p className="mb-4">
-              Apakah Anda yakin ingin menambahkan data ini?
-            </p>
+            <p className="mb-4">Apakah Anda yakin ingin mengubah data ini?</p>
             <div className="flex justify-end">
               <button
                 onClick={handleCancelModal}
@@ -558,4 +741,4 @@ const TambahData = () => {
   );
 };
 
-export default TambahData;
+export default EditData;
