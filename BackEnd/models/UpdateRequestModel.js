@@ -1,4 +1,3 @@
-// models/UpdateRequestModel.js
 const mongoose = require('mongoose');
 
 const updateRequestSchema = new mongoose.Schema({
@@ -7,8 +6,7 @@ const updateRequestSchema = new mongoose.Schema({
         required: true,
     },
     updatedData: {
-        type: Map,
-        of: String,
+        type: mongoose.Schema.Types.Mixed, // Allow various data types
         required: true,
     },
     status: {

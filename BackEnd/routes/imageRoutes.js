@@ -4,7 +4,7 @@ const { authenticateToken, authorizeRoles } = require('../middleware/authMiddlew
 const upload = require('../utils/multer-config');
 const photoController = require('../controllers/photoController');
 
-// Menggunakan middleware multer di endpoint yang sesuai
+// routes/photoRoutes.js
 router.post('/upload-foto', authenticateToken, authorizeRoles('admin'), upload.single('image'), photoController.uploadPhoto);
 
 // Menggunakan middleware authenticateToken dan authorizeRoles di endpoint yang sesuai
