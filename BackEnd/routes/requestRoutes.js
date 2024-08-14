@@ -7,10 +7,10 @@ const { authenticateToken, authorizeRoles, authorizeEmployeeAccess } = require('
 router.post('/update-request', authenticateToken, requestEmployeeUpdate);
 
 // Get all update requests (Admin only)
-router.get('/update-requests', authenticateToken, authorizeRoles('admin'), getAllUpdateRequests);
+router.get('/update-request', authenticateToken, authorizeRoles('admin'), getAllUpdateRequests);
 
 // Get all update requests (Admin only)
-router.get('/pending-requests', authenticateToken, authorizeRoles('admin'), getPendingUpdateRequests);
+router.get('/pending-request', authenticateToken, authorizeRoles('admin'), getPendingUpdateRequests);
 
 // Endpoint untuk menyetujui atau menolak permintaan pembaruan
 router.put('/update-request/:id', authenticateToken, authorizeRoles('admin'), updateRequestStatus);

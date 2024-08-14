@@ -30,7 +30,7 @@ app.use(bodyParser.json());
 app.use('/employees', employeeRoutes);
 app.use('/auth', authRoutes);
 app.use('/profile', imageUpload);
-app.use('/requests', requestRoutes);
+app.use('/request', requestRoutes);
 
 app.post('/', (req, res) => {
     res.status(200).send('Root Endpoint POST Request');
