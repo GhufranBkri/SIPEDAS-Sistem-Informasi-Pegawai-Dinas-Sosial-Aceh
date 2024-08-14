@@ -33,13 +33,35 @@ const requestEmployeeUpdate = async (req, res) => {
 };
 
 // Get all update requests (Admin only)
+const getPendingUpdateRequests = async (req, res) => {
+    try {
+        // Retrieve all update requests
+        const updateRequests = await UpdateRequest.find();
+
+        // Check if there are any pending update requests
+        const pendingRequests = updateRequests.filter(request => request.status === 'pending');
+        // If there are pending update requests
+        if (pendingRequests.length) {
+            return res.status(200).json(formatResponse('success', 200, pendingRequests));
+        }
+
+        // If no pending update requests found
+        return res.status(404).json(formatResponse('info', 404, null, 'No pending update requests found'));
+
+    } catch (err) {
+        console.error('Error fetching update requests:', err);
+        res.status(500).json(formatResponse('error', 500, null, 'Internal server error'));
+    }
+};
+
 const getAllUpdateRequests = async (req, res) => {
     try {
-        const updateRequests = await UpdateRequest.find({ status: 'pending' });
+        // Retrieve all update requests without filtering by status
+        const updateRequests = await UpdateRequest.find();
 
         // If no update requests are found
         if (!updateRequests.length) {
-            return res.status(404).json(formatResponse('error', 404, null, 'No pending update requests found'));
+            return res.status(404).json(formatResponse('error', 404, null, 'No update requests found'));
         }
 
         res.status(200).json(formatResponse('success', 200, updateRequests));
@@ -113,4 +135,5 @@ module.exports = {
     requestEmployeeUpdate,
     getAllUpdateRequests,
     updateRequestStatus,
+    getPendingUpdateRequests
 };
