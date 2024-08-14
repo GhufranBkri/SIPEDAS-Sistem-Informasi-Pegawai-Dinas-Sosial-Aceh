@@ -40,6 +40,7 @@ const getPendingUpdateRequests = async (req, res) => {
 
         // Check if there are any pending update requests
         const pendingRequests = updateRequests.filter(request => request.status === 'pending');
+
         // If there are pending update requests
         if (pendingRequests.length) {
             return res.status(200).json(formatResponse('success', 200, pendingRequests));
