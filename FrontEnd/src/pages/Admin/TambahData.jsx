@@ -189,7 +189,7 @@ const TambahData = () => {
 
         try {
           const fotoResponse = await axios.post(
-            "http://localhost:3000/employees/upload-foto",
+            "http://localhost:3000/profile/upload-foto",
             fotoData,
             {
               headers: {

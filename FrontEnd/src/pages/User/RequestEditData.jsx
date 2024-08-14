@@ -49,6 +49,7 @@ const RequestEditData = () => {
   const inputRefs = useRef({});
   const [showModal, setShowModal] = useState(false);
   const [oldImageUrl, setOldImageUrl] = useState("");
+  const [initialFormData, setInitialFormData] = useState({});
 
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
@@ -104,6 +105,7 @@ const RequestEditData = () => {
         }
 
         setFormData(data);
+        setInitialFormData(data);
         setFotoPreview(data.foto || null);
         setOldImageUrl(data.foto || "");
       } catch (error) {
@@ -232,6 +234,16 @@ const RequestEditData = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const getUpdatedData = () => {
+    const updatedData = {};
+    Object.keys(formData).forEach((key) => {
+      if (formData[key] !== initialFormData[key]) {
+        updatedData[key] = formData[key];
+      }
+    });
+    return updatedData;
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) {
       return;
@@ -261,8 +273,8 @@ const RequestEditData = () => {
         console.log("URL foto lama:", oldImageUrl);
 
         try {
-          const uploadResponse = await axios.put(
-            `http://localhost:3000/profile/edit-foto`,
+          const uploadResponse = await axios.post(
+            `http://localhost:3000/profile/upload-foto`,
             fotoFormData,
             {
               headers: {
@@ -295,10 +307,30 @@ const RequestEditData = () => {
         }
       }
 
+      // Menyusun updatedData hanya dengan field yang berubah
+      const updatedData = getUpdatedData();
+
+      // Jika ada perubahan pada foto, tambahkan ke updatedData
+      if (imageUrl !== oldImageUrl) {
+        updatedData.foto = imageUrl;
+      }
+
+      // Hanya kirim data jika ada yang diperbarui
+      if (Object.keys(updatedData).length === 0) {
+        alert("Tidak ada data yang diubah.");
+        return;
+      }
+
+      // Mengirim data yang diperbarui
+      const payload = {
+        nip: formData.nip,
+        updatedData,
+      };
+
       // Mengirim data lain
-      const response = await axios.patch(
-        `http://localhost:3000/employees/${formData.nip}`,
-        { ...formData, foto: imageUrl },
+      const response = await axios.post(
+        `http://localhost:3000/request/update-request/`,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -308,16 +340,16 @@ const RequestEditData = () => {
       );
 
       console.log("Data berhasil diperbarui:", response.data);
-      alert("Data berhasil diperbarui");
-      navigate("/DataKaryawan");
+      alert("Data berhasil di request ke Admin.");
+      navigate("/ProfileUser");
     } catch (error) {
       console.error("Error:", error);
       let errorMessage = "Terjadi kesalahan. Silakan coba lagi nanti.";
 
       if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-        console.error("Response headers:", error.response.headers);
+        console.error("Response data:", error.response?.data);
+        console.error("Response status:", error.response?.status);
+        console.error("Response headers:", error.response?.headers);
 
         if (error.response.data && error.response.data.message) {
           errorMessage = error.response.data.message;
@@ -637,7 +669,9 @@ const RequestEditData = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-4">Konfirmasi</h2>
-            <p className="mb-4">Apakah Anda yakin ingin mengubah data ini?</p>
+            <p className="mb-4">
+              Apakah Anda yakin ingin mengirim request edit data ini?
+            </p>
             <div className="flex justify-end">
               <button
                 onClick={handleCancelModal}
