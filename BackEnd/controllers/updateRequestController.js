@@ -3,6 +3,7 @@
 const formatResponse = require('../utils/responseFormatter');
 const UpdateRequest = require('../models/UpdateRequestModel');
 const Employee = require('../models/EmployeeModel');
+const cloudinary = require('../config/cloudinaryConfig');
 
 // Employee requests to update their data
 const requestEmployeeUpdate = async (req, res) => {
@@ -77,59 +78,80 @@ const updateRequestStatus = async (req, res) => {
     const { id } = req.params;
     const { status, adminResponse } = req.body;
 
-    // Check if the status is either 'approved' or 'rejected'
+    // Validasi status
     if (!['approved', 'rejected'].includes(status)) {
-        return res.status(400).json(formatResponse('error', 400, null, 'Invalid status'));
+        return res.status(400).json(formatResponse('error', 400, null, 'Status tidak valid'));
     }
 
     try {
-        // Find the update request by ID
+        // Temukan permintaan update berdasarkan ID
         const updateRequest = await UpdateRequest.findById(id);
         if (!updateRequest) {
-            return res.status(404).json(formatResponse('error', 404, null, 'Update request not found'));
+            return res.status(404).json(formatResponse('error', 404, null, 'Permintaan update tidak ditemukan'));
         }
 
-        // Update the status, response date, and admin response
+        // Update status, tanggal respons, dan respons admin
         updateRequest.status = status;
         updateRequest.responseDate = new Date();
         updateRequest.adminResponse = adminResponse;
 
-        // If the status is approved, update the Employee data
+        // Jika status disetujui (approved)
         if (status === 'approved') {
             const { updatedData } = updateRequest;
 
-            // Ensure updatedData is an object and not empty
+            // Validasi updatedData
             if (typeof updatedData !== 'object' || !Object.keys(updatedData).length) {
-                return res.status(400).json(formatResponse('error', 400, null, 'Invalid update data'));
+                return res.status(400).json(formatResponse('error', 400, null, 'Data update tidak valid'));
             }
 
-            // Log updatedData for debugging
-            console.log('Updated Data:', updatedData);
+            // Temukan karyawan dan hapus foto lama jika ada foto baru
+            const employee = await Employee.findOne({ nip: updateRequest.employeeNip });
+            if (employee && updatedData.foto) {
+                // Hapus foto lama dari Cloudinary
+                try {
+                    const public_id = employee.foto.split('/').slice(-1)[0].split('.')[0];
+                    await cloudinary.uploader.destroy('upload-foto/' + public_id);
+                    console.log('Gambar lama berhasil dihapus:', public_id);
+                } catch (err) {
+                    console.error('Kesalahan saat menghapus gambar lama dari Cloudinary:', err.message);
+                    return res.status(500).json(formatResponse('error', 500, null, 'Kesalahan saat menghapus gambar lama'));
+                }
+            }
 
-            // Use findOneAndUpdate to update the Employee document with the provided updatedData
+            // Update data karyawan dengan data baru
             const updatedEmployee = await Employee.findOneAndUpdate(
                 { nip: updateRequest.employeeNip },
-                { $set: updatedData }, // Use $set to update fields in Employee
+                { $set: updatedData },
                 { new: true, runValidators: true }
             );
 
-            // Check if the employee was found and updated
+            // Jika karyawan tidak ditemukan
             if (!updatedEmployee) {
-                console.log('Employee not found with NIP:', updateRequest.employeeNip);
-                return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
+                return res.status(404).json(formatResponse('error', 404, null, 'Karyawan tidak ditemukan'));
             }
         }
 
-        // Save the update request after processing
+        // Jika status ditolak (rejected) dan ada foto di UpdateRequest
+        if (status === 'rejected' && updateRequest.updatedData.foto) {
+            try {
+                const public_id = updateRequest.updatedData.foto.split('/').slice(-1)[0].split('.')[0];
+                await cloudinary.uploader.destroy('upload-foto/' + public_id);
+                console.log('Gambar yang di-upload pada permintaan update berhasil dihapus:', public_id);
+            } catch (err) {
+                console.error('Kesalahan saat menghapus gambar dari Cloudinary:', err.message);
+                return res.status(500).json(formatResponse('error', 500, null, 'Kesalahan saat menghapus gambar'));
+            }
+        }
+
+        // Simpan permintaan update setelah diproses
         const savedRequest = await updateRequest.save();
-        // Respond with the saved request
         res.status(200).json(formatResponse('success', 200, savedRequest));
     } catch (err) {
-        // Handle any errors that occur during the process
-        console.error('Error in updateRequestStatus:', err);
+        console.error('Kesalahan dalam updateRequestStatus:', err);
         res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 };
+
 
 
 module.exports = {
