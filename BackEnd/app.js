@@ -8,6 +8,7 @@ const employeeRoutes = require('./routes/employeeRoutes');
 const authRoutes = require('./routes/authRoutes');
 const imageUpload = require('./routes/imageRoutes');
 const requestRoutes = require('./routes/requestRoutes');
+const strukturRoutes = require('./routes/strukturRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -30,6 +31,7 @@ app.use(bodyParser.json());
 app.use('/employees', employeeRoutes);
 app.use('/auth', authRoutes);
 app.use('/profile', imageUpload);
+app.use('/struktur', strukturRoutes);
 app.use('/request', requestRoutes);
 
 app.post('/', (req, res) => {
