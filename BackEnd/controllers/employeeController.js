@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const formatResponse = require('../utils/responseFormatter');
 const Employee = require('../models/EmployeeModel');
 const User = require('../models/UserModel');
+const cloudinary = require('../config/cloudinaryConfig');
 
 // Create employee endpoint
 const createEmployee = async (req, res) => {
@@ -108,25 +109,38 @@ const updateEmployeeByNip = async (req, res) => {
     }
 };
 
-// Delete an employee by NIP (Admin only)
+// Hapus karyawan berdasarkan NIP (Hanya Admin)
 const deleteEmployeeByNip = async (req, res) => {
-    console.log('DELETE /employees/:nip', req.params.nip); // Debugging log
+    console.log('DELETE /employees/:nip', req.params.nip); // Log untuk debugging
     try {
-        // Find the employee to delete
         const deletedEmployee = await Employee.findOneAndDelete({ nip: req.params.nip });
-        if (!deletedEmployee) return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
-
-        // Find and delete the corresponding user
-        const deletedUser = await User.findOneAndDelete({ email: deletedEmployee.email });
-        if (!deletedUser) {
-            return res.status(404).json(formatResponse('error', 404, null, 'User not found'));
+        if (!deletedEmployee) {
+            return res.status(404).json(formatResponse('error', 404, null, 'Karyawan tidak ditemukan'));
         }
 
-        res.status(200).json(formatResponse('success', 200, null, 'Employee and corresponding user deleted'));
+        // Menghapus foto terkait di Cloudinary jika ada
+        if (deletedEmployee.foto) {
+            try {
+                const public_id = deletedEmployee.foto.split('/').slice(-1)[0].split('.')[0];
+                await cloudinary.uploader.destroy('upload-foto/' + public_id);
+                console.log('Gambar dengan public_id telah dihapus:', 'upload-foto/' + public_id);
+            } catch (error) {
+                console.error('Terjadi kesalahan saat menghapus gambar dari Cloudinary:', error.message);
+                return res.status(500).json(formatResponse('error', 500, null, 'Kesalahan saat menghapus gambar dari Cloudinary'));
+            }
+        }
+
+        const deletedUser = await User.findOneAndDelete({ email: deletedEmployee.email });
+        if (!deletedUser) {
+            return res.status(404).json(formatResponse('error', 404, null, 'User tidak ditemukan'));
+        }
+
+        res.status(200).json(formatResponse('success', 200, null, 'Karyawan, user yang terkait, dan foto berhasil dihapus'));
     } catch (err) {
         res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 };
+
 
 // Import employees from CSV (Admin only)
 const importEmployeesFromCsv = async (req, res) => {
