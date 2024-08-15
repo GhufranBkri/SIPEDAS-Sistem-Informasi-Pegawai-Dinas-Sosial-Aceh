@@ -14,6 +14,7 @@ const Notifikasi = () => {
     const userRole = localStorage.getItem("userRole");
     if (userRole !== "admin") {
       navigate("/Dashboard");
+      return;
     }
 
     // Function to fetch employee name by NIP
@@ -31,7 +32,7 @@ const Notifikasi = () => {
             },
           }
         );
-        return response.data.data.nama; // Assuming the employee name is in the 'name' field
+        return response.data.data.nama;
       } catch (error) {
         console.error("Error fetching employee data:", error);
         return "Unknown";
@@ -56,25 +57,47 @@ const Notifikasi = () => {
           }
         );
 
-        const data = response.data.data; // Get data from axios response
+        const data = response.data.data; 
 
         // Fetch employee names and format notifications
         const formattedNotifications = await Promise.all(
           data.map(async (item) => {
             const employeeName = await fetchEmployeeName(item.employeeNip);
+            const updatedDataKeys = Object.keys(item.updatedData)
+            .map((key) => key.replace(/_/g, " "))
+            .join(", ");
+
             return {
-              title: employeeName, // Title as employee name
-              content: `Meminta mengubah data: ${JSON.stringify(
-                item.updatedData,
-                null,
-                2
-              )}`, // Showing detailed updated data
+              id: item._id,
+              title: employeeName,
+              content: (
+                <>
+                <p>
+                  Meminta mengubah data: {updatedDataKeys},
+                </p>
+                  <p>
+                    Request Date : {new Date(item.requestDate).toLocaleString()}
+                  </p>
+                  <p>
+                    Response Date :{" "}
+                    {item.responseDate
+                      ? new Date(item.responseDate).toLocaleString()
+                      : "-"}
+                  </p>
+                </>
+              ),
               status: item.status,
+              requestDate: new Date(item.requestDate),
             };
           })
         );
 
-        setNotifications(formattedNotifications);
+        // Sort notifications by requestDate in descending order
+        const sortedNotifications = formattedNotifications.sort(
+          (a, b) => b.requestDate - a.requestDate
+        );
+
+        setNotifications(sortedNotifications);
         setLoading(false); // Set loading to false once data is fetched
       } catch (error) {
         console.error("Error fetching notifications:", error);
@@ -84,6 +107,11 @@ const Notifikasi = () => {
 
     fetchNotifications();
   }, [navigate]);
+
+  const handleItemClick = (id) => {
+    navigate(`/DetailRequest/${id}`);
+    console.log("ID yang dikirim:", id);
+  };
 
   if (loading) {
     return (
@@ -106,12 +134,14 @@ const Notifikasi = () => {
               notifications.map((notification, index) => (
                 <div
                   key={index}
-                  className="mb-4 p-4 border border-gray-200 rounded-md shadow-sm relative"
+                  className="mb-4 p-4 border border-gray-200 rounded-md shadow-sm relative cursor-pointer"
+                  onClick={() => handleItemClick(notification.id)}
                 >
                   <h2 className="font-bold text-lg">{notification.title}</h2>
-                  <p className="text-gray-600">{notification.content}</p>
+                  <div className="text-gray-600 pr-16">{notification.content}</div>
+
                   <span
-                    className={`absolute top-2 right-2 px-2 py-1 text-xs font-medium rounded-md ${
+                    className={`absolute top-1/2 right-2 px-2 mr-2 text-xs font-medium rounded-md ${
                       notification.status === "pending"
                         ? "bg-yellow-100 text-yellow-800"
                         : notification.status === "approved"

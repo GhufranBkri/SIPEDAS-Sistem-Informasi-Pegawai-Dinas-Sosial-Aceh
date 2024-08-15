@@ -2,18 +2,21 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const GantiStruktur = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     // Cek userRole dari localStorage
-    const userRole = localStorage.getItem('userRole');
-    if (userRole !== 'admin') {
-      navigate('/Dashboard');
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "admin") {
+      navigate("/Dashboard");
     }
   }, [navigate]);
 
@@ -42,14 +45,63 @@ const GantiStruktur = () => {
     setShowModal(true);
   };
 
-  const handleConfirmSave = () => {
-    // console.log("Gambar disimpan:", selectedFile);
+  const handleConfirmSave = async () => {
+    if (!selectedFile) return;
+
     setShowModal(false);
-    alert("Gambar disimpan!");
+    setLoading(true);
+
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        console.error("No authorization token found.");
+        return;
+      }
+
+      // Upload the file
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+
+      const uploadResponse = await axios.post(
+        "http://localhost:3000/profile/upload-foto",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const imageUrl = uploadResponse.data.data.imageUrl;
+
+      // Send the image URL to update the structure
+      await axios.post(
+        "http://localhost:3000/struktur/upload-foto",
+        { imageUrl },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error("Error saving image:", error);
+      alert("Gagal menyimpan gambar.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
     setShowModal(false);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    navigate("/Struktur");
   };
 
   return (
@@ -129,6 +181,28 @@ const GantiStruktur = () => {
                     Simpan
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+          {loading && (
+            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+                <h2 className="text-xl font-semibold mb-4">Loading...</h2>
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
+              </div>
+            </div>
+          )}
+          {showSuccessModal && (
+            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+                <h2 className="text-xl font-semibold mb-8">Sukses</h2>
+                <p className="mb-8">Gambar berhasil disimpan dan diperbarui!</p>
+                <button
+                  onClick={handleCloseSuccessModal}
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+                >
+                  OK
+                </button>
               </div>
             </div>
           )}

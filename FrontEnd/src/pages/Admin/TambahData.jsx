@@ -48,6 +48,8 @@ const TambahData = () => {
   const [errors, setErrors] = useState({});
   const inputRefs = useRef({});
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate();
 
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
@@ -57,9 +59,9 @@ const TambahData = () => {
 
   useEffect(() => {
     // Cek userRole dari localStorage
-    const userRole = localStorage.getItem('userRole');
-    if (userRole !== 'admin') {
-      navigate('/Dashboard');
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "admin") {
+      navigate("/Dashboard");
     }
   }, [navigate]);
 
@@ -176,6 +178,8 @@ const TambahData = () => {
       return;
     }
 
+    setLoading(true);
+
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -217,8 +221,8 @@ const TambahData = () => {
           "Content-Type": "application/json",
         },
       });
-      alert("Data berhasil ditambahkan");
-      window.location.href = "/DataKaryawan";
+
+      setShowSuccessModal(true);
     } catch (error) {
       if (
         error.response &&
@@ -238,6 +242,8 @@ const TambahData = () => {
           }`
         );
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -254,6 +260,11 @@ const TambahData = () => {
 
   const handleCancelModal = () => {
     setShowModal(false);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    navigate("/DataKaryawan");
   };
 
   const handleCancel = () => {
@@ -561,6 +572,28 @@ const TambahData = () => {
                 Ya
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-4">Loading...</h2>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      )}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-8">Sukses</h2>
+            <p className="mb-8">Data berhasil ditambahkan !</p>
+            <button
+              onClick={handleCloseSuccessModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}

@@ -50,6 +50,8 @@ const RequestEditData = () => {
   const [showModal, setShowModal] = useState(false);
   const [oldImageUrl, setOldImageUrl] = useState("");
   const [initialFormData, setInitialFormData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
@@ -249,6 +251,8 @@ const RequestEditData = () => {
       return;
     }
 
+    setLoading(true);
+
     try {
       console.log("Data yang akan dikirim:", formData);
 
@@ -340,8 +344,7 @@ const RequestEditData = () => {
       );
 
       console.log("Data berhasil diperbarui:", response.data);
-      alert("Data berhasil di request ke Admin.");
-      navigate("/ProfileUser");
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Error:", error);
       let errorMessage = "Terjadi kesalahan. Silakan coba lagi nanti.";
@@ -363,6 +366,8 @@ const RequestEditData = () => {
       }
 
       alert(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -379,6 +384,11 @@ const RequestEditData = () => {
 
   const handleCancelModal = () => {
     setShowModal(false);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    navigate("/ProfileUser");
   };
 
   const handleCancel = () => {
@@ -686,6 +696,28 @@ const RequestEditData = () => {
                 Ya
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-4">Loading...</h2>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      )}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-8">Sukses</h2>
+            <p className="mb-8">Data Berhasil di request ke Admin !</p>
+            <button
+              onClick={handleCloseSuccessModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}
