@@ -153,10 +153,33 @@ const updateRequestStatus = async (req, res) => {
 };
 
 
+// Get a single update request by _id
+const getUpdateRequestById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Cari permintaan update berdasarkan _id
+        const updateRequest = await UpdateRequest.findById(id);
+
+        // Jika permintaan update tidak ditemukan
+        if (!updateRequest) {
+            return res.status(404).json(formatResponse('error', 404, null, 'Update request not found'));
+        }
+
+        // Kirim respon sukses dengan data update request
+        res.status(200).json(formatResponse('success', 200, updateRequest));
+    } catch (err) {
+        console.error('Error fetching update request by ID:', err);
+        res.status(500).json(formatResponse('error', 500, null, 'Internal server error'));
+    }
+};
+
+
 
 module.exports = {
     requestEmployeeUpdate,
     getAllUpdateRequests,
     updateRequestStatus,
-    getPendingUpdateRequests
+    getPendingUpdateRequests,
+    getUpdateRequestById
 };
