@@ -46,7 +46,7 @@ function NavbarAdmin() {
               },
             }
           );
-          return response.data.data.nama; // Assuming the employee name is in the 'name' field
+          return response.data.data.nama;
         } catch (error) {
           console.error("Error fetching employee data:", error);
           return "Unknown";
@@ -68,24 +68,31 @@ function NavbarAdmin() {
           }
         );
 
-        const data = response.data.data; // Get data from axios response
+        const data = response.data.data;
 
         // Fetch employee names and format notifications
         const formattedNotifications = await Promise.all(
           data.map(async (item) => {
             const employeeName = await fetchEmployeeName(item.employeeNip);
+            // Extract and format updatedData keys
+            const updatedDataKeys = Object.keys(item.updatedData)
+              .map((key) => key.replace(/_/g, " "))
+              .join(", ");
+
             return {
-              title: employeeName, // Title as employee name
-              content: `Meminta mengubah data: ${JSON.stringify(
-                item.updatedData,
-                null,
-                2
-              )}`, // Showing detailed updated data
+              title: employeeName,
+              content: `Meminta mengubah data: ${updatedDataKeys}`,
+              requestDate: new Date(item.requestDate),
             };
           })
         );
 
-        setNotifications(formattedNotifications);
+        // Sort notifications by requestDate in descending order
+        const sortedNotifications = formattedNotifications.sort(
+          (a, b) => b.requestDate - a.requestDate
+        );
+
+        setNotifications(sortedNotifications);
       } catch (error) {
         console.error("Error fetching notifications:", error);
       }
@@ -150,22 +157,33 @@ function NavbarAdmin() {
                 <div className="p-4 border-b border-gray-200">
                   <span className="font-bold">Notifications</span>
                 </div>
-                <div className="p-2 max-h-72 overflow-y-auto"> {/* Set max height and enable scroll */}
+                <div className="p-2 max-h-72 overflow-y-auto">
                   {notifications.length > 0 ? (
-                    notifications.slice(0, 3).map((notification, index) => (
+                    notifications.map((notification, index) => (
                       <div
                         key={index}
-                        className="mb-2 p-2 border-b border-gray-200 hover:bg-gray-100"
+                        className="relative mb-2 p-2 border-b border-gray-200 hover:bg-gray-100"
                       >
-                        <span className="font-bold">{notification.title}</span>
-                        <p className="text-gray-600">{notification.content}</p>
+                        <img
+                          src={logoutIcon}
+                          alt="Logout Icon"
+                          className="absolute top-6 right-2 w-4 h-4"
+                        />
+                        <div className="pr-6">
+                          <span className="font-bold">
+                            {notification.title}
+                          </span>
+                          <p className="text-gray-600 truncate">
+                            {notification.content}
+                          </p>
+                        </div>
                       </div>
                     ))
                   ) : (
                     <p className="text-gray-600">No new notifications</p>
                   )}
                 </div>
-                <div className="p-2 -mt-2 mb-2 border-gray-200 text-center">
+                <div className="p-2 mb-2 border-gray-200 text-center border-t">
                   <a
                     href="/Notifikasi"
                     className="font-light text-custom-blue hover:underline"

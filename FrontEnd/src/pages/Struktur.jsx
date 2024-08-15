@@ -2,22 +2,52 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import "./Struktur.css";
+import axios from "axios";
 
 const Struktur = () => {
   const [userRole, setUserRole] = useState("");
   const [showModal, setShowModal] = useState(false);
-
-  useEffect(() => {
-    // Retrieve user role from local storage
-    const role = localStorage.getItem("userRole");
-    setUserRole(role);
-  }, []);
-
+  const [imageUrl, setImageUrl] = useState("");
+  const [loading, setLoading] = useState(true);
   const [zoomStyle, setZoomStyle] = useState({
     display: "block",
     backgroundPosition: "0% 0%",
     backgroundSize: "1100%",
   });
+
+  useEffect(() => {
+    // Retrieve user role from local storage
+    const role = localStorage.getItem("userRole");
+    setUserRole(role);
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authorization token found.");
+      return;
+    }
+
+    // Fetch image URL from API
+    const fetchImageUrl = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/struktur/get-foto",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setImageUrl(response.data.imageUrl); // Use response.data.imageUrl
+      } catch (error) {
+        console.error("Error fetching image URL:", error);
+      } finally {
+        setLoading(false); // Set loading to false when done fetching
+      }
+    };
+
+    fetchImageUrl();
+  }, []);
 
   const handleMouseMove = (e) => {
     const { left, top, width, height } = e.target.getBoundingClientRect();
@@ -34,15 +64,39 @@ const Struktur = () => {
     setShowModal(true);
   };
 
-  const handleConfirmSave = () => {
+  const handleConfirmSave = async () => {
+    if (imageUrl) {
+      try {
+        // Create an image element to load the SVG
+        const img = new Image();
+        img.crossOrigin = "Anonymous"; // Ensure CORS compatibility if the SVG is from another origin
+        img.src = imageUrl;
+
+        img.onload = () => {
+          // Create a canvas element
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          canvas.width = img.width;
+          canvas.height = img.height;
+
+          // Draw the SVG image onto the canvas
+          ctx.drawImage(img, 0, 0);
+
+          // Convert canvas to PNG
+          canvas.toBlob((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "struktur.png"; // Set the filename with extension
+            link.click();
+            window.URL.revokeObjectURL(url); // Clean up the URL object
+          }, "image/png");
+        };
+      } catch (error) {
+        console.error("Error converting SVG to PNG:", error);
+      }
+    }
     setShowModal(false);
-    alert("Gambar disimpan!");
-    // const link = document.createElement('a');
-    // link.href = "src/assets/Struktur.svg";
-    // link.download = "StrukturDinasSosial.png";
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
   };
 
   return (
@@ -59,27 +113,32 @@ const Struktur = () => {
                   </button>
                 </a>
               )}
-              <button onClick={handleSave} className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+              <button
+                onClick={handleSave}
+                className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
                 Download
               </button>
             </div>
           </div>
 
           <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 relative">
-            <div className="zoom-container" onMouseMove={handleMouseMove}>
-              <img
-                src="src/assets/Struktur.svg"
-                alt="Struktur"
-                className="zoom-image"
-              />
-              <div
-                className="zoom-rectangle"
-                style={{
-                  ...zoomStyle,
-                  backgroundImage: `url('src/assets/Struktur.svg')`,
-                }}
-              />
-            </div>
+            {loading ? (
+              <div className="flex items-center justify-center w-full h-64">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              <div className="zoom-container" onMouseMove={handleMouseMove}>
+                <img src={imageUrl} alt="Struktur" className="zoom-image" />
+                <div
+                  className="zoom-rectangle"
+                  style={{
+                    ...zoomStyle,
+                    backgroundImage: `url('${imageUrl}')`,
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -88,9 +147,7 @@ const Struktur = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md">
             <h2 className="text-xl font-semibold mb-8">Konfirmasi</h2>
-            <p className="mb-8">
-              Apakah Anda ingin mendownload gambar ini?
-            </p>
+            <p className="mb-8">Apakah Anda ingin mendownload gambar ini?</p>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={() => setShowModal(false)}

@@ -16,6 +16,7 @@ import GantiStruktur from './pages/Admin/GantiStruktur';
 import Notifikasi from './pages/Admin/Notifikasi';
 import RequestUser from './pages/Admin/RequestUser';
 import RequestEditData from './pages/User/RequestEditData';
+import DetailRequest from './pages/Admin/DetailRequest';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
             <Route path="/Notifikasi" element={<Notifikasi />} />
             <Route path="/RequestUser" element={<RequestUser />} />
             <Route path="/RequestEditData" element={<RequestEditData />} />
+            <Route path="/DetailRequest/:id" element={<DetailRequest />} />
           </Route>
           <Route path="/Login" element={<Login />} />
           

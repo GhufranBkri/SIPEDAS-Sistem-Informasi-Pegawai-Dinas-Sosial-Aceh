@@ -15,6 +15,7 @@ const GantiPassword = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState({
     passwordlama: false,
     passwordbaru: false,
@@ -30,9 +31,9 @@ const GantiPassword = () => {
 
   useEffect(() => {
     // Cek userRole dari localStorage
-    const userRole = localStorage.getItem('userRole');
-    if (userRole !== 'employee') {
-      navigate('/Dashboard');
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "employee") {
+      navigate("/Dashboard");
     }
   }, [navigate]);
 
@@ -70,7 +71,7 @@ const GantiPassword = () => {
         const data = response.data.data;
         console.log("Fetched data:", data);
 
-        setFormData(prevFormData => ({
+        setFormData((prevFormData) => ({
           ...prevFormData,
           passwordlama: data.passwordlama || "",
           passwordbaru: data.passwordbaru || "",
@@ -130,8 +131,7 @@ const GantiPassword = () => {
         }
       );
 
-      navigate("/ProfileUser");
-      alert("Password berhasil diubah.");
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Error updating password:", error);
       setErrorMessage(error.response ? error.response.data : error.message);
@@ -141,6 +141,11 @@ const GantiPassword = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    navigate("/ProfileUser");
   };
 
   if (loading) {
@@ -201,7 +206,7 @@ const GantiPassword = () => {
                   className="border border-gray-300 rounded-md p-2 w-full"
                 />
                 <div
-                  className="absolute inset-y-0 right-0 pr-3 mt-8 flex items-center cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3 top-1/2 flex items-center cursor-pointer"
                   onClick={() => togglePasswordVisibility("passwordbaru")}
                 >
                   {isPasswordVisible.passwordbaru ? (
@@ -263,6 +268,21 @@ const GantiPassword = () => {
           </div>
         </div>
       </main>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-8">Sukses</h2>
+            <p className="mb-8">Data Berhasil di request ke Admin !</p>
+            <button
+              onClick={handleCloseSuccessModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
