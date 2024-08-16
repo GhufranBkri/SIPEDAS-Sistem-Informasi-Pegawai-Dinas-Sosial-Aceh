@@ -284,7 +284,7 @@ const ProfileUser = () => {
             <button
               type="button"
               onClick={handleCancel}
-              className="bg-gray-300 text-black py-2 px-4 rounded-md"
+              className="bg-gray-300 text-black py-2 px-4 rounded-md hover:bg-gray-400"
             >
               Kembali
             </button>
