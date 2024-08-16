@@ -80,9 +80,12 @@ function NavbarAdmin() {
               .join(", ");
 
             return {
+              id: item._id,
               title: employeeName,
               content: `Meminta mengubah data: ${updatedDataKeys}`,
               requestDate: new Date(item.requestDate),
+              status: item.status,
+              nip: item.employeeNip,
             };
           })
         );
@@ -120,6 +123,13 @@ function NavbarAdmin() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleItemClick = (id, nip) => {
+    localStorage.setItem("employeeNip", nip); // Store NIP in localStorage
+    navigate(`/DetailRequest/${id}`);
+    console.log("ID yang dikirim:", id);
+    console.log("NIP yang disimpan:", nip);
+  };
 
   return (
     <nav className="bg-custom-blue p-4">
@@ -162,7 +172,8 @@ function NavbarAdmin() {
                     notifications.map((notification, index) => (
                       <div
                         key={index}
-                        className="relative mb-2 p-2 border-b border-gray-200 hover:bg-gray-100"
+                        className="relative mb-2 p-2 border-b border-gray-200 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleItemClick(notification.id, notification.nip)}
                       >
                         <img
                           src={logoutIcon}

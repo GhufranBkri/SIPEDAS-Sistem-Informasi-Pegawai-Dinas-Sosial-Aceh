@@ -107,7 +107,12 @@ const RequestEditData = () => {
         }
 
         setFormData(data);
-        setInitialFormData(data);
+        setInitialFormData({
+          ...data,
+          tanggal_lahir: data.tanggal_lahir
+            ? new Date(data.tanggal_lahir).toISOString()
+            : null,
+        });
         setFotoPreview(data.foto || null);
         setOldImageUrl(data.foto || "");
       } catch (error) {
@@ -120,11 +125,13 @@ const RequestEditData = () => {
   }, [navigate]);
 
   const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split("T")[0]; // Converts to 'yyyy-MM-dd' format
+    return date.toISOString().split("T")[0]; // Returns 'YYYY-MM-DD'
   };
 
   const parseDateForServer = (dateString) => {
+    if (!dateString) return null;
     return new Date(dateString).toISOString(); // Converts to 'yyyy-MM-ddTHH:mm:ss.sssZ' format
   };
 
@@ -239,7 +246,14 @@ const RequestEditData = () => {
   const getUpdatedData = () => {
     const updatedData = {};
     Object.keys(formData).forEach((key) => {
-      if (formData[key] !== initialFormData[key]) {
+      if (key === "tanggal_lahir") {
+        // Bandingkan tanggal dalam format yang sama
+        const formattedInitialDate = formatDateForInput(initialFormData[key]);
+        const formattedCurrentDate = formatDateForInput(formData[key]);
+        if (formattedCurrentDate !== formattedInitialDate) {
+          updatedData[key] = parseDateForServer(formData[key]);
+        }
+      } else if (formData[key] !== initialFormData[key]) {
         updatedData[key] = formData[key];
       }
     });
