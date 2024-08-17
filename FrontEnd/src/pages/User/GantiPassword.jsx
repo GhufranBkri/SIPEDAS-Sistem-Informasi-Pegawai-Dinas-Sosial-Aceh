@@ -145,7 +145,7 @@ const GantiPassword = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/ProfileUser");
+    navigate("/ProfileUser", { replace: true });
   };
 
   if (loading) {

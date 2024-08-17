@@ -1,7 +1,9 @@
 // eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+// import jsPDF from "jspdf";
+// import html2canvas from "html2canvas";
 
 const ProfileUser = () => {
   const [formData, setFormData] = useState({
@@ -126,9 +128,46 @@ const ProfileUser = () => {
     setShowModal(false);
   };
 
-  const handleConfirmSaveAsPDF = () => {
+  const handleConfirmSaveAsPDF = async () => {
     setShowModal(false);
-    alert("Berhasil menyimpan ke PDF!");
+    alert("Saving as PDF...");
+
+    // // Find the img element and wait for it to load
+    // const pdf = new jsPDF();
+
+    
+    // // Add profile photo if available
+    // if (formData.foto) {
+    //   const img = await fetch(formData.foto).then(res => res.blob());
+    //   const imgData = await new Promise((resolve) => {
+    //     const reader = new FileReader();
+    //     reader.onloadend = () => resolve(reader.result);
+    //     reader.readAsDataURL(img);
+    //   });
+    //   pdf.addImage(imgData, "PNG", 10, 10, 40, 40); // Adjust position and size as needed
+    // }
+
+    // // Convert the profile section to a PDF
+    // const input = document.getElementById("profile-section");
+    // const canvas = await html2canvas(input);
+    // const imgData = canvas.toDataURL("image/png");
+    // const imgWidth = 210; // A4 width in mm
+    // const pageHeight = 295; // A4 height in mm
+    // const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    // let heightLeft = imgHeight;
+
+    // let position = 0;
+    // pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    // heightLeft -= pageHeight;
+
+    // while (heightLeft >= 0) {
+    //   position = heightLeft - imgHeight;
+    //   pdf.addPage();
+    //   pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    //   heightLeft -= pageHeight;
+    // }
+
+    // pdf.save("ProfileUser.pdf");
   };
 
   if (loading) {
@@ -150,12 +189,22 @@ const ProfileUser = () => {
         />
       ) : null;
     }
+    if (key === "alamat_lengkap") {
+      return (
+        <textarea
+          value={value}
+          disabled
+          className="border border-gray-300 rounded-md p-2 w-full align-top"
+          rows="4"
+        />
+      );
+    }
     return (
       <input
         type="text"
         value={value}
         disabled
-        className="border border-gray-300 rounded-md p-2 w-full"
+        className="border border-gray-300 rounded-md p-2 w-full align-top"
       />
     );
   };
@@ -187,7 +236,10 @@ const ProfileUser = () => {
           </div>
         </div>
 
-        <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
+        <div
+          id="profile-section"
+          className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6"
+        >
           <div className="form-2 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
             <h1 className="text-xl font-bold mb-6 text-start">Data Diri</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -296,9 +348,7 @@ const ProfileUser = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 className="text-lg font-bold mb-8">Save as PDF</h2>
-            <p className="mb-8">
-              Apakah Anda yakin ingin menyimpan ke PDF?
-            </p>
+            <p className="mb-8">Apakah Anda yakin ingin menyimpan ke PDF?</p>
             <div className="flex justify-end space-x-4">
               <button
                 onClick={handleCloseModal}

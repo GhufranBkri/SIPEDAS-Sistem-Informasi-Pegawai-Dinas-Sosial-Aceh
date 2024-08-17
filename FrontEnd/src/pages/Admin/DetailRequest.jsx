@@ -202,6 +202,17 @@ const DetailRequest = () => {
       );
     }
 
+        if (key === "alamat_lengkap") {
+      return (
+        <textarea
+          value={updatedValue}
+          disabled
+          className="border border-gray-300 rounded-md p-2 w-full"
+          rows="4"
+        />
+      );
+    }
+
     if (key === "tanggal_lahir") {
       return (
         <input
@@ -255,7 +266,7 @@ const DetailRequest = () => {
     } else {
       setIsRejectModalOpen(false);
     }
-    navigate("/Notifikasi");
+    navigate("/Notifikasi", { replace: true });
   };
 
   if (loading) {
@@ -341,7 +352,7 @@ const DetailRequest = () => {
                 { name: "kecamatan", type: "text" },
                 { name: "desa", type: "text" },
                 { name: "jalan", type: "text" },
-                { name: "alamat_lengkap", type: "text" },
+                { name: "alamat_lengkap", type: "textarea" },
               ].map(({ name }) => (
                 <div className="mb-4" key={name}>
                   <label className="block text-gray-700 mb-2">

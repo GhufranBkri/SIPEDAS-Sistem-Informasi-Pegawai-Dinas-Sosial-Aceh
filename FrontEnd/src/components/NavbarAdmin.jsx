@@ -165,20 +165,32 @@ function NavbarAdmin() {
             {isNotificationDropdownOpen && (
               <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                 <div className="p-4 border-b border-gray-200">
-                  <span className="font-bold">Notifications</span>
+                  <span className="flex justify-between">
+                    <span className="font-bold">
+                      Notifications
+                      <span className="text-sm text-gray-600">
+                        ({notifications.length})
+                      </span>
+                    </span>
+                    <span className="mr-4 bg-yellow-100 text-yellow-800 px-1 border rounded-md">
+                      Pending
+                    </span>
+                  </span>
                 </div>
                 <div className="p-2 max-h-72 overflow-y-auto">
                   {notifications.length > 0 ? (
                     notifications.map((notification, index) => (
                       <div
                         key={index}
-                        className="relative mb-2 p-2 border-b border-gray-200 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleItemClick(notification.id, notification.nip)}
+                        className="relative mb-2 p-2 border-b border-gray-200 hover:bg-gray-100"
                       >
                         <img
                           src={logoutIcon}
                           alt="Logout Icon"
-                          className="absolute top-6 right-2 w-4 h-4"
+                          className="absolute top-6 right-2 w-5 h-auto border-b border-gray-200 hover:bg-gray-100 cursor-pointer"
+                          onClick={() =>
+                            handleItemClick(notification.id, notification.nip)
+                          }
                         />
                         <div className="pr-6">
                           <span className="font-bold">

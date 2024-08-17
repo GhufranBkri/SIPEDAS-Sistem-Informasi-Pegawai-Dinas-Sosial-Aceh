@@ -52,6 +52,8 @@ const TambahData = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const navigate = useNavigate();
 
+  const MAX_FILE_SIZE_MB = 1;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
   const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
@@ -78,6 +80,10 @@ const TambahData = () => {
             "Invalid file type. Only PNG, JPG, and JPEG are allowed.";
           setFormData({ ...formData, [name]: null });
           setFotoPreview(null);
+        } else if (file.size > MAX_FILE_SIZE_BYTES) {
+          newErrors[name] = `File size exceeds ${MAX_FILE_SIZE_MB} MB limit.`;
+          setFormData({ ...formData, [name]: null });
+          setFotoPreview(null);
         } else {
           setFormData({ ...formData, [name]: file });
           setFotoPreview(URL.createObjectURL(file));
@@ -90,27 +96,26 @@ const TambahData = () => {
       }
     } else {
       setFormData({ ...formData, [name]: value });
-    }
 
-    // Real-time validation
-    if (name === "email" || name === "email_gov") {
-      if (!validateEmail(value)) {
-        newErrors[name] = "Invalid email format";
+      if (name === "email" || name === "email_gov") {
+        if (!validateEmail(value)) {
+          newErrors[name] = "Invalid email format";
+        } else {
+          delete newErrors[name];
+        }
+      } else if (
+        ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(name)
+      ) {
+        if (!validateYear(value)) {
+          newErrors[name] = "Must be a 4-digit year";
+        } else {
+          delete newErrors[name];
+        }
+      } else if (value === "" || (name === "foto" && !files.length)) {
+        newErrors[name] = "This field is required";
       } else {
         delete newErrors[name];
       }
-    } else if (
-      ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(name)
-    ) {
-      if (!validateYear(value)) {
-        newErrors[name] = "Must be a 4-digit year";
-      } else {
-        delete newErrors[name];
-      }
-    } else if (value === "" || (name === "foto" && !files.length)) {
-      newErrors[name] = "This field is required";
-    } else {
-      delete newErrors[name];
     }
 
     setErrors(newErrors);
@@ -264,7 +269,7 @@ const TambahData = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/DataKaryawan");
+    navigate("/DataKaryawan", { replace: true });
   };
 
   const handleCancel = () => {
@@ -364,9 +369,9 @@ const TambahData = () => {
                       </p>
                     )}
                     {name === "foto" && (
-                      <p className="text-red-400 text-sm mt-1">
-                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB yang
-                        diterima
+                      <p className="text-gray-600 text-sm mt-1">
+                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB (1024
+                        KB) yang diterima
                       </p>
                     )}
                     {name === "foto" && fotoPreview && (
@@ -381,7 +386,7 @@ const TambahData = () => {
                       </div>
                     )}
                     {name === "tanggal_lahir" && (
-                      <p className="text-red-400 text-sm mt-1">
+                      <p className="text-gray-600 text-sm mt-1">
                         * format : bulan/tanggal/tahun
                       </p>
                     )}
@@ -394,27 +399,39 @@ const TambahData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Alamat</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  "kabupaten",
-                  "kecamatan",
-                  "desa",
-                  "jalan",
-                  "alamat_lengkap",
-                ].map((key) => (
-                  <div className="mb-4" key={key}>
-                    <label className="block text-gray-700 mb-2" htmlFor={key}>
-                      {key.replace("_", " ").toUpperCase()}
+                  { name: "kabupaten", type: "text" },
+                  { name: "kecamatan", type: "text" },
+                  { name: "desa", type: "text" },
+                  { name: "jalan", type: "text" },
+                  { name: "alamat_lengkap", type: "textarea" },
+                ].map(({ name, type }) => (
+                  <div className="mb-4" key={name}>
+                    <label className="block text-gray-700 mb-2" htmlFor={name}>
+                      {name.replace("_", " ").toUpperCase()}
                     </label>
-                    <input
-                      type="text"
-                      id={key}
-                      name={key}
-                      value={formData[key]}
-                      onChange={handleChange}
-                      ref={(el) => (inputRefs.current[key] = el)}
-                      className="border border-gray-300 rounded-md p-2 w-full"
-                    />
-                    {errors[key] && (
-                      <p className="text-red-500 text-sm">{errors[key]}</p>
+                    {type === "textarea" ? (
+                      <textarea
+                        id={name}
+                        name={name}
+                        value={formData[name]}
+                        onChange={handleChange}
+                        ref={(el) => (inputRefs.current[name] = el)}
+                        className={`border border-gray-300 rounded-md p-2 w-full`}
+                        rows={4}
+                      ></textarea>
+                    ) : (
+                      <input
+                        id={name}
+                        name={name}
+                        type={type}
+                        value={formData[name]}
+                        onChange={handleChange}
+                        ref={(el) => (inputRefs.current[name] = el)}
+                        className="border border-gray-300 rounded-md p-2 w-full"
+                      />
+                    )}
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">{errors[name]}</p>
                     )}
                   </div>
                 ))}
@@ -523,7 +540,7 @@ const TambahData = () => {
                       </p>
                     )}
                     {(name === "sub_bidang" || name === "eselon") && (
-                      <p className="text-red-400 text-sm mt-1">
+                      <p className="text-gray-600 text-sm mt-1">
                         * Isi ( - ) jika tidak ada
                       </p>
                     )}
@@ -558,7 +575,7 @@ const TambahData = () => {
             <p className="mb-4">
               Apakah Anda yakin ingin menambahkan data ini?
             </p>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={handleCancelModal}
                 className="bg-gray-300 text-black py-2 px-4 rounded-md mr-2"
