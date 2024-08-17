@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaFilter, FaTrash } from "react-icons/fa";
+import { MdRefresh } from "react-icons/md";
 import axios from "axios";
 
 // Utility function to format date and time
@@ -19,6 +20,20 @@ const formatDate = (date) => {
   return new Date(date).toLocaleString("en-GB", options).replace(",", ""); // en-GB for dd/mm/yyyy
 };
 
+// Utility function to get color based on status
+const getStatusColor = (status) => {
+  switch (status) {
+    case "pending":
+      return "bg-yellow-200 text-yellow-800"; // Light yellow
+    case "approved":
+      return "bg-green-200 text-green-800"; // Light green
+    case "rejected":
+      return "bg-red-200 text-red-800"; // Light red
+    default:
+      return "bg-gray-200 text-gray-800"; // Default gray
+  }
+};
+
 const Notifikasi = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,8 +45,93 @@ const Notifikasi = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notificationToDelete, setNotificationToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   const filterDropdownRef = useRef(null);
   const navigate = useNavigate();
+
+  // Function to fetch employee name by NIP
+  const fetchEmployeeName = async (nip) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No authorization token found.");
+      }
+      const response = await axios.get(
+        `http://localhost:3000/employees/${nip}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data.data.nama;
+    } catch (error) {
+      console.error("Error fetching employee data:", error);
+      return "Unknown";
+    }
+  };
+
+  // Function to fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authorization token found.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/request/update-request",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data.data;
+
+      // Fetch employee names and format notifications
+      const formattedNotifications = await Promise.all(
+        data.map(async (item) => {
+          const employeeName = await fetchEmployeeName(item.employeeNip);
+          const updatedDataKeys = Object.keys(item.updatedData)
+            .map((key) => key.replace(/_/g, " "))
+            .join(", ");
+
+          return {
+            id: item._id,
+            title: employeeName,
+            content: (
+              <>
+                <p>Meminta mengubah data: {updatedDataKeys},</p>
+                <p>Request Date : {formatDate(item.requestDate)}</p>
+                <p>
+                  Response Date :
+                  {item.responseDate ? formatDate(item.responseDate) : "-"}
+                </p>
+              </>
+            ),
+            status: item.status,
+            requestDate: new Date(item.requestDate),
+            responseDate: item.responseDate
+              ? new Date(item.responseDate)
+              : null,
+            nip: item.employeeNip,
+          };
+        })
+      );
+
+      setNotifications(formattedNotifications);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     // Cek userRole dari localStorage
@@ -41,89 +141,8 @@ const Notifikasi = () => {
       return;
     }
 
-    // Function to fetch employee name by NIP
-    const fetchEmployeeName = async (nip) => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          throw new Error("No authorization token found.");
-        }
-        const response = await axios.get(
-          `http://localhost:3000/employees/${nip}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        return response.data.data.nama;
-      } catch (error) {
-        console.error("Error fetching employee data:", error);
-        return "Unknown";
-      }
-    };
-
-    // Function to fetch notifications
-    const fetchNotifications = async () => {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        console.error("No authorization token found.");
-        return;
-      }
-
-      try {
-        const response = await axios.get(
-          "http://localhost:3000/request/update-request",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = response.data.data;
-
-        // Fetch employee names and format notifications
-        const formattedNotifications = await Promise.all(
-          data.map(async (item) => {
-            const employeeName = await fetchEmployeeName(item.employeeNip);
-            const updatedDataKeys = Object.keys(item.updatedData)
-              .map((key) => key.replace(/_/g, " "))
-              .join(", ");
-
-            return {
-              id: item._id,
-              title: employeeName,
-              content: (
-                <>
-                  <p>Meminta mengubah data: {updatedDataKeys},</p>
-                  <p>Request Date : {formatDate(item.requestDate)}</p>
-                  <p>
-                    Response Date :
-                    {item.responseDate ? formatDate(item.responseDate) : "-"}
-                  </p>
-                </>
-              ),
-              status: item.status,
-              requestDate: new Date(item.requestDate),
-              responseDate: item.responseDate
-                ? new Date(item.responseDate)
-                : null,
-              nip: item.employeeNip,
-            };
-          })
-        );
-
-        setNotifications(formattedNotifications);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        setLoading(false);
-      }
-    };
-
     fetchNotifications();
-  }, [navigate]);
+  }, [navigate, fetchNotifications]);
 
   const handleItemClick = (id, nip) => {
     localStorage.setItem("employeeNip", nip);
@@ -205,6 +224,19 @@ const Notifikasi = () => {
     handleFilterAndSort();
   }, [handleFilterAndSort]);
 
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredNotifications.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   // Toggle filter dropdown visibility
   const toggleFilterDropdown = () => {
     setIsFilterDropdownOpen((prev) => !prev);
@@ -233,6 +265,10 @@ const Notifikasi = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleRefresh = () => {
+    fetchNotifications();
+  };
+
   const openModal = (id) => {
     setNotificationToDelete(id);
     setIsModalOpen(true);
@@ -243,21 +279,20 @@ const Notifikasi = () => {
     setNotificationToDelete(null);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading notifications...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen">
-      <main className="py-8">
-        <div className="mx-auto sm:px-6 lg:px-8">
+    <div className="py-6 sm:px-6 lg:px-8">
+      <main>
+        <div className="bg-white shadow sm:rounded-lg mx-auto sm:p-6 lg:p-8">
           <div className="flex justify-between mb-4">
-            <div className="flex justify-start">
-              <h1 className="text-2xl font-bold mr-8">Notifikasi</h1>
+            <div className="flex justify-start gap-6 items-center">
+              <h1 className="text-2xl font-bold">Notifikasi</h1>
+              <MdRefresh
+                className="bg-gray-300 fill-black rounded-lg p-2 cursor-pointer"
+                size={36}
+                onClick={handleRefresh}
+              />
+            </div>
+            <div className="flex justify-end gap-8 items-center">
               <div className="relative" ref={filterDropdownRef}>
                 <button
                   onClick={toggleFilterDropdown}
@@ -268,7 +303,7 @@ const Notifikasi = () => {
 
                 {isFilterDropdownOpen && (
                   <div
-                    className="absolute top-full left-0 bg-white border border-gray-300 rounded-md shadow-lg p-4 z-10"
+                    className="absolute top-full right-0 bg-white border border-gray-300 rounded-md shadow-lg p-4 z-10"
                     style={{ width: "auto", minWidth: "330px" }}
                   >
                     <div className="flex justify-between">
@@ -330,60 +365,104 @@ const Notifikasi = () => {
                   </div>
                 )}
               </div>
+              <select
+                value={sortCriteria}
+                onChange={(e) => setSortCriteria(e.target.value)}
+                className="border border-gray-300 rounded-md p-2"
+              >
+                <option value="requestDateDesc">Request Date (Terbaru)</option>
+                <option value="requestDateAsc">Request Date (Terlama)</option>
+                <option value="responseDateDesc">
+                  Response Date (Terbaru)
+                </option>
+                <option value="responseDateAsc">Response Date (Terlama)</option>
+              </select>
             </div>
-            <select
-              value={sortCriteria}
-              onChange={(e) => setSortCriteria(e.target.value)}
-              className="border border-gray-300 rounded-md p-2"
-            >
-              <option value="requestDateDesc">Request Date (Terbaru)</option>
-              <option value="requestDateAsc">Request Date (Terlama)</option>
-              <option value="responseDateDesc">Response Date (Terbaru)</option>
-              <option value="responseDateAsc">Response Date (Terlama)</option>
-            </select>
           </div>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 relative">
-            {filteredNotifications.length > 0 ? (
-              filteredNotifications.map((notification, index) => (
-                <div
-                  key={index}
-                  className="mb-4 p-4 border border-gray-200 rounded-md shadow-sm relative cursor-pointer"
-                  onClick={() =>
-                    handleItemClick(notification.id, notification.nip)
-                  }
-                >
-                  <h2 className="font-bold text-lg">{notification.title}</h2>
-                  <div className="text-gray-600 pr-16">
-                    {notification.content}
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openModal(notification.id);
-                    }}
-                    className="absolute top-1/3 right-4 text-red-500 hover:text-red-700"
-                  >
-                    <FaTrash size={24} className="mr-2" />
-                  </button>
-
-                  <span
-                    className={`absolute top-1/3 right-20 p-2 mr-2 text-xs font-medium rounded-md ${
-                      notification.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : notification.status === "approved"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {notification.status}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-600">No new notifications</p>
+          <div className="bg-white border border-gray-300 rounded-lg shadow-md">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-left">
+                  <th className="p-4 border-b border-r text-center w-10">No</th>
+                  <th className="p-4 border-b border-r text-center w-1/12">
+                    User
+                  </th>
+                  <th className="p-4 border-b border-r text-center w-9/12">
+                    Content
+                  </th>
+                  <th className="p-4 border-b border-r text-center w-1/12">
+                    Status
+                  </th>
+                  <th className="p-4 border-b text-center w-1/12">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentItems.map((notification, index) => (
+                  <tr key={notification.id}>
+                    <td className="py-4 px-8 border-b border-r">
+                      {indexOfFirstItem + index + 1}
+                    </td>
+                    <td className="px-4 py-4 border-b border-r text-center">
+                      {notification.title}
+                    </td>
+                    <td className="p-4 border-b border-r">
+                      {notification.content}
+                    </td>
+                    <td className="border-b px-4">
+                      <div
+                        className={`flex justify-center items-center p-1 border-b border-r rounded-md ${getStatusColor(
+                          notification.status
+                        )}`}
+                      >
+                        {notification.status.charAt(0).toUpperCase() +
+                          notification.status.slice(1)}
+                      </div>
+                    </td>
+                    <td className="py-4 px-12 border-l border-b">
+                      <div className="flex space-x-12">
+                        <button
+                          onClick={() =>
+                            handleItemClick(notification.id, notification.nip)
+                          }
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          Detail
+                        </button>
+                        <button
+                          onClick={() => openModal(notification.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <FaTrash size={24} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filteredNotifications.length === 0 && (
+              <div className="text-center py-4">No notifications found</div>
             )}
+          </div>
+          <div className="flex justify-between mt-8">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => handlePageChange(currentPage - 1)}
+              className="bg-blue-300 text-gray-800 px-4 py-2 rounded disabled:opacity-50 hover:bg-blue-400 disabled:hover:bg-blue-300"
+            >
+              Previous
+            </button>
+            <div className="flex items-center">
+              Page {currentPage} of {totalPages}
+            </div>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => handlePageChange(currentPage + 1)}
+              className="bg-blue-300 text-gray-800 px-4 py-2 rounded disabled:opacity-50 hover:bg-blue-400 disabled:hover:bg-blue-300"
+            >
+              Next
+            </button>
           </div>
         </div>
       </main>
@@ -409,6 +488,14 @@ const Notifikasi = () => {
                 Hapus
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-40">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-4">Loading...</h2>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
           </div>
         </div>
       )}

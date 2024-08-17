@@ -402,7 +402,7 @@ const RequestEditData = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/ProfileUser");
+    navigate("/ProfileUser", { replace: true });
   };
 
   const handleCancel = () => {
@@ -420,7 +420,7 @@ const RequestEditData = () => {
       <main className="py-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
-            Edit Data Karyawan
+            Request Edit Data
           </h1>
           <form onSubmit={handleSubmitWithConfirmation}>
             <div className="form-2 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
@@ -532,27 +532,39 @@ const RequestEditData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Alamat</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  "kabupaten",
-                  "kecamatan",
-                  "desa",
-                  "jalan",
-                  "alamat_lengkap",
-                ].map((key) => (
-                  <div className="mb-4" key={key}>
-                    <label className="block text-gray-700 mb-2" htmlFor={key}>
-                      {key.replace("_", " ").toUpperCase()}
+                  { name: "kabupaten", type: "text" },
+                  { name: "kecamatan", type: "text" },
+                  { name: "desa", type: "text" },
+                  { name: "jalan", type: "text" },
+                  { name: "alamat_lengkap", type: "textarea" },
+                ].map(({ name, type }) => (
+                  <div className="mb-4" key={name}>
+                    <label className="block text-gray-700 mb-2" htmlFor={name}>
+                      {name.replace("_", " ").toUpperCase()}
                     </label>
+                    {type === "textarea" ? (
+                      <textarea
+                        id={name}
+                        name={name}
+                        value={formData[name]}
+                        onChange={handleChange}
+                        ref={(el) => (inputRefs.current[name] = el)}
+                        className={`border border-gray-300 rounded-md p-2 w-full`}
+                        rows={4}
+                      ></textarea>
+                    ) : (
                     <input
                       type="text"
-                      id={key}
-                      name={key}
-                      value={formData[key] || ""}
+                      id={name}
+                      name={name}
+                      value={formData[name] || ""}
                       onChange={handleChange}
-                      ref={(el) => (inputRefs.current[key] = el)}
+                      ref={(el) => (inputRefs.current[name] = el)}
                       className="border border-gray-300 rounded-md p-2 w-full"
                     />
-                    {errors[key] && (
-                      <p className="text-red-500 text-sm">{errors[key]}</p>
+                    )}
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">{errors[name]}</p>
                     )}
                   </div>
                 ))}

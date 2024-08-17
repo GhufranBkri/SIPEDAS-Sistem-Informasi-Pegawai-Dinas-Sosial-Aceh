@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Table, Button, Modal } from "antd";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { MdRefresh } from "react-icons/md";
 import axios from "axios";
 import ExcelJS from "exceljs";
 import { useNavigate } from "react-router-dom";
@@ -12,16 +13,18 @@ const DataKaryawan = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const navigate = useNavigate();
-  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [sorter, setSorter] = useState(null);
   const [showExportPopup, setShowExportPopup] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Cek userRole dari localStorage
-    const userRole = localStorage.getItem('userRole');
-    if (userRole !== 'admin') {
-      navigate('/Dashboard');
+    const userRole = localStorage.getItem("userRole");
+    if (userRole !== "admin") {
+      navigate("/Dashboard");
     }
   }, [navigate]);
 
@@ -33,6 +36,7 @@ const DataKaryawan = () => {
       align: "center",
       sorter: (a, b) => a.no - b.no,
       fixed: "left",
+      render: (_, __, index) => index + 1,
     },
     {
       title: "Foto",
@@ -300,33 +304,32 @@ const DataKaryawan = () => {
     },
   ];
 
-  useEffect(() => {
+  const fetchData = async () => {
     setLoading(true);
-    const fetchData = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          throw new Error("No token found");
-        }
-
-        const response = await axios.get("http://localhost:3000/employees/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const dataWithIds = response.data.data.map((item, index) => ({
-          ...item,
-          key: item.nip,
-          no: index + 1,
-        }));
-        setRecords(dataWithIds);
-        setFilteredRecords(dataWithIds);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No token found");
       }
-    };
 
+      const response = await axios.get("http://localhost:3000/employees/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const dataWithIds = response.data.data.map((item) => ({
+        ...item,
+        key: item.nip,
+      }));
+      setRecords(dataWithIds);
+      setFilteredRecords(dataWithIds);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching data: ", error);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -338,6 +341,21 @@ const DataKaryawan = () => {
     });
     setFilteredRecords(filtered);
   }, [searchQuery, records]);
+
+  const handleTableChange = (pagination, filters, sorter) => {
+    setSorter(sorter);
+    const sortedRecords = [...filteredRecords].sort((a, b) => {
+      const { order, columnKey } = sorter;
+      const aValue = a[columnKey];
+      const bValue = b[columnKey];
+      if (order === "ascend") {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
+    setFilteredRecords(sortedRecords);
+  };
 
   const handleAddData = () => {
     navigate("/TambahData");
@@ -354,7 +372,7 @@ const DataKaryawan = () => {
 
   const handleDeleteData = () => {
     if (selectedRowKeys.length > 0) {
-      setShowDeletePopup(true);
+      setShowModal(true);
     }
   };
 
@@ -362,33 +380,59 @@ const DataKaryawan = () => {
     setSelectedRowKeys(selectedRowKeys);
   };
 
+  const handleConfirmModal = (e) => {
+    e.preventDefault();
+    setShowModal(false);
+    handleDeleteSelectedRows();
+  };
+
   const handleDeleteSelectedRows = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("No token found");
+    if (selectedRowKeys.length === 1) {
+      const selectedData = records.find(
+        (record) => record.nip === selectedRowKeys[0]
+      );
+
+      try {
+        setLoading(true);
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          throw new Error("No token found");
+        }
+
+        // Hapus foto dari cloud
+        await axios.delete("http://localhost:3000/profile/delete-foto", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: {
+            imageUrl: selectedData.foto,
+          },
+        });
+
+        // Delete the employee data
+        await axios.delete(
+          `http://localhost:3000/employees/${selectedData.nip}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setRecords((prevRecords) =>
+          prevRecords.filter((record) => record.nip !== selectedData.nip)
+        );
+        setFilteredRecords((prevRecords) =>
+          prevRecords.filter((record) => record.nip !== selectedData.nip)
+        );
+        setSelectedRowKeys([]);
+        setLoading(false);
+        setShowSuccessModal(true);
+      } catch (error) {
+        console.error("Error deleting data: ", error);
+      } finally {
+        setLoading(false);
       }
-
-      await axios.delete("http://localhost:3000/employees/", {
-        data: { nips: selectedRowKeys },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      setRecords((prevRecords) =>
-        prevRecords.filter((record) => !selectedRowKeys.includes(record.nip))
-      );
-
-      setFilteredRecords((prevRecords) =>
-        prevRecords.filter((record) => !selectedRowKeys.includes(record.nip))
-      );
-
-      setSelectedRowKeys([]);
-      setShowDeletePopup(false);
-    } catch (error) {
-      console.error("Failed to delete selected rows:", error);
-      setShowDeletePopup(false);
     }
   };
 
@@ -410,6 +454,20 @@ const DataKaryawan = () => {
     worksheet.getRow(1).eachCell({ includeEmpty: true }, (cell) => {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     });
+
+    // Sort filteredRecords based on sorter state
+    if (sorter) {
+      filteredRecords.sort((a, b) => {
+        const { columnKey, order } = sorter;
+        const aValue = a[columnKey];
+        const bValue = b[columnKey];
+        if (order === "ascend") {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        } else {
+          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+        }
+      });
+    }
 
     // Prepare and add data
     for (let [index, record] of filteredRecords.entries()) {
@@ -437,11 +495,9 @@ const DataKaryawan = () => {
 
       // Format data rows
       worksheet.getRow(index + 2).eachCell({ includeEmpty: true }, (cell) => {
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
       });
     }
-
-    
 
     // Add images after data rows are added
     for (let [index, record] of filteredRecords.entries()) {
@@ -497,10 +553,26 @@ const DataKaryawan = () => {
     onChange: handleRowSelection,
   };
 
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
+
+  const handleRefresh = () => {
+    fetchData();
+  };
+
   return (
     <div className="py-6 sm:px-6 lg:px-8">
       <div className="bg-white shadow sm:rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-10">Data Karyawan</h1>
+        <div className="flex justify-start gap-4">
+          <h1 className="text-2xl font-bold mb-10">Data Karyawan</h1>
+          <MdRefresh
+            className="bg-gray-300 fill-black rounded-lg p-2 cursor-pointer"
+            size={36}
+            onClick={handleRefresh}
+          />
+        </div>
+
         <div className="flex flex-row justify-between items-center mb-4 ml-2">
           <div className="space-x-4">
             <Button
@@ -561,22 +633,11 @@ const DataKaryawan = () => {
             pagination={true}
             bordered
             loading={loading}
+            onChange={handleTableChange}
             scroll={{ x: "max-content" }}
           />
         </div>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        title="Hapus Data"
-        open={showDeletePopup}
-        onOk={handleDeleteSelectedRows}
-        onCancel={() => setShowDeletePopup(false)}
-        okText="Ya"
-        cancelText="Batal"
-      >
-        <p>Apakah anda yakin ingin menghapus data yang dipilih?</p>
-      </Modal>
 
       {/* Export Confirmation Modal */}
       <Modal
@@ -586,9 +647,57 @@ const DataKaryawan = () => {
         onCancel={() => setShowExportPopup(false)}
         okText="Ya"
         cancelText="Batal"
+        className="fixed inset-0 flex items-center justify-center"
       >
         <p>Apakah anda yakin ingin mengekspor data ini ke Excel?</p>
       </Modal>
+
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl font-bold mb-8">Konfirmasi</h2>
+            <p className="mb-8">
+              Apakah Anda yakin ingin menghapus data karyawan ini?
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-300 text-black py-2 px-4 rounded-md mr-2"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleConfirmModal}
+                className="bg-blue-500 text-white py-2 px-4 rounded-md"
+              >
+                Ya
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-40">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-4">Loading...</h2>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      )}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-40">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-8">Sukses Menghapus</h2>
+            <p className="mb-8">Data Berhasil di hapus !</p>
+            <button
+              onClick={handleCloseSuccessModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -101,7 +101,7 @@ const GantiStruktur = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/Struktur");
+    navigate("/Struktur", { replace: true });
   };
 
   return (

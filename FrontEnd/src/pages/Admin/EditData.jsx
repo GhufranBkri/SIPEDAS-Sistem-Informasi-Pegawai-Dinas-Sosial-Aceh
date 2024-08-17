@@ -56,6 +56,8 @@ const EditData = () => {
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
+  const MAX_FILE_SIZE_MB = 1;
+  const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
   const jenisOptions = ["PNS", "Tenaga Kontrak"];
@@ -114,39 +116,42 @@ const EditData = () => {
             "Invalid file type. Only PNG, JPG, and JPEG are allowed.";
           setFormData({ ...formData, [name]: "" });
           setFotoPreview(null);
+        } else if (file.size > MAX_FILE_SIZE_BYTES) {
+          newErrors[name] = `File size exceeds ${MAX_FILE_SIZE_MB} MB limit.`;
+          setFormData({ ...formData, [name]: null });
+          setFotoPreview(null);
         } else {
-          setFormData({ ...formData, [name]: file, foto_lama: oldImageUrl });
+          setFormData({ ...formData, [name]: file });
           setFotoPreview(URL.createObjectURL(file));
           delete newErrors[name];
         }
       } else {
-        setFormData({ ...formData, [name]: "" });
+        setFormData({ ...formData, [name]: null });
         setFotoPreview(null);
         newErrors[name] = "This field is required";
       }
     } else {
       setFormData({ ...formData, [name]: value });
-    }
 
-    // Real-time validation
-    if (name === "email" || name === "email_gov") {
-      if (!validateEmail(value)) {
-        newErrors[name] = "Invalid email format";
+      if (name === "email" || name === "email_gov") {
+        if (!validateEmail(value)) {
+          newErrors[name] = "Invalid email format";
+        } else {
+          delete newErrors[name];
+        }
+      } else if (
+        ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(name)
+      ) {
+        if (!validateYear(value)) {
+          newErrors[name] = "Must be a 4-digit year";
+        } else {
+          delete newErrors[name];
+        }
+      } else if (value === "" || (name === "foto" && !files.length)) {
+        newErrors[name] = "This field is required";
       } else {
         delete newErrors[name];
       }
-    } else if (
-      ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(name)
-    ) {
-      if (!validateYear(value)) {
-        newErrors[name] = "Must be a 4-digit year";
-      } else {
-        delete newErrors[name];
-      }
-    } else if (value === "" || (name === "foto" && !files.length)) {
-      newErrors[name] = "This field is required";
-    } else {
-      delete newErrors[name];
     }
 
     setErrors(newErrors);
@@ -373,7 +378,7 @@ const EditData = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/DataKaryawan");
+    navigate("/DataKaryawan", { replace: true });
   };
 
   const handleCancel = () => {
@@ -476,8 +481,8 @@ const EditData = () => {
                       </p>
                     )}
                     {name === "foto" && (
-                      <p className="text-red-400 text-sm mt-1">
-                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB yang
+                      <p className="text-gray-600 text-sm mt-1">
+                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB (1024 KB) yang
                         diterima
                       </p>
                     )}
@@ -493,7 +498,7 @@ const EditData = () => {
                       </div>
                     )}
                     {name === "tanggal_lahir" && (
-                      <p className="text-red-400 text-sm mt-1">
+                      <p className="text-gray-600 text-sm mt-1">
                         * format : bulan/tanggal/tahun
                       </p>
                     )}
@@ -567,27 +572,39 @@ const EditData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Alamat</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  "kabupaten",
-                  "kecamatan",
-                  "desa",
-                  "jalan",
-                  "alamat_lengkap",
-                ].map((key) => (
-                  <div className="mb-4" key={key}>
-                    <label className="block text-gray-700 mb-2" htmlFor={key}>
-                      {key.replace("_", " ").toUpperCase()}
+                  { name: "kabupaten", type: "text" },
+                  { name: "kecamatan", type: "text" },
+                  { name: "desa", type: "text" },
+                  { name: "jalan", type: "text" },
+                  { name: "alamat_lengkap", type: "textarea" },
+                ].map(({ name, type }) => (
+                  <div className="mb-4" key={name}>
+                    <label className="block text-gray-700 mb-2" htmlFor={name}>
+                      {name.replace("_", " ").toUpperCase()}
                     </label>
+                    {type === "textarea" ? (
+                      <textarea
+                        id={name}
+                        name={name}
+                        value={formData[name]}
+                        onChange={handleChange}
+                        ref={(el) => (inputRefs.current[name] = el)}
+                        className={`border border-gray-300 rounded-md p-2 w-full`}
+                        rows={4}
+                      ></textarea>
+                    ) : (
                     <input
-                      type="text"
-                      id={key}
-                      name={key}
-                      value={formData[key] || ""}
+                      id={name}
+                      name={name}
+                      type={type}
+                      value={formData[name] || ""}
                       onChange={handleChange}
-                      ref={(el) => (inputRefs.current[key] = el)}
+                      ref={(el) => (inputRefs.current[name] = el)}
                       className="border border-gray-300 rounded-md p-2 w-full"
                     />
-                    {errors[key] && (
-                      <p className="text-red-500 text-sm">{errors[key]}</p>
+                  )}
+                    {errors[name] && (
+                      <p className="text-red-500 text-sm">{errors[name]}</p>
                     )}
                   </div>
                 ))}
@@ -696,7 +713,7 @@ const EditData = () => {
                       </p>
                     )}
                     {(name === "sub_bidang" || name === "eselon") && (
-                      <p className="text-red-400 text-sm mt-1">
+                      <p className="text-gray-600 text-sm mt-1">
                         * Isi ( - ) jika tidak ada
                       </p>
                     )}
@@ -755,19 +772,19 @@ const EditData = () => {
         </div>
       )}
       {showSuccessModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
-                <h2 className="text-xl font-semibold mb-8">Sukses</h2>
-                <p className="mb-8">Data berhasil di perbarui !</p>
-                <button
-                  onClick={handleCloseSuccessModal}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
-                >
-                  OK
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-8">Sukses</h2>
+            <p className="mb-8">Data berhasil di perbarui !</p>
+            <button
+              onClick={handleCloseSuccessModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
