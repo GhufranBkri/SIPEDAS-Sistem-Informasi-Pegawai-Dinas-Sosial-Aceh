@@ -14,7 +14,6 @@ import ProfileUser from './pages/User/ProfileUser';
 import GantiPassword from './pages/User/GantiPassword';
 import GantiStruktur from './pages/Admin/GantiStruktur';
 import Notifikasi from './pages/Admin/Notifikasi';
-import RequestUser from './pages/Admin/RequestUser';
 import RequestEditData from './pages/User/RequestEditData';
 import DetailRequest from './pages/Admin/DetailRequest';
 
@@ -34,7 +33,6 @@ function App() {
             <Route path="/GantiPassword" element={<GantiPassword />} />
             <Route path="/GantiStruktur" element={<GantiStruktur />} />
             <Route path="/Notifikasi" element={<Notifikasi />} />
-            <Route path="/RequestUser" element={<RequestUser />} />
             <Route path="/RequestEditData" element={<RequestEditData />} />
             <Route path="/DetailRequest/:id" element={<DetailRequest />} />
           </Route>

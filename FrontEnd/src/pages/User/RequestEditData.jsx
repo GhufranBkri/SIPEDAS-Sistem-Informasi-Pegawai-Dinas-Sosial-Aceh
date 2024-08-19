@@ -53,9 +53,9 @@ const RequestEditData = () => {
   const [loading, setLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
+  const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
-  const jenisOptions = ["PNS", "Tenaga Kontrak"];
+  const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
   const kelasJabatanOptions = ["I", "II", "III", "IV"];
   const navigate = useNavigate();
 
@@ -146,15 +146,20 @@ const RequestEditData = () => {
         if (!allowedTypes.includes(file.type)) {
           newErrors[name] =
             "Invalid file type. Only PNG, JPG, and JPEG are allowed.";
-          setFormData({ ...formData, [name]: "" });
+          setFormData({ ...formData, [name]: null });
           setFotoPreview(null);
         } else {
-          setFormData({ ...formData, [name]: file, foto_lama: oldImageUrl });
+          // Set file and clear preview if it's not the same file as before
+          setFormData((prevState) => ({
+            ...prevState,
+            [name]: file,
+            foto_lama: oldImageUrl,
+          }));
           setFotoPreview(URL.createObjectURL(file));
           delete newErrors[name];
         }
       } else {
-        setFormData({ ...formData, [name]: "" });
+        setFormData({ ...formData, [name]: null });
         setFotoPreview(null);
         newErrors[name] = "This field is required";
       }
@@ -250,10 +255,14 @@ const RequestEditData = () => {
         // Bandingkan tanggal dalam format yang sama
         const formattedInitialDate = formatDateForInput(initialFormData[key]);
         const formattedCurrentDate = formatDateForInput(formData[key]);
+
         if (formattedCurrentDate !== formattedInitialDate) {
           updatedData[key] = parseDateForServer(formData[key]);
         }
-      } else if (formData[key] !== initialFormData[key]) {
+      } else if (
+        formData[key] !== initialFormData[key] &&
+        key !== "foto_lama"
+      ) {
         updatedData[key] = formData[key];
       }
     });
@@ -285,10 +294,8 @@ const RequestEditData = () => {
         const fotoFormData = new FormData();
 
         fotoFormData.append("image", formData.foto);
-        fotoFormData.append("imageUrl", oldImageUrl);
 
         console.log("Mengirim foto baru:", formData.foto);
-        console.log("URL foto lama:", oldImageUrl);
 
         try {
           const uploadResponse = await axios.post(
@@ -328,8 +335,8 @@ const RequestEditData = () => {
       // Menyusun updatedData hanya dengan field yang berubah
       const updatedData = getUpdatedData();
 
-      // Jika ada perubahan pada foto, tambahkan ke updatedData
-      if (imageUrl !== oldImageUrl) {
+      // Update the data payload with the new image URL
+      if (imageUrl !== oldImageUrl && imageUrl) {
         updatedData.foto = imageUrl;
       }
 
@@ -416,8 +423,8 @@ const RequestEditData = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <main className="py-8 w-full max-w-7xl">
+    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+      <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
             Request Edit Data
@@ -553,15 +560,15 @@ const RequestEditData = () => {
                         rows={4}
                       ></textarea>
                     ) : (
-                    <input
-                      type="text"
-                      id={name}
-                      name={name}
-                      value={formData[name] || ""}
-                      onChange={handleChange}
-                      ref={(el) => (inputRefs.current[name] = el)}
-                      className="border border-gray-300 rounded-md p-2 w-full"
-                    />
+                      <input
+                        type="text"
+                        id={name}
+                        name={name}
+                        value={formData[name] || ""}
+                        onChange={handleChange}
+                        ref={(el) => (inputRefs.current[name] = el)}
+                        className="border border-gray-300 rounded-md p-2 w-full"
+                      />
                     )}
                     {errors[name] && (
                       <p className="text-red-500 text-sm">{errors[name]}</p>
@@ -708,7 +715,7 @@ const RequestEditData = () => {
             <p className="mb-4">
               Apakah Anda yakin ingin mengirim request edit data ini?
             </p>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={handleCancelModal}
                 className="bg-gray-300 text-black py-2 px-4 rounded-md mr-2"

@@ -29,16 +29,22 @@ ChartJS.register(
 
 function Dashboard() {
   const [data, setData] = useState([]);
-  const token = localStorage.getItem("authToken");
-  if (!token) {
-    throw new Error("No authorization token found.");
-  }
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      console.error("No authorization token found.");
+      setLoading(false);
+      setError("Authorization token not found.");
+      return;
+    }
+
     axios
-      .get("http://localhost:3000/employees/", {
+      .get("http://localhost:3000/employees/visual", {
         headers: {
-          Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+          Authorization: `Bearer ${token}`,
         },
       })
       .then((response) => {
@@ -46,14 +52,29 @@ function Dashboard() {
           setData(response.data.data);
         } else {
           console.error("Expected an array but received:", response.data);
+          setError("Invalid data format received from server.");
         }
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
+        setError("Error fetching data. Please try again later.");
+        setLoading(false);
       });
-  }, [token]);
+  }, []);
 
-  if (!Array.isArray(data) || data.length === 0) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Error: {error}
+      </div>
+    );
 
   // Process data for charts
   const bidangLabels = [...new Set(data.map((emp) => emp.bidang))];
@@ -61,12 +82,26 @@ function Dashboard() {
     (label) => data.filter((emp) => emp.bidang === label).length
   );
 
-  const umurLabels = data.map((emp) => emp.umur);
-  const umurData = data.map((emp) => emp.umur);
+  // Age distribution
+  const ageRanges = [
+    "25-30",
+    "31-35",
+    "36-40",
+    "41-45",
+    "46-50",
+    "51-55",
+    "56-60",
+    "61-65",
+    "66-70",
+  ];
+  const ageData = ageRanges.map((range) => {
+    const [start, end] = range.split("-").map(Number);
+    return data.filter((emp) => emp.umur >= start && emp.umur <= end).length;
+  });
 
-  const goldarLabels = [...new Set(data.map((emp) => emp.goldar))];
+  const goldarLabels = [...new Set(data.map((emp) => emp.golongan_darah))];
   const goldarData = goldarLabels.map(
-    (label) => data.filter((emp) => emp.goldar === label).length
+    (label) => data.filter((emp) => emp.golongan_darah === label).length
   );
 
   const pendidikanLabels = [...new Set(data.map((emp) => emp.pendidikan))];
@@ -74,33 +109,61 @@ function Dashboard() {
     (label) => data.filter((emp) => emp.pendidikan === label).length
   );
 
+  const genderTypes = ["PNS", "Tenaga Kontrak", "PPPK"];
   const genderData = {
-    pns: {
-      male: data.filter((emp) => emp.gender === "male" && emp.type === "pns")
-        .length,
+    PNS: {
+      male: data.filter(
+        (emp) => emp.jenis_kelamin === "Laki-Laki" && emp.jenis === "PNS"
+      ).length,
       female: data.filter(
-        (emp) => emp.gender === "female" && emp.type === "pns"
+        (emp) => emp.jenis_kelamin === "Perempuan" && emp.jenis === "PNS"
       ).length,
     },
-    tekon: {
-      male: data.filter((emp) => emp.gender === "male" && emp.type === "tekon")
-        .length,
+    "Tenaga Kontrak": {
+      male: data.filter(
+        (emp) =>
+          emp.jenis_kelamin === "Laki-Laki" && emp.jenis === "Tenaga Kontrak"
+      ).length,
       female: data.filter(
-        (emp) => emp.gender === "female" && emp.type === "tekon"
+        (emp) =>
+          emp.jenis_kelamin === "Perempuan" && emp.jenis === "Tenaga Kontrak"
+      ).length,
+    },
+    PPPK: {
+      male: data.filter(
+        (emp) => emp.jenis_kelamin === "Laki-Laki" && emp.jenis === "PPPK"
+      ).length,
+      female: data.filter(
+        (emp) => emp.jenis_kelamin === "Perempuan" && emp.jenis === "PPPK"
       ).length,
     },
   };
 
   const lineChartData = {
-    labels: umurLabels,
+    labels: ageRanges,
     datasets: [
       {
-        label: "Umur",
-        data: umurData,
+        label: "Jumlah Pegawai per Umur",
+        data: ageData,
         borderColor: "rgba(75,192,192,1)",
         backgroundColor: "rgba(75,192,192,0.2)",
       },
     ],
+  };
+
+  const lineChartOptions = {
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: "Jumlah", // Menambahkan label sumbu Y
+        },
+        ticks: {
+          beginAtZero: true,
+          precision: 0, // Menghilangkan desimal
+        },
+      },
+    },
   };
 
   const barChartData = {
@@ -116,8 +179,23 @@ function Dashboard() {
     ],
   };
 
+  const barChartOptions = {
+    scales: {
+      y: {
+        title: {
+          display: true,
+          text: "Jumlah", // Menambahkan label sumbu Y
+        },
+        ticks: {
+          beginAtZero: true,
+          precision: 0, // Menghilangkan desimal
+        },
+      },
+    },
+  };
+
   const pieChartDataGoldar = {
-    labels: goldarLabels,
+    labels: goldarLabels.map((label, index) => `${label} (${goldarData[index]})`),
     datasets: [
       {
         data: goldarData,
@@ -127,7 +205,7 @@ function Dashboard() {
   };
 
   const pieChartDataPendidikan = {
-    labels: pendidikanLabels,
+    labels: pendidikanLabels.map((label, index) => `${label} (${pendidikanData[index]})`),
     datasets: [
       {
         data: pendidikanData,
@@ -136,50 +214,100 @@ function Dashboard() {
     ],
   };
 
+  const pieChartOptions = {
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          font: {
+            size: 16, // Adjust font size here
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const value = context.raw;
+            const percentage = ((value / total) * 100).toFixed(2) + "%";
+            return `${context.label}: ${value} (${percentage})`;
+          },
+        },
+      },
+    },
+  };
+
   const stackedBarChartData = {
-    labels: ["PNS", "Tekon"],
+    labels: genderTypes,
     datasets: [
       {
         label: "Laki-laki",
-        data: [genderData.pns.male, genderData.tekon.male],
+        data: genderTypes.map((type) => genderData[type].male),
         backgroundColor: "rgba(54, 162, 235, 0.6)",
       },
       {
         label: "Perempuan",
-        data: [genderData.pns.female, genderData.tekon.female],
+        data: genderTypes.map((type) => genderData[type].female),
         backgroundColor: "rgba(255, 99, 132, 0.6)",
       },
     ],
   };
 
+  // Chart options for gender chart
+  const stackedBarChartOptions = {
+    scales: {
+      x: { stacked: false },
+      y: {
+        stacked: false,
+        title: {
+          display: true,
+          text: "Jumlah",
+        },
+        ticks: {
+          beginAtZero: true,
+          precision: 0, // Remove decimals
+        },
+      },
+    },
+  };
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard Admin</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-2">Jumlah Pegawai per Bidang</h2>
-          <Bar data={barChartData} />
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-2">Distribusi Umur</h2>
-          <Line data={lineChartData} />
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-2">Distribusi Golongan Darah</h2>
-          <Pie data={pieChartDataGoldar} />
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-2">Distribusi Pendidikan</h2>
-          <Pie data={pieChartDataPendidikan} />
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow-md">
-          <h2 className="text-xl font-bold mb-2">
-            Jenis Kelamin berdasarkan PNS dan Tekon
-          </h2>
-          <Bar
-            data={stackedBarChartData}
-            options={{ scales: { x: { stacked: true }, y: { stacked: true } } }}
-          />
+    <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: "6.5rem" }}>
+      <div className="bg-white shadow sm:rounded-lg p-6">
+        <h1 className="text-2xl font-bold mb-4">Dashboard Admin</h1>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-2">
+              Jumlah Pegawai per Bidang
+            </h2>
+            <Bar data={barChartData} options={barChartOptions} />
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-2">Distribusi Umur</h2>
+            <Line data={lineChartData} options={lineChartOptions} />
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-2">
+              Distribusi Golongan Darah
+            </h2>
+            <Pie
+              data={pieChartDataGoldar}
+              options={pieChartOptions}
+            />
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-2">Distribusi Pendidikan</h2>
+            <Pie
+              data={pieChartDataPendidikan}
+              options={pieChartOptions}
+            />
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-2">
+              Jenis Kelamin berdasarkan PNS, Tekon, dan PPPK
+            </h2>
+            <Bar data={stackedBarChartData} options={stackedBarChartOptions} />
+          </div>
         </div>
       </div>
     </div>

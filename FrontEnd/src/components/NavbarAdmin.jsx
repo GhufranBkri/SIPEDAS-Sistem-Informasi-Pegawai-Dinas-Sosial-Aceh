@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect, useRef } from "react";
 import { FaBell, FaUser } from "react-icons/fa";
+import { MdRefresh } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import logoIcon from "../assets/logo_text.svg";
 import logoutIcon from "../assets/logout.svg";
@@ -11,6 +12,8 @@ function NavbarAdmin() {
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] =
     useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [loading, setLoading] = useState(false);
   const profileDropdownRef = useRef(null);
   const notificationDropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -19,8 +22,26 @@ function NavbarAdmin() {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
   };
 
-  const toggleNotificationDropdown = () => {
+  const toggleNotificationDropdown = async () => {
     setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
+    if (!isNotificationDropdownOpen) {
+      setLoading(true);
+      // Mark all notifications as read when the dropdown is opened
+      const readNotifications = notifications.map((notif) => notif.id);
+      localStorage.setItem(
+        "readNotifications",
+        JSON.stringify(readNotifications)
+      );
+      setUnreadNotifications(0);
+      setNotifications(
+        notifications.map((notif) => ({ ...notif, isRead: true }))
+      );
+      // Fetch notifications if not already loaded
+      if (notifications.length === 0) {
+        await fetchNotifications();
+      }
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -29,78 +50,95 @@ function NavbarAdmin() {
     navigate("/");
   };
 
-  useEffect(() => {
-    async function fetchNotifications() {
-      // Function to fetch employee name by NIP
-      const fetchEmployeeName = async (nip) => {
-        try {
-          const token = localStorage.getItem("authToken");
-          if (!token) {
-            throw new Error("No authorization token found.");
-          }
-          const response = await axios.get(
-            `http://localhost:3000/employees/${nip}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          return response.data.data.nama;
-        } catch (error) {
-          console.error("Error fetching employee data:", error);
-          return "Unknown";
-        }
-      };
-
-      const token = localStorage.getItem("authToken");
-      if (!token) {
-        throw new Error("No authorization token found.");
-      }
-
+  const fetchNotifications = async () => {
+    setLoading(true);
+    // Function to fetch employee name by NIP
+    const fetchEmployeeName = async (nip) => {
       try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          throw new Error("No authorization token found.");
+        }
         const response = await axios.get(
-          "http://localhost:3000/request/pending-request",
+          `http://localhost:3000/employees/${nip}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
           }
         );
-
-        const data = response.data.data;
-
-        // Fetch employee names and format notifications
-        const formattedNotifications = await Promise.all(
-          data.map(async (item) => {
-            const employeeName = await fetchEmployeeName(item.employeeNip);
-            // Extract and format updatedData keys
-            const updatedDataKeys = Object.keys(item.updatedData)
-              .map((key) => key.replace(/_/g, " "))
-              .join(", ");
-
-            return {
-              id: item._id,
-              title: employeeName,
-              content: `Meminta mengubah data: ${updatedDataKeys}`,
-              requestDate: new Date(item.requestDate),
-              status: item.status,
-              nip: item.employeeNip,
-            };
-          })
-        );
-
-        // Sort notifications by requestDate in descending order
-        const sortedNotifications = formattedNotifications.sort(
-          (a, b) => b.requestDate - a.requestDate
-        );
-
-        setNotifications(sortedNotifications);
+        return response.data.data.nama;
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error("Error fetching employee data:", error);
+        return "Unknown";
       }
+    };
+
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      throw new Error("No authorization token found.");
     }
 
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/request/pending-request",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = response.data.data;
+
+      // Fetch employee names and format notifications
+      const formattedNotifications = await Promise.all(
+        data.map(async (item) => {
+          const employeeName = await fetchEmployeeName(item.employeeNip);
+          // Extract and format updatedData keys
+          const updatedDataKeys = Object.keys(item.updatedData)
+            .map((key) => key.replace(/_/g, " "))
+            .join(", ");
+
+          return {
+            id: item._id,
+            title: employeeName,
+            content: `Meminta mengubah data: ${updatedDataKeys}`,
+            requestDate: new Date(item.requestDate),
+            status: item.status,
+            nip: item.employeeNip,
+            isRead: false,
+          };
+        })
+      );
+
+      // Sort notifications by requestDate in descending order
+      const sortedNotifications = formattedNotifications.sort(
+        (a, b) => b.requestDate - a.requestDate
+      );
+
+      // Check and apply read status from localStorage
+      const readNotifications =
+        JSON.parse(localStorage.getItem("readNotifications")) || [];
+      const updatedNotifications = sortedNotifications.map((notif) => ({
+        ...notif,
+        isRead: readNotifications.includes(notif.id),
+      }));
+
+      setNotifications(updatedNotifications);
+
+      const countUnread = updatedNotifications.filter(
+        (notif) => !notif.isRead
+      ).length;
+      setUnreadNotifications(countUnread);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchNotifications();
 
     function handleClickOutside(event) {
@@ -132,7 +170,7 @@ function NavbarAdmin() {
   };
 
   return (
-    <nav className="bg-custom-blue p-4">
+    <nav className="bg-custom-blue p-4 fixed top-0 left-0 w-full z-50 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         <a href="/Dashboard" className="inline w-52">
           <img src={logoIcon} alt="Logo" />
@@ -162,23 +200,38 @@ function NavbarAdmin() {
               size={34}
               onClick={toggleNotificationDropdown}
             />
+            {unreadNotifications > 0 && (
+              <span className="absolute top-0 right-0 inline-flex items-center justify-center w-3 h-3 p-2 bg-red-600 border-2 border-white rounded-full"></span>
+            )}
             {isNotificationDropdownOpen && (
               <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                 <div className="p-4 border-b border-gray-200">
                   <span className="flex justify-between">
-                    <span className="font-bold">
+                    <span className="flex justify-start font-bold">
                       Notifications
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 mt-1">
                         ({notifications.length})
                       </span>
+                      <button
+                        className="bg-gray-300 text-gray-600 px-2 py-1 ml-3 rounded-md hover:bg-gray-400 focus:outline-none"
+                        onClick={fetchNotifications}
+                        disabled={loading}
+                      >
+                        <MdRefresh size={16} />
+                      </button>
                     </span>
+
                     <span className="mr-4 bg-yellow-100 text-yellow-800 px-1 border rounded-md">
                       Pending
                     </span>
                   </span>
                 </div>
                 <div className="p-2 max-h-72 overflow-y-auto">
-                  {notifications.length > 0 ? (
+                  {loading ? (
+                    <div className="w-full max-h-72 flex items-center justify-center">
+                      <div className="w-12 h-12 border-4 mt-28 mb-28 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
+                    </div>
+                  ) : notifications.length > 0 ? (
                     notifications.map((notification, index) => (
                       <div
                         key={index}
@@ -203,7 +256,9 @@ function NavbarAdmin() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-gray-600">No new notifications</p>
+                    <div className="p-2 text-center text-gray-600">
+                      No notifications
+                    </div>
                   )}
                 </div>
                 <div className="p-2 mb-2 border-gray-200 text-center border-t">

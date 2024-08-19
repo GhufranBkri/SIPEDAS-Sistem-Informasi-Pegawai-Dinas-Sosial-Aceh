@@ -58,9 +58,9 @@ const EditData = () => {
 
   const MAX_FILE_SIZE_MB = 1;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-  const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
+  const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
-  const jenisOptions = ["PNS", "Tenaga Kontrak"];
+  const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
   const kelasJabatanOptions = ["I", "II", "III", "IV"];
   const location = useLocation();
   const navigate = useNavigate();
@@ -396,8 +396,8 @@ const EditData = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <main className="py-8 w-full max-w-7xl">
+    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+      <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
             Edit Data Karyawan
@@ -493,7 +493,7 @@ const EditData = () => {
                         </label>
                         <img
                           src={fotoPreview}
-                          className="mt-2 w-24 object-cover"
+                          className="mt-2 w-32 object-cover"
                         />
                       </div>
                     )}
@@ -746,7 +746,7 @@ const EditData = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-4">Konfirmasi</h2>
             <p className="mb-4">Apakah Anda yakin ingin mengubah data ini?</p>
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={handleCancelModal}
                 className="bg-gray-300 text-black py-2 px-4 rounded-md mr-2"

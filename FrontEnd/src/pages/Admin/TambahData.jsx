@@ -54,7 +54,7 @@ const TambahData = () => {
 
   const MAX_FILE_SIZE_MB = 1;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-  const jenisKelaminOptions = ["Laki-laki", "Perempuan"];
+  const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
   const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
   const kelasJabatanOptions = ["I", "II", "III", "IV"];
@@ -283,8 +283,8 @@ const TambahData = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <main className="py-8 w-full max-w-7xl">
+    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+      <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
             Tambah Data Karyawan

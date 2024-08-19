@@ -184,30 +184,33 @@ const DetailRequest = () => {
     if (key === "foto") {
       return (
         <div key={key}>
-          {originalValue && (
-            <img
-              src={originalValue}
-              alt="Original Foto"
-              className="w-32 h-32 items-center object-cover"
-            />
-          )}
-          {isUpdated && (
-            <img
-              src={updatedValue}
-              alt="Updated Foto"
-              className={`w-32 h-32 items-center object-cover mt-4 border-2 ${getStatusClass()}`}
-            />
-          )}
+          <div className="relative">
+            {updatedFields[key] ? (
+              <img
+                src={updatedFields[key]}
+                alt="Updated Foto"
+                className={`w-32 items-center object-cover mt-4 border-2 ${getStatusClass()} border-4 border-blue-500`}
+              />
+            ) : (
+              originalValue && (
+                <img
+                  src={originalValue}
+                  alt="Original Foto"
+                  className="w-32 items-center object-cover mt-4 border-2 border-gray-300"
+                />
+              )
+            )}
+          </div>
         </div>
       );
     }
 
-        if (key === "alamat_lengkap") {
+    if (key === "alamat_lengkap") {
       return (
         <textarea
           value={updatedValue}
           disabled
-          className="border border-gray-300 rounded-md p-2 w-full"
+          className={commonClasses}
           rows="4"
         />
       );
@@ -294,8 +297,8 @@ const DetailRequest = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <main className="py-8 w-full max-w-7xl">
+    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+      <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <div className="flex justify-between">
             <h1 className="text-2xl font-bold mb-6 text-center">

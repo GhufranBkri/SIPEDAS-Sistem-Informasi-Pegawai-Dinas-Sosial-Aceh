@@ -105,8 +105,8 @@ const GantiStruktur = () => {
   };
 
   return (
-    <div className=" flex items-center justify-center">
-      <main className="py-8 w-full max-w-7xl">
+    <div className=" flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+      <main className="pb-8 w-full max-w-7xl">
         <div className=" bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-8 text-center">
             Ganti Struktur

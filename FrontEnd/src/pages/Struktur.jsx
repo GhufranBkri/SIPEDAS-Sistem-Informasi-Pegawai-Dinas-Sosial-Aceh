@@ -100,35 +100,34 @@ const Struktur = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <main className="py-8">
+    <div className="min-h-screen" style={{ paddingTop: "6.5rem" }}>
+      <main className="pb-8">
         <div className="mx-auto sm:px-6 lg:px-8">
-          <div className="flex justify-between">
-            <h1 className="text-2xl font-bold mb-4">Struktur Dinas Sosial</h1>
-            <div className="flex justify-end gap-4">
-              {userRole === "admin" && (
-                <a href="/GantiStruktur">
-                  <button className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                    Ganti Struktur
-                  </button>
-                </a>
-              )}
-              <button
-                onClick={handleSave}
-                className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Download
-              </button>
-            </div>
-          </div>
-
           <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 relative">
+            <div className="flex justify-between">
+              <h1 className="text-2xl font-bold mb-4">Struktur Dinas Sosial</h1>
+              <div className="flex justify-end gap-4">
+                {userRole === "admin" && (
+                  <a href="/GantiStruktur">
+                    <button className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                      Ganti Struktur
+                    </button>
+                  </a>
+                )}
+                <button
+                  onClick={handleSave}
+                  className="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                  Download
+                </button>
+              </div>
+            </div>
             {loading ? (
               <div className="flex items-center justify-center w-full h-64">
                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
               </div>
             ) : (
-              <div className="zoom-container" onMouseMove={handleMouseMove}>
+              <div className="zoom-container bg-white shadow" onMouseMove={handleMouseMove}>
                 <img src={imageUrl} alt="Struktur" className="zoom-image" />
                 <div
                   className="zoom-rectangle"
