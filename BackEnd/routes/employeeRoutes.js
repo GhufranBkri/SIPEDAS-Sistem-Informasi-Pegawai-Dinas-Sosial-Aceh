@@ -16,6 +16,8 @@ router.post('/', authenticateToken, authorizeRoles('admin'), employee.createEmpl
 // Get all employees (Admin only)
 router.get('/', authenticateToken, authorizeRoles('admin'), employee.getAllEmployees);
 
+router.get('/visual', employee.getAllEmployees);
+
 // Get employee by NIP (only admin)
 router.get('/:nip', authenticateToken, authorizeEmployeeAccess, employee.getEmployeeByNip);
 

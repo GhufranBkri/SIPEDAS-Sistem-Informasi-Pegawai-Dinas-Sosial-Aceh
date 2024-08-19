@@ -174,6 +174,40 @@ const getUpdateRequestById = async (req, res) => {
     }
 };
 
+const deleteUpdateRequest = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Find and delete the update request by ID
+        const updateRequest = await UpdateRequest.findOneAndDelete({ _id: id });
+
+        // If the update request doesn't exist
+        if (!updateRequest) {
+            return res.status(404).json(formatResponse('error', 404, null, 'Update request not found'));
+        }
+
+        // If there is a photo associated with the update request, delete it from Cloudinary
+        if (updateRequest.updatedData.foto) {
+            try {
+                const public_id = updateRequest.updatedData.foto.split('/').slice(-1)[0].split('.')[0];
+                await cloudinary.uploader.destroy('upload-foto/' + public_id);
+                console.log('Associated image successfully deleted from Cloudinary:', public_id);
+            } catch (err) {
+                console.error('Error deleting associated image from Cloudinary:', err.message);
+                return res.status(500).json(formatResponse('error', 500, null, 'Error deleting associated image'));
+            }
+        }
+
+        // Send a success response with a notification
+        res.status(200).json(formatResponse('success', 200, null, `Update request with ID ${id} successfully deleted`));
+
+    } catch (err) {
+        console.error('Error deleting update request:', err);
+        res.status(500).json(formatResponse('error', 500, null, 'Internal server error'));
+    }
+};
+
+
 
 
 module.exports = {
@@ -181,5 +215,6 @@ module.exports = {
     getAllUpdateRequests,
     updateRequestStatus,
     getPendingUpdateRequests,
-    getUpdateRequestById
+    getUpdateRequestById,
+    deleteUpdateRequest
 };
