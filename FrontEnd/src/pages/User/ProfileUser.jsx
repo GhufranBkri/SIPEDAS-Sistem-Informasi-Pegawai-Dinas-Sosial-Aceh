@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-// import jsPDF from "jspdf";
-// import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const ProfileUser = () => {
   const [formData, setFormData] = useState({
@@ -130,44 +130,41 @@ const ProfileUser = () => {
 
   const handleConfirmSaveAsPDF = async () => {
     setShowModal(false);
-    alert("Saving as PDF...");
 
-    // // Find the img element and wait for it to load
-    // const pdf = new jsPDF();
+    const input = document.getElementById("profile-section");
+    const backButton = document.querySelector(".btn-back");
 
-    
-    // // Add profile photo if available
-    // if (formData.foto) {
-    //   const img = await fetch(formData.foto).then(res => res.blob());
-    //   const imgData = await new Promise((resolve) => {
-    //     const reader = new FileReader();
-    //     reader.onloadend = () => resolve(reader.result);
-    //     reader.readAsDataURL(img);
-    //   });
-    //   pdf.addImage(imgData, "PNG", 10, 10, 40, 40); // Adjust position and size as needed
-    // }
+    // Hide the 'Kembali' button
+    if (backButton) {
+      backButton.style.display = "none";
+    }
 
-    // // Convert the profile section to a PDF
-    // const input = document.getElementById("profile-section");
-    // const canvas = await html2canvas(input);
-    // const imgData = canvas.toDataURL("image/png");
-    // const imgWidth = 210; // A4 width in mm
-    // const pageHeight = 295; // A4 height in mm
-    // const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    // let heightLeft = imgHeight;
+    html2canvas(input, { useCORS: true, scale: 3 }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/jpeg", 0.8); // Menggunakan JPEG dan mengatur kualitas gambar
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210; // Lebar a4 dalam mm
+      const pageHeight = 285; // Tinggi a4 dalam mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
 
-    // let position = 0;
-    // pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    // heightLeft -= pageHeight;
+      let position = 0;
+      pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight); // Gunakan JPEG untuk kompresi lebih baik
+      heightLeft -= pageHeight;
 
-    // while (heightLeft >= 0) {
-    //   position = heightLeft - imgHeight;
-    //   pdf.addPage();
-    //   pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    //   heightLeft -= pageHeight;
-    // }
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
 
-    // pdf.save("ProfileUser.pdf");
+      pdf.save("ProfileUser.pdf");
+
+      // Show the 'Kembali' button again
+      if (backButton) {
+        backButton.style.display = "";
+      }
+    });
   };
 
   if (loading) {
@@ -185,33 +182,28 @@ const ProfileUser = () => {
         <img
           src={value}
           alt="Foto"
-          className="w-32 h-32 items-center object-cover"
+          className="w-32 items-center object-cover"
         />
       ) : null;
     }
     if (key === "alamat_lengkap") {
       return (
-        <textarea
-          value={value}
-          disabled
-          className="border border-gray-300 rounded-md p-2 w-full align-top"
-          rows="4"
-        />
+        <div className="min-h-[80px] w-full bg-gray-100 p-2 rounded align-top border">
+          {value}
+        </div>
       );
     }
     return (
-      <input
-        type="text"
-        value={value}
-        disabled
-        className="border border-gray-300 rounded-md p-2 w-full align-top"
-      />
+      <div className="min-h-[43px] w-full bg-gray-100 px-2 rounded flex items-center border">{value}</div>
     );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <main className="py-8 w-full max-w-7xl">
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ paddingTop: "6.5rem" }}
+    >
+      <main className="pb-8 w-full max-w-7xl">
         <div className="flex justify-between">
           <h1 className="text-2xl font-bold mb-6 text-center">
             Profil Pengguna
@@ -336,7 +328,7 @@ const ProfileUser = () => {
             <button
               type="button"
               onClick={handleCancel}
-              className="bg-gray-300 text-black py-2 px-4 rounded-md hover:bg-gray-400"
+              className="bg-gray-300 text-black py-2 px-4 rounded-md hover:bg-gray-400 btn-back"
             >
               Kembali
             </button>

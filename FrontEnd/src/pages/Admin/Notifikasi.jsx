@@ -44,6 +44,8 @@ const Notifikasi = () => {
   const [sortCriteria, setSortCriteria] = useState("requestDateDesc");
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [notificationToDelete, setNotificationToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -100,14 +102,20 @@ const Notifikasi = () => {
           const employeeName = await fetchEmployeeName(item.employeeNip);
           const updatedDataKeys = Object.keys(item.updatedData)
             .map((key) => key.replace(/_/g, " "))
-            .join(", ");
+            .reduce((acc, key, index, array) => {
+              if (index === array.length - 1) {
+                return `${acc}${key}.`; // No comma for the last item
+              } else {
+                return `${acc}${key}, `;
+              }
+            }, '');
 
           return {
             id: item._id,
             title: employeeName,
             content: (
               <>
-                <p>Meminta mengubah data: {updatedDataKeys},</p>
+                <p>Meminta mengubah data: {updatedDataKeys}</p>
                 <p>Request Date : {formatDate(item.requestDate)}</p>
                 <p>
                   Response Date :
@@ -157,22 +165,32 @@ const Notifikasi = () => {
       if (!token) {
         throw new Error("No authorization token found.");
       }
+
+      setLoading(true);
+
       await axios.delete(
-        `http://localhost:3000/request/${notificationToDelete}`,
+        `http://localhost:3000/request/deleted-request/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
+
       // Remove the deleted notification from the state
       setNotifications(
         notifications.filter((notification) => notification.id !== id)
       );
+
       setIsModalOpen(false);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Error deleting notification:", error);
       alert("Failed to delete notification.");
+      setIsModalOpen(false);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -274,20 +292,25 @@ const Notifikasi = () => {
     setIsModalOpen(true);
   };
 
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+    navigate("/Notifikasi", { replace: true });
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setNotificationToDelete(null);
   };
 
   return (
-    <div className="py-6 sm:px-6 lg:px-8">
+    <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: '6.5rem' }}>
       <main>
         <div className="bg-white shadow sm:rounded-lg mx-auto sm:p-6 lg:p-8">
           <div className="flex justify-between mb-4">
             <div className="flex justify-start gap-6 items-center">
               <h1 className="text-2xl font-bold">Notifikasi</h1>
               <MdRefresh
-                className="bg-gray-300 fill-black rounded-lg p-2 cursor-pointer"
+                className="bg-gray-300 fill-black rounded-lg p-2 cursor-pointer hover:bg-gray-400"
                 size={36}
                 onClick={handleRefresh}
               />
@@ -469,7 +492,7 @@ const Notifikasi = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-sm w-full">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
             <h2 className="text-xl font-bold mb-8">Konfirmasi Hapus</h2>
             <p className="mb-8">
               Apakah anda yakin ingin menghapus notifikasi ini?
@@ -482,7 +505,7 @@ const Notifikasi = () => {
                 Batal
               </button>
               <button
-                onClick={handleDelete}
+                onClick={() => handleDelete(notificationToDelete)}
                 className="bg-red-500 text-white px-4 py-2 rounded-md mr-2"
               >
                 Hapus
@@ -496,6 +519,20 @@ const Notifikasi = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
             <h2 className="text-xl font-semibold mb-4">Loading...</h2>
             <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      )}
+      {showSuccessModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-8">Sukses</h2>
+            <p className="mb-8">Notifikasi berhasil di hapus !</p>
+            <button
+              onClick={handleCloseSuccessModal}
+              className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+            >
+              OK
+            </button>
           </div>
         </div>
       )}

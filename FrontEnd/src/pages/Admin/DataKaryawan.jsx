@@ -562,12 +562,12 @@ const DataKaryawan = () => {
   };
 
   return (
-    <div className="py-6 sm:px-6 lg:px-8">
+    <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: '6.5rem' }}>
       <div className="bg-white shadow sm:rounded-lg p-6">
         <div className="flex justify-start gap-4">
           <h1 className="text-2xl font-bold mb-10">Data Karyawan</h1>
           <MdRefresh
-            className="bg-gray-300 fill-black rounded-lg p-2 cursor-pointer"
+            className="bg-gray-300 fill-black rounded-lg p-2 cursor-pointer hover:bg-gray-400"
             size={36}
             onClick={handleRefresh}
           />
