@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const imageUpload = require('./routes/imageRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const strukturRoutes = require('./routes/strukturRoutes');
+const lanndingPageRoutes = require('./routes/landingPageRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -33,6 +34,7 @@ app.use('/auth', authRoutes);
 app.use('/profile', imageUpload);
 app.use('/struktur', strukturRoutes);
 app.use('/request', requestRoutes);
+app.use('/', lanndingPageRoutes);
 
 app.post('/', (req, res) => {
     res.status(200).send('Root Endpoint POST Request');
