@@ -24,6 +24,7 @@ const createEmployee = async (req, res) => {
         // Create new user
         const user = new User({
             email: req.body.email,
+            no_telpon: req.body.no_telepon,
             password: hashedPassword,
             role: 'employee',
             employeeNip: req.body.nip
