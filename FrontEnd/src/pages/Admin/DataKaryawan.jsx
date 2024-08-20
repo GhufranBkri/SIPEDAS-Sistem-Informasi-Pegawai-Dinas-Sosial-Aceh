@@ -1,7 +1,7 @@
 // src/pages/DataKaryawan.js
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal } from "antd";
+import { Table, Button, Modal, Alert } from "antd";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { MdRefresh } from "react-icons/md";
 import axios from "axios";
@@ -18,6 +18,7 @@ const DataKaryawan = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -306,6 +307,7 @@ const DataKaryawan = () => {
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -326,6 +328,9 @@ const DataKaryawan = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching data: ", error);
+      setError("Failed to load data. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -430,6 +435,7 @@ const DataKaryawan = () => {
         setShowSuccessModal(true);
       } catch (error) {
         console.error("Error deleting data: ", error);
+        setError("Failed to delete data. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -562,7 +568,7 @@ const DataKaryawan = () => {
   };
 
   return (
-    <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: '6.5rem' }}>
+    <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: "6.5rem" }}>
       <div className="bg-white shadow sm:rounded-lg p-6">
         <div className="flex justify-start gap-4">
           <h1 className="text-2xl font-bold mb-10">Data Karyawan</h1>
@@ -626,6 +632,9 @@ const DataKaryawan = () => {
           </div>
         </div>
         <div className="bg-white shadow p-4 rounded w-full">
+          {error && (
+            <Alert message={error} type="error" showIcon className="mb-4" />
+          )}
           <Table
             columns={columns}
             dataSource={filteredRecords}

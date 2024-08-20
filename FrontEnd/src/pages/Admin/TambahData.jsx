@@ -369,7 +369,7 @@ const TambahData = () => {
                       </p>
                     )}
                     {name === "foto" && (
-                      <p className="text-gray-600 text-sm mt-1">
+                      <p className="text-gray-600 font-bold text-sm mt-1">
                         * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB (1024
                         KB) yang diterima
                       </p>
@@ -386,7 +386,7 @@ const TambahData = () => {
                       </div>
                     )}
                     {name === "tanggal_lahir" && (
-                      <p className="text-gray-600 text-sm mt-1">
+                      <p className="text-gray-600 font-bold text-sm mt-1">
                         * format : bulan/tanggal/tahun
                       </p>
                     )}
@@ -540,8 +540,13 @@ const TambahData = () => {
                       </p>
                     )}
                     {(name === "sub_bidang" || name === "eselon") && (
-                      <p className="text-gray-600 text-sm mt-1">
+                      <p className="text-gray-600 font-bold text-sm mt-1">
                         * Isi ( - ) jika tidak ada
+                      </p>
+                    )}
+                    {(name === "nip") && (
+                      <p className="text-gray-600 font-bold text-sm mt-1">
+                        * Isi dengan benar, karena NIP tidak dapat diubah nantinya
                       </p>
                     )}
                   </div>

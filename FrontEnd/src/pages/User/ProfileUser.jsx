@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Alert } from "antd";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -62,6 +63,8 @@ const ProfileUser = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const storedFormData = localStorage.getItem("formData");
         if (!storedFormData) {
           navigate("/Dashboard");
@@ -167,14 +170,6 @@ const ProfileUser = () => {
     });
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error.message || error}</div>;
-  }
-
   const renderValue = (key) => {
     const value = formData[key] || ""; // Default to empty string if value is null or undefined
     if (key === "foto") {
@@ -194,7 +189,9 @@ const ProfileUser = () => {
       );
     }
     return (
-      <div className="min-h-[43px] w-full bg-gray-100 px-2 rounded flex items-center border">{value}</div>
+      <div className="min-h-[43px] w-full bg-gray-100 px-2 rounded flex items-center border">
+        {value}
+      </div>
     );
   };
 
@@ -232,6 +229,9 @@ const ProfileUser = () => {
           id="profile-section"
           className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6"
         >
+          {error && (
+            <Alert message={error} type="error" showIcon className="mb-4" />
+          )}
           <div className="form-2 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
             <h1 className="text-xl font-bold mb-6 text-start">Data Diri</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -355,6 +355,14 @@ const ProfileUser = () => {
                 Simpan
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 z-40">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md text-center">
+            <h2 className="text-xl font-semibold mb-4">Loading...</h2>
+            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin mx-auto"></div>
           </div>
         </div>
       )}

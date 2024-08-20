@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaBell, FaUser } from "react-icons/fa";
 import { MdRefresh } from "react-icons/md";
+import { Alert } from "antd";
 import { useNavigate } from "react-router-dom";
 import logoIcon from "../assets/logo_text.svg";
 import logoutIcon from "../assets/logout.svg";
@@ -14,6 +15,7 @@ function NavbarAdmin() {
   const [notifications, setNotifications] = useState([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const profileDropdownRef = useRef(null);
   const notificationDropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -52,6 +54,7 @@ function NavbarAdmin() {
 
   const fetchNotifications = async () => {
     setLoading(true);
+    setError(null);
     // Function to fetch employee name by NIP
     const fetchEmployeeName = async (nip) => {
       try {
@@ -133,6 +136,7 @@ function NavbarAdmin() {
       setUnreadNotifications(countUnread);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      setError("Failed to load data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -201,7 +205,7 @@ function NavbarAdmin() {
               onClick={toggleNotificationDropdown}
             />
             {unreadNotifications > 0 && (
-              <span className="absolute top-0 right-0 inline-flex items-center justify-center w-3 h-3 p-2 bg-red-600 border-2 border-white rounded-full"></span>
+              <span className="absolute top-0 right-0 inline-flex items-center justify-center w-3 p-1.5 bg-red-600 border-2 border-white rounded-full"></span>
             )}
             {isNotificationDropdownOpen && (
               <div className="absolute right-0 mt-2 w-96 bg-white border border-gray-200 rounded-md shadow-lg z-50">
@@ -226,7 +230,16 @@ function NavbarAdmin() {
                     </span>
                   </span>
                 </div>
+
                 <div className="p-2 max-h-72 overflow-y-auto">
+                  {error && (
+                    <Alert
+                      message={error}
+                      type="error"
+                      showIcon
+                      className="mb-4"
+                    />
+                  )}
                   {loading ? (
                     <div className="w-full max-h-72 flex items-center justify-center">
                       <div className="w-12 h-12 border-4 mt-28 mb-28 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
