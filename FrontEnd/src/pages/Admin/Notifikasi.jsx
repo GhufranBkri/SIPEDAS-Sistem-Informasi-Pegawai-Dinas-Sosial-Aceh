@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaFilter, FaTrash } from "react-icons/fa";
 import { MdRefresh } from "react-icons/md";
+import { Alert } from "antd";
 import axios from "axios";
 
 // Utility function to format date and time
@@ -37,6 +38,7 @@ const getStatusColor = (status) => {
 const Notifikasi = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
   const [requestDateFilter, setRequestDateFilter] = useState("");
   const [responseDateFilter, setResponseDateFilter] = useState("");
@@ -83,6 +85,7 @@ const Notifikasi = () => {
     }
 
     setLoading(true);
+    setError(null);
 
     try {
       const response = await axios.get(
@@ -108,7 +111,7 @@ const Notifikasi = () => {
               } else {
                 return `${acc}${key}, `;
               }
-            }, '');
+            }, "");
 
           return {
             id: item._id,
@@ -137,6 +140,7 @@ const Notifikasi = () => {
       setLoading(false);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      setError("Failed to load data. Please try again later.");
       setLoading(false);
     }
   }, []);
@@ -186,7 +190,7 @@ const Notifikasi = () => {
       setShowSuccessModal(true);
     } catch (error) {
       console.error("Error deleting notification:", error);
-      alert("Failed to delete notification.");
+      setError("Failed to delete notification. Please try again later.");
       setIsModalOpen(false);
       setLoading(false);
     } finally {
@@ -303,7 +307,7 @@ const Notifikasi = () => {
   };
 
   return (
-    <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: '6.5rem' }}>
+    <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: "6.5rem" }}>
       <main>
         <div className="bg-white shadow sm:rounded-lg mx-auto sm:p-6 lg:p-8">
           <div className="flex justify-between mb-4">
@@ -402,6 +406,9 @@ const Notifikasi = () => {
               </select>
             </div>
           </div>
+          {error && (
+            <Alert message={error} type="error" showIcon className="mb-4" />
+          )}
 
           <div className="bg-white border border-gray-300 rounded-lg shadow-md">
             <table className="w-full border-collapse">

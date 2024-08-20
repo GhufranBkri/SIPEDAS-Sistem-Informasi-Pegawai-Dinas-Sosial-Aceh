@@ -74,24 +74,51 @@ const EditData = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (location.state && location.state.data) {
-      const initialData = location.state.data;
+    const fetchData = async () => {
+      try {
+        // Check if data is provided in location state
+        if (location.state && location.state.data) {
+          const initialData = location.state.data;
 
-      // Convert date string to input date format
-      if (initialData.tanggal_lahir) {
-        initialData.tanggal_lahir = formatDateForInput(
-          initialData.tanggal_lahir
-        );
-      }
+          // Convert date string to input date format
+          if (initialData.tanggal_lahir) {
+            initialData.tanggal_lahir = formatDateForInput(
+              initialData.tanggal_lahir
+            );
+          }
 
-      setFormData(initialData);
-      if (initialData.foto) {
-        setFotoPreview(initialData.foto);
-        setOldImageUrl(initialData.foto);
+          setFormData(initialData);
+          if (initialData.foto) {
+            setFotoPreview(initialData.foto);
+            setOldImageUrl(initialData.foto);
+          }
+        } else {
+          navigate("/DataKaryawan");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        let errorMessage =
+          "Terjadi kesalahan saat mengambil data. Silakan coba lagi nanti.";
+
+        if (error.response) {
+          // Server responded with a status other than 200 range
+          errorMessage = error.response.data.message || errorMessage;
+        } else if (error.request) {
+          // The request was made but no response was received
+          errorMessage = "Tidak ada respons dari server. Periksa koneksi Anda.";
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          errorMessage = error.message;
+        }
+
+        // Display the error message to the user
+        alert(errorMessage);
+        // Optionally navigate away or handle the error state
+        navigate("/DataKaryawan");
       }
-    } else {
-      navigate("/DataKaryawan");
-    }
+    };
+
+    fetchData();
   }, [location.state, navigate]);
 
   const formatDateForInput = (dateString) => {
@@ -396,7 +423,10 @@ const EditData = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ paddingTop: "6.5rem" }}
+    >
       <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
@@ -481,9 +511,9 @@ const EditData = () => {
                       </p>
                     )}
                     {name === "foto" && (
-                      <p className="text-gray-600 text-sm mt-1">
-                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB (1024 KB) yang
-                        diterima
+                      <p className="text-gray-600 font-bold text-sm mt-1">
+                        * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB (1024
+                        KB) yang diterima
                       </p>
                     )}
                     {name === "foto" && (
@@ -498,7 +528,7 @@ const EditData = () => {
                       </div>
                     )}
                     {name === "tanggal_lahir" && (
-                      <p className="text-gray-600 text-sm mt-1">
+                      <p className="text-gray-600 font-bold text-sm mt-1">
                         * format : bulan/tanggal/tahun
                       </p>
                     )}
@@ -556,7 +586,7 @@ const EditData = () => {
                   >
                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                   </span>
-                  <p className="text-red-400 text-sm mt-1">
+                  <p className="text-red-400 font-bold text-sm mt-1">
                     * Abaikan jika tidak ingin mengubah password
                   </p>
                   {errors.password && (
@@ -593,16 +623,16 @@ const EditData = () => {
                         rows={4}
                       ></textarea>
                     ) : (
-                    <input
-                      id={name}
-                      name={name}
-                      type={type}
-                      value={formData[name] || ""}
-                      onChange={handleChange}
-                      ref={(el) => (inputRefs.current[name] = el)}
-                      className="border border-gray-300 rounded-md p-2 w-full"
-                    />
-                  )}
+                      <input
+                        id={name}
+                        name={name}
+                        type={type}
+                        value={formData[name] || ""}
+                        onChange={handleChange}
+                        ref={(el) => (inputRefs.current[name] = el)}
+                        className="border border-gray-300 rounded-md p-2 w-full"
+                      />
+                    )}
                     {errors[name] && (
                       <p className="text-red-500 text-sm">{errors[name]}</p>
                     )}
@@ -649,7 +679,7 @@ const EditData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: "nip", type: "number" },
+                  { name: "nip", type: "number", disabled: true },
                   { name: "npwp", type: "number" },
                   { name: "bidang", type: "text" },
                   { name: "eselon", type: "text" },
@@ -668,7 +698,7 @@ const EditData = () => {
                     options: kelasJabatanOptions,
                   },
                   { name: "no_req_bkn", type: "text" },
-                ].map(({ name, type, options }) => (
+                ].map(({ name, type, options, disabled }) => (
                   <div className="mb-4" key={name}>
                     <label className="block text-gray-700 mb-2" htmlFor={name}>
                       {name.replace("_", " ").toUpperCase()}
@@ -702,6 +732,7 @@ const EditData = () => {
                           type === "number" ? preventInvalidInput : null
                         }
                         ref={(el) => (inputRefs.current[name] = el)}
+                        disabled={disabled}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
                         }`}
@@ -713,8 +744,13 @@ const EditData = () => {
                       </p>
                     )}
                     {(name === "sub_bidang" || name === "eselon") && (
-                      <p className="text-gray-600 text-sm mt-1">
+                      <p className="text-gray-600 font-bold text-sm mt-1">
                         * Isi ( - ) jika tidak ada
+                      </p>
+                    )}
+                    {(name === "nip") && (
+                      <p className="text-gray-600 font-bold text-sm mt-1">
+                        * NIP tidak dapat diubah
                       </p>
                     )}
                   </div>

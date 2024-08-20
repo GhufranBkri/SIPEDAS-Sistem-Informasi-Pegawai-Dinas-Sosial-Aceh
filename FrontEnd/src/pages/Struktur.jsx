@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import "./Struktur.css";
 import axios from "axios";
+import { Alert } from "antd";
 
 const Struktur = () => {
   const [userRole, setUserRole] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [zoomStyle, setZoomStyle] = useState({
     display: "block",
     backgroundPosition: "0% 0%",
@@ -29,6 +31,7 @@ const Struktur = () => {
     // Fetch image URL from API
     const fetchImageUrl = async () => {
       setLoading(true);
+      setError(null);
       try {
         const response = await axios.get(
           "http://localhost:3000/struktur/get-foto",
@@ -41,6 +44,7 @@ const Struktur = () => {
         setImageUrl(response.data.imageUrl); // Use response.data.imageUrl
       } catch (error) {
         console.error("Error fetching image URL:", error);
+        setError("Failed to load data. Please try again later.");
       } finally {
         setLoading(false); // Set loading to false when done fetching
       }
@@ -122,12 +126,18 @@ const Struktur = () => {
                 </button>
               </div>
             </div>
+            {error && (
+              <Alert message={error} type="error" showIcon className="mb-4" />
+            )}
             {loading ? (
               <div className="flex items-center justify-center w-full h-64">
                 <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent border-solid rounded-full animate-spin"></div>
               </div>
             ) : (
-              <div className="zoom-container bg-white shadow" onMouseMove={handleMouseMove}>
+              <div
+                className="zoom-container bg-white shadow"
+                onMouseMove={handleMouseMove}
+              >
                 <img src={imageUrl} alt="Struktur" className="zoom-image" />
                 <div
                   className="zoom-rectangle"

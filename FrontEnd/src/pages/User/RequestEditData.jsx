@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Alert } from "antd";
 import "../Number.css";
 
 const RequestEditData = () => {
@@ -51,6 +52,7 @@ const RequestEditData = () => {
   const [oldImageUrl, setOldImageUrl] = useState("");
   const [initialFormData, setInitialFormData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
@@ -70,6 +72,8 @@ const RequestEditData = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const storedFormData = localStorage.getItem("formData");
         if (!storedFormData) {
           navigate("/Dashboard");
@@ -115,9 +119,11 @@ const RequestEditData = () => {
         });
         setFotoPreview(data.foto || null);
         setOldImageUrl(data.foto || "");
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
-        navigate("/Dashboard");
+        setError("Error fetching data. Please try again later.");
+        navigate("/ProfileUser");
       }
     };
 
@@ -328,6 +334,7 @@ const RequestEditData = () => {
           }
         } catch (error) {
           console.error("Error saat mengunggah foto:", error);
+          setError("Error uploading image. Please try again later.");
           throw error;
         }
       }
@@ -423,7 +430,10 @@ const RequestEditData = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ paddingTop: "6.5rem" }}
+    >
       <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
@@ -431,6 +441,9 @@ const RequestEditData = () => {
           </h1>
           <form onSubmit={handleSubmitWithConfirmation}>
             <div className="form-2 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+              {error && (
+                <Alert message={error} type="error" showIcon className="mb-4" />
+              )}
               <h1 className="text-xl font-bold mb-6 text-start">Data Diri</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
@@ -509,7 +522,7 @@ const RequestEditData = () => {
                       </p>
                     )}
                     {name === "foto" && (
-                      <p className="text-red-400 text-sm mt-1">
+                      <p className="text-gray-600 font-bold text-sm mt-1">
                         * Hanya file .png, .jpg, .jpeg dengan ukuran 1 MB yang
                         diterima
                       </p>
@@ -526,7 +539,7 @@ const RequestEditData = () => {
                       </div>
                     )}
                     {name === "tanggal_lahir" && (
-                      <p className="text-red-400 text-sm mt-1">
+                      <p className="text-gray-600 font-bold text-sm mt-1">
                         * format : bulan/tanggal/tahun
                       </p>
                     )}
@@ -616,7 +629,7 @@ const RequestEditData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: "nip", type: "number" },
+                  { name: "nip", type: "number", disabled: true },
                   { name: "npwp", type: "number" },
                   { name: "bidang", type: "text" },
                   { name: "eselon", type: "text" },
@@ -635,7 +648,7 @@ const RequestEditData = () => {
                     options: kelasJabatanOptions,
                   },
                   { name: "no_req_bkn", type: "text" },
-                ].map(({ name, type, options }) => (
+                ].map(({ name, type, options, disabled }) => (
                   <div className="mb-4" key={name}>
                     <label className="block text-gray-700 mb-2" htmlFor={name}>
                       {name.replace("_", " ").toUpperCase()}
@@ -669,6 +682,7 @@ const RequestEditData = () => {
                           type === "number" ? preventInvalidInput : null
                         }
                         ref={(el) => (inputRefs.current[name] = el)}
+                        disabled={disabled}
                         className={`border border-gray-300 rounded-md p-2 w-full ${
                           errors[name] ? "border-red-500" : ""
                         }`}
@@ -680,8 +694,13 @@ const RequestEditData = () => {
                       </p>
                     )}
                     {(name === "sub_bidang" || name === "eselon") && (
-                      <p className="text-red-400 text-sm mt-1">
+                      <p className="text-gray-600 font-bold  text-sm mt-1">
                         * Isi ( - ) jika tidak ada
+                      </p>
+                    )}
+                    {(name === "nip") && (
+                      <p className="text-gray-600 font-bold text-sm mt-1">
+                        * NIP tidak dapat diubah
                       </p>
                     )}
                   </div>
