@@ -1,5 +1,4 @@
 // authController.js
-
 const User = require('../models/UserModel');
 const Employee = require('../models/EmployeeModel'); // Tambahkan ini
 const jwt = require('jsonwebtoken');
@@ -96,7 +95,7 @@ const login = async (req, res) => {
 
         // Membuat token JWT yang berisi _id, role, dan nip (jika ada)
         const token = jwt.sign(
-            { _id: user._id, role: user.role, nip: nip }, // Gunakan variabel nip, bukan user.employeeNip
+            { _id: user._id, role: user.role, nip: nip, email: user.email }, // Gunakan variabel nip, bukan user.employeeNip
             process.env.ACCESS_TOKEN_SECRET
         );
 
@@ -194,5 +193,45 @@ const changePassword = async (req, res) => {
     }
 };
 
+const changePasswordAdmin = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const email = req.user.email; // Mendapatkan email dari token yang terverifikasi
 
-module.exports = { createFirstAdmin, registerAdmin, login, updateUserDetails, changePassword };
+    try {
+        // Mencari user berdasarkan email
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Verifikasi apakah oldPassword cocok dengan password yang saat ini tersimpan
+        const validOldPassword = await bcrypt.compare(oldPassword, user.password);
+        if (!validOldPassword) {
+            return res.status(400).json({ message: 'Old password is incorrect' });
+        }
+
+        // Memastikan password baru tidak sama dengan password lama
+        const isSamePassword = await bcrypt.compare(newPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ message: 'New password must be different from the old password' });
+        }
+
+        // Validasi panjang minimal password baru (opsional, bisa diatur sesuai kebutuhan)
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+        }
+
+        // Hashing dan menyimpan password baru
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        // Mengembalikan response sukses
+        return res.status(200).json({ message: 'Password changed successfully' });
+    } catch (err) {
+        // Mengembalikan error internal jika ada kesalahan di server
+        return res.status(500).json({ message: 'An error occurred while changing the password', error: err.message });
+    }
+};
+
+
+module.exports = { createFirstAdmin, registerAdmin, login, updateUserDetails, changePassword, changePasswordAdmin };
