@@ -67,36 +67,40 @@ const registerAdmin = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    const { identifier, password } = req.body; // Ganti email dengan identifier
+    const { identifier, password } = req.body; // Menggunakan identifier untuk email atau no_telpon
 
     try {
-        // Find user by email or phone number
+        // Mencari user berdasarkan email atau no_telpon
         const user = await User.findOne({
             $or: [
-                { email: identifier.toLowerCase() }, // Email
-                { no_telpon: identifier } // No Telpon
+                { email: identifier.toLowerCase() }, // Mencari berdasarkan email
+                { no_telpon: identifier } // Mencari berdasarkan no_telpon
             ]
         });
 
         if (!user) return res.status(400).json({ message: 'User not found' });
 
-        // Check password
+        // Verifikasi password
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) return res.status(400).json({ message: 'Invalid password' });
 
-        // Get employee data if role is employee
+        // Mendapatkan data employee jika user adalah seorang karyawan
         let nip = null;
         if (user.role === 'employee') {
-            const employee = await Employee.findOne({ _id: user._id }); // Menggunakan _id untuk mencari Employee terkait
+            const employee = await Employee.findOne({ nip: user.employeeNip }); // Menggunakan employeeNip dari User
             if (employee) {
-                nip = employee.nip;
+                nip = employee.nip; // Nip akan ditemukan jika employee ditemukan
             }
         }
 
-        // Create and assign a token
-        const token = jwt.sign({ _id: user._id, role: user.role, nip: nip }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
 
-        // Return response with token and optionally nip
+        // Membuat token JWT yang berisi _id, role, dan nip (jika ada)
+        const token = jwt.sign(
+            { _id: user._id, role: user.role, nip: nip }, // Gunakan variabel nip, bukan user.employeeNip
+            process.env.ACCESS_TOKEN_SECRET
+        );
+
+        // Mengembalikan response dengan token dan informasi user
         res.header('Authorization', token).json({
             message: 'Logged in successfully',
             token,
@@ -104,7 +108,7 @@ const login = async (req, res) => {
                 email: user.email,
                 no_telpon: user.no_telpon,
                 role: user.role,
-                nip: user.employeeNip
+                nip: nip // Menampilkan nip jika user adalah employee
             }
         });
     } catch (err) {
@@ -113,8 +117,8 @@ const login = async (req, res) => {
 };
 
 
-
 // authController.js
+
 const updateUserDetails = async (req, res) => {
     const { nip, newEmailOrPhone, newPassword } = req.body;
 
@@ -130,12 +134,22 @@ const updateUserDetails = async (req, res) => {
         // Tentukan apakah newEmailOrPhone adalah email atau nomor telepon
         const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmailOrPhone);
 
-        // Update email atau nomor telepon jika ada perubahan
+        // Pengecekan duplikasi email atau nomor telepon
         if (newEmailOrPhone) {
             if (isEmail) {
+                // Cek apakah email sudah digunakan oleh user lain
+                const existingUserWithEmail = await User.findOne({ email: newEmailOrPhone });
+                if (existingUserWithEmail && existingUserWithEmail._id.toString() !== user._id.toString()) {
+                    return res.status(400).json({ message: 'Email is already taken' });
+                }
                 user.email = newEmailOrPhone;
                 employee.email = newEmailOrPhone; // Update email di tabel Employee
             } else {
+                // Cek apakah nomor telepon sudah digunakan oleh user lain
+                const existingUserWithPhone = await User.findOne({ no_telpon: newEmailOrPhone });
+                if (existingUserWithPhone && existingUserWithPhone._id.toString() !== user._id.toString()) {
+                    return res.status(400).json({ message: 'Phone number is already taken' });
+                }
                 user.no_telpon = newEmailOrPhone;
                 employee.no_telepon = newEmailOrPhone; // Update nomor telepon di tabel Employee
             }
