@@ -34,7 +34,8 @@ router.post('/import', authenticateToken, authorizeRoles('admin'), uploadCsv, em
 router.post('/upload-foto', authenticateToken, authorizeRoles('admin'), upload.single('image'), uploadPhoto);
 
 
-// Get user data by ID (self-access only)
-router.get('/:id', authenticateToken, employee.getUserById);
+// Route untuk mendapatkan data user (berdasarkan NIP dari token)
+router.get('/users/me', authenticateToken, employee.getEmployeeByToken);
+
 
 module.exports = router;

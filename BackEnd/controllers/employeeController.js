@@ -64,28 +64,35 @@ const getEmployeeByNip = async (req, res) => {
     }
 };
 
-// Get user by ID (only allow access to their own data)
-const getUserById = async (req, res) => {
-    console.log('GET /users/:id', req.params.id); // Debugging log
 
+
+const getEmployeeByToken = async (req, res) => {
     try {
-        const { id } = req.params;
+        // Ambil NIP dari token (dihasilkan dari middleware autentikasi)
+        const { nip } = req.user; // Mengambil nip dari token yang ada di req.user
 
-        // Check if the authenticated user is trying to access their own data
-        if (req.user._id !== id) {
-            return res.status(403).json(formatResponse('error', 403, null, 'Access denied: You can only access your own data'));
+        // Cari employee berdasarkan NIP yang didapat dari token
+        const employee = await Employee.findOne({ nip });
+
+        // Jika employee tidak ditemukan
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found' });
         }
 
-        const user = await User.findById(id);
-        if (!user) {
-            return res.status(404).json(formatResponse('error', 404, null, 'User not found'));
-        }
-
-        res.status(200).json(formatResponse('success', 200, user));
+        // Mengembalikan data employee dalam response
+        res.status(200).json({
+            message: 'Employee data found',
+            employee
+        });
     } catch (err) {
-        res.status(500).json(formatResponse('error', 500, null, err.message));
+        // Jika ada error, kembalikan respons 500 dengan pesan error
+        res.status(500).json({ message: err.message });
     }
 };
+
+
+
+
 
 
 // Update an employee by NIP (Employee can only update their own data)
@@ -170,5 +177,5 @@ module.exports = {
     updateEmployeeByNip,
     deleteEmployeeByNip,
     importEmployeesFromCsv,
-    getUserById
+    getEmployeeByToken
 };

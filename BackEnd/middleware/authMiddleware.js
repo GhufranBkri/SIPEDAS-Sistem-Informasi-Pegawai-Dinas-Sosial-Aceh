@@ -5,21 +5,20 @@ const User = require('../models/UserModel');
 const formatResponse = require('../utils/responseFormatter'); // Menggunakan utilitas responseFormatter
 
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = req.header('Authorization')?.split(' ')[1]; // Mengambil token dari header Authorization
 
-    if (token == null) {
-        return res.status(401).json(formatResponse('error', 401, null, 'Token akses tidak ditemukan'));
+    if (!token) return res.status(401).json({ message: 'Access denied. No token provided.' });
+
+    try {
+        // Verifikasi token dan masukkan data ke req.user
+        const verified = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        req.user = verified;
+        next(); // Melanjutkan ke fungsi berikutnya
+    } catch (err) {
+        res.status(400).json({ message: 'Invalid token' });
     }
-
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json(formatResponse('error', 403, null, 'Token tidak valid atau telah kedaluwarsa'));
-        }
-        req.user = user;
-        next();
-    });
 };
+
 
 const authorizeRoles = (...roles) => {
     return (req, res, next) => {
