@@ -67,11 +67,17 @@ const registerAdmin = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { identifier, password } = req.body; // Ganti email dengan identifier
 
     try {
-        // Find user
-        const user = await User.findOne({ email });
+        // Find user by email or phone number
+        const user = await User.findOne({
+            $or: [
+                { email: identifier.toLowerCase() }, // Email
+                { no_telpon: identifier } // No Telpon
+            ]
+        });
+
         if (!user) return res.status(400).json({ message: 'User not found' });
 
         // Check password
@@ -81,14 +87,14 @@ const login = async (req, res) => {
         // Get employee data if role is employee
         let nip = null;
         if (user.role === 'employee') {
-            const employee = await Employee.findOne({ email });
+            const employee = await Employee.findOne({ _id: user._id }); // Menggunakan _id untuk mencari Employee terkait
             if (employee) {
                 nip = employee.nip;
             }
         }
 
-        // Create and assign a token                                                                            // expier
-        const token = jwt.sign({ _id: user._id, role: user.role, nip: nip }, process.env.ACCESS_TOKEN_SECRET, {});
+        // Create and assign a token
+        const token = jwt.sign({ _id: user._id, role: user.role, nip: nip }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
 
         // Return response with token and optionally nip
         res.header('Authorization', token).json({
@@ -96,6 +102,7 @@ const login = async (req, res) => {
             token,
             user: {
                 email: user.email,
+                no_telpon: user.no_telpon,
                 role: user.role,
                 nip: nip
             }
@@ -107,8 +114,9 @@ const login = async (req, res) => {
 
 
 // authController.js
+// authController.js
 const updateUserDetails = async (req, res) => {
-    const { nip, newEmail, newPassword } = req.body;
+    const { nip, newEmailOrPhone, newPassword } = req.body;
 
     try {
         // Cari user berdasarkan NIP
@@ -119,12 +127,21 @@ const updateUserDetails = async (req, res) => {
         const employee = await Employee.findOne({ nip });
         if (!employee) return res.status(400).json({ message: 'Employee not found' });
 
-        // Update email dan password jika ada perubahan
-        if (newEmail) {
-            user.email = newEmail;
-            employee.email = newEmail; // Update email di tabel Employee
+        // Tentukan apakah newEmailOrPhone adalah email atau nomor telepon
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmailOrPhone);
+
+        // Update email atau nomor telepon jika ada perubahan
+        if (newEmailOrPhone) {
+            if (isEmail) {
+                user.email = newEmailOrPhone;
+                employee.email = newEmailOrPhone; // Update email di tabel Employee
+            } else {
+                user.no_telpon = newEmailOrPhone;
+                employee.no_telpon = newEmailOrPhone; // Update nomor telepon di tabel Employee
+            }
         }
 
+        // Update password jika ada perubahan
         if (newPassword) {
             user.password = await bcrypt.hash(newPassword, 10);
         }
@@ -137,6 +154,7 @@ const updateUserDetails = async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 };
+
 
 // Controller untuk mengubah password oleh employee berdasarkan NIP yang sedang login
 const changePassword = async (req, res) => {

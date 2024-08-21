@@ -1,26 +1,34 @@
 const mongoose = require('mongoose');
-const Employee = require('../models/EmployeeModel'); // Adjust the path as necessary
+const Employee = require('../models/EmployeeModel'); // Sesuaikan path jika diperlukan
 
-// Controller for visualizing data
+// Controller untuk visualisasi data
 const visualisasiData = async (req, res) => {
     try {
-        // Get total count of each gender for the pie chart
+        // Hitung total berdasarkan jenis
+        const totalPNS = await Employee.countDocuments({ jenis: 'PNS' });
+        const totalTenagaKontrak = await Employee.countDocuments({ jenis: 'tenaga kontrak' });
+        const totalPPPK = await Employee.countDocuments({ jenis: 'PPPK' });
+
+        // Hitung total setiap jenis kelamin untuk pie chart
         const genderCounts = await Employee.aggregate([
             { $group: { _id: "$jenis_kelamin", count: { $sum: 1 } } }
         ]);
 
-        // Get the number of people per 'bidang' for the bar chart
+        // Hitung jumlah orang per 'bidang' untuk bar chart
         const bidangCounts = await Employee.aggregate([
             { $group: { _id: "$bidang", count: { $sum: 1 } } }
         ]);
 
-        // Get total count of each education level for the pie chart
+        // Hitung total setiap level pendidikan untuk pie chart
         const pendidikanCounts = await Employee.aggregate([
             { $group: { _id: "$pendidikan", count: { $sum: 1 } } }
         ]);
 
-        // Respond with the aggregated data
+        // Respond dengan data yang telah dihitung
         res.json({
+            totalPNS,
+            totalTenagaKontrak,
+            totalPPPK,
             genderCounts,
             bidangCounts,
             pendidikanCounts
@@ -30,6 +38,5 @@ const visualisasiData = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
 
 module.exports = { visualisasiData };

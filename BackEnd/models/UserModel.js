@@ -1,4 +1,3 @@
-// models/UserModel.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -6,6 +5,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Email is required'],
         unique: true,
+        trim: true,
+        lowercase: true,
     },
     password: {
         type: String,
@@ -20,6 +21,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         ref: 'Employee',
         required: function () { return this.role === 'employee'; } // Hanya diperlukan jika role adalah employee
+    },
+    no_telpon: {
+        type: String,
+        unique: true,
+        trim: true,
+        required: [true, 'No Telpon is required'],
     }
 });
 
