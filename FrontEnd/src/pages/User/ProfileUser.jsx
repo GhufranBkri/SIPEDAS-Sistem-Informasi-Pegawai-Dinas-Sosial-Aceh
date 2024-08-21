@@ -73,6 +73,7 @@ const ProfileUser = () => {
 
         const formDataObject = JSON.parse(storedFormData);
         const nip = formDataObject.nip;
+        console.log("NIP:", nip);
 
         if (!nip) {
           navigate("/Dashboard");
@@ -111,7 +112,7 @@ const ProfileUser = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
-        setError(error.response ? error.response.data : error.message);
+        setError("Error fetching data. Please try again later.");
         setLoading(false);
       }
     };
@@ -298,7 +299,7 @@ const ProfileUser = () => {
             <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                "nip",
+                "nip/no. reg",
                 "npwp",
                 "bidang",
                 "eselon",

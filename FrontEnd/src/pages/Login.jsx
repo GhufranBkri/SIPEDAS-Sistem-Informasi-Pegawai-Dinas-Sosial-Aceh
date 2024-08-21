@@ -9,7 +9,7 @@ import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import axios from "axios";
 
 function Login() {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ function Login() {
       const response = await axios.post(
         "http://localhost:3000/auth/login",
         {
-          email,
+          identifier,
           password,
         },
         {
@@ -52,8 +52,17 @@ function Login() {
         localStorage.setItem("formData", JSON.stringify(user));
 
         // Navigate to the desired page after successful login
-        navigate("/Dashboard");
-        console.log("Login successful:", response.data);
+        if (user.role === "admin") {
+          navigate("/Dashboard");
+          console.log("Login successful:", response.data);
+        } else if (user.role === "employee") {
+          navigate("/ProfileUser");
+          console.log("Login successful:", response.data);
+        } else {
+          // Handle other roles or unknown roles if necessary
+          setErrorMessage("Unknown role. Please contact support.");
+          openErrorModal();
+        }
       } else {
         // Handle login failure
         setErrorMessage("Login failed. Please try again.");
@@ -73,7 +82,7 @@ function Login() {
     e.preventDefault();
     handleLogin();
     // Add your debug code here
-    console.log(email, password);
+    console.log(identifier, password);
   };
 
   return (
@@ -103,10 +112,10 @@ function Login() {
                   Email
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-custom-blue focus:border-custom-blue sm:text-sm"
                   placeholder="you@example.com"
                   required
@@ -201,7 +210,6 @@ function Login() {
           </div>
         </div>
       )}
-      
     </div>
   );
 }

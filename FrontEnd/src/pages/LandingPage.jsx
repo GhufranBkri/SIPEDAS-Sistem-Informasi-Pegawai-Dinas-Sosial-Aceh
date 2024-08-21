@@ -34,6 +34,9 @@ function LandingPage() {
   const [genderData, setGenderData] = useState([]);
   const [bidangData, setBidangData] = useState([]);
   const [pendidikanData, setPendidikanData] = useState([]);
+  const [totalPNS, setTotalPNS] = useState(0);
+  const [totalTenagaKontrak, setTotalTenagaKontrak] = useState(0);
+  const [totalPPPK, setTotalPPPK] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -56,6 +59,9 @@ function LandingPage() {
         setGenderData(response.data.genderCounts);
         setBidangData(response.data.bidangCounts);
         setPendidikanData(response.data.pendidikanCounts);
+        setTotalPNS(response.data.totalPNS);
+        setTotalTenagaKontrak(response.data.totalTenagaKontrak);
+        setTotalPPPK(response.data.totalPPPK);
         setLoading(false);
       })
       .catch(() => {
@@ -85,20 +91,15 @@ function LandingPage() {
   const totalFemale =
     genderData.find((item) => item._id === "Perempuan")?.count || 0;
   const totalEmployees = totalMale + totalFemale;
-  // const totalPNS = data.filter((emp) => emp.jenis === "PNS").length;
-  // const totalContract = data.filter(
-  //   (emp) => emp.jenis === "Tenaga Kontrak"
-  // ).length;
-  // const totalPPPK = data.filter((emp) => emp.jenis === "PPPK").length;
 
   // Data untuk grid
   const gridData = [
     { label: "Jumlah Pegawai", value: totalEmployees },
     { label: "Jumlah Laki-Laki", value: totalMale },
     { label: "Jumlah Perempuan", value: totalFemale },
-    // { label: "Jumlah PNS", value: totalPNS },
-    // { label: "Jumlah Tenaga Kontrak", value: totalContract },
-    // { label: "Jumlah PPPK", value: totalPPPK },
+    { label: "Jumlah PNS", value: totalPNS },
+    { label: "Jumlah Tenaga Kontrak", value: totalTenagaKontrak },
+    { label: "Jumlah PPPK", value: totalPPPK },
   ];
 
   // Prepare data for gender pie chart

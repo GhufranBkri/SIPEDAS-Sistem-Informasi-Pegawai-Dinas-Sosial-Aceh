@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { FaBell, FaUser } from "react-icons/fa";
 import { MdRefresh } from "react-icons/md";
 import { Alert } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import logoIcon from "../assets/logo_text.svg";
 import logoutIcon from "../assets/logout.svg";
 import axios from "axios";
@@ -19,6 +19,7 @@ function NavbarAdmin() {
   const profileDropdownRef = useRef(null);
   const notificationDropdownRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleProfileDropdown = () => {
     setIsProfileDropdownOpen(!isProfileDropdownOpen);
@@ -173,6 +174,12 @@ function NavbarAdmin() {
     console.log("NIP yang disimpan:", nip);
   };
 
+  const getNavLinkClass = (path) => {
+    return location.pathname === path
+      ? "text-white border-b-2 border-white rounded-none"
+      : "text-white hover:text-gray-300 hover:underline";
+  };
+
   return (
     <nav className="bg-custom-blue p-4 fixed top-0 left-0 w-full z-50 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
@@ -182,19 +189,25 @@ function NavbarAdmin() {
         <div className="flex items-center gap-6">
           <a
             href="/Dashboard"
-            className="text-white hover:text-gray-300 hover:underline p-2 rounded-md text-md font-medium transition duration-300 ease-in-out"
+            className={`${getNavLinkClass(
+              "/Dashboard"
+            )} p-2 rounded-md text-md font-medium transition duration-300 ease-in-out`}
           >
             Dashboard
           </a>
           <a
             href="/DataKaryawan"
-            className="text-white hover:text-gray-300 hover:underline p-2 rounded-md text-md font-medium transition duration-300 ease-in-out"
+            className={`${getNavLinkClass(
+              "/DataKaryawan"
+            )} p-2 rounded-md text-md font-medium transition duration-300 ease-in-out`}
           >
             Data Karyawan
           </a>
           <a
             href="/Struktur"
-            className="text-white hover:text-gray-300 hover:underline p-2 rounded-md text-md font-medium transition duration-300 ease-in-out"
+            className={`${getNavLinkClass(
+              "/Struktur"
+            )} p-2 rounded-md text-md font-medium transition duration-300 ease-in-out`}
           >
             Struktur
           </a>
