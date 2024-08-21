@@ -58,7 +58,7 @@ const DataKaryawan = () => {
       fixed: "left",
     },
     {
-      title: "NIP/REG",
+      title: "NIP/No. REG",
       dataIndex: "nip",
       key: "nip",
       align: "center",
@@ -163,7 +163,7 @@ const DataKaryawan = () => {
       sorter: (a, b) => a.npwp.localeCompare(b.npwp),
     },
     {
-      title: "No. Rek.",
+      title: "No. Rekening",
       dataIndex: "no_rekening",
       key: "no_rekening",
       align: "center",

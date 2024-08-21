@@ -406,7 +406,7 @@ function Dashboard() {
     <div className="pb-8 sm:px-6 lg:px-8" style={{ paddingTop: "6.5rem" }}>
       <div className="bg-white shadow sm:rounded-lg p-6">
         <div className="flex justify-start gap-4">
-          <h1 className="text-2xl font-bold mb-8">Dashboard Admin</h1>
+          <h1 className="text-2xl font-bold mb-8">Dashboard</h1>
           <MdRefresh
             className="bg-gray-300 fill-black rounded-lg p-2 cursor-pointer hover:bg-gray-400"
             size={36}

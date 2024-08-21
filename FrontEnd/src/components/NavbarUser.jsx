@@ -37,6 +37,12 @@ function NavbarUser() {
     };
   }, []);
 
+  const getNavLinkClass = (path) => {
+    return location.pathname === path
+      ? "text-white border-b-2 border-white rounded-none"
+      : "text-white hover:text-gray-300 hover:underline";
+  };
+
   return (
     <nav className="bg-custom-blue p-4 fixed top-0 left-0 w-full z-50 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
@@ -45,14 +51,26 @@ function NavbarUser() {
         </a>
         <div className="flex items-center gap-6">
           <a
+            href="/ProfileUser"
+            className={`${getNavLinkClass(
+              "/ProfileUser"
+            )} p-2 rounded-md text-md font-medium transition duration-300 ease-in-out`}
+          >
+            Profile
+          </a>
+          <a
             href="/Dashboard"
-            className="text-white hover:text-gray-300 hover:underline p-2 rounded-md text-md font-medium transition duration-300 ease-in-out"
+            className={`${getNavLinkClass(
+              "/Dashboard"
+            )} p-2 rounded-md text-md font-medium transition duration-300 ease-in-out`}
           >
             Dashboard
           </a>
           <a
             href="/Struktur"
-            className="text-white hover:text-gray-300 hover:underline p-2 rounded-md text-md font-medium transition duration-300 ease-in-out"
+            className={`${getNavLinkClass(
+              "/Struktur"
+            )} p-2 rounded-md text-md font-medium transition duration-300 ease-in-out`}
           >
             Struktur
           </a>
@@ -64,13 +82,6 @@ function NavbarUser() {
             />
             {isProfileDropdownOpen && (
               <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-lg py-1">
-                <a
-                  href="/ProfileUser"
-                  className="flex items-center justify-between font-medium px-4 py-2 text-sm hover:bg-gray-100"
-                >
-                  Profile
-                  <img src={logoutIcon} />
-                </a>
                 <a
                   href="#"
                   className="flex items-center justify-between font-medium px-4 py-2 text-sm hover:bg-gray-100"

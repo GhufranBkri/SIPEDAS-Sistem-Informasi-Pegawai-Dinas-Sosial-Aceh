@@ -333,7 +333,7 @@ const DetailRequest = () => {
                 { name: "nik", type: "number" },
                 { name: "no_kk", type: "number" },
                 { name: "no_telepon", type: "number" },
-                { name: "no_rekening", type: "number" },
+                { name: "no_rekening", type: "text" },
                 { name: "email", type: "text" },
                 { name: "email_gov", type: "text" },
               ].map(({ name }) => (
@@ -389,8 +389,8 @@ const DetailRequest = () => {
             <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { name: "nip", type: "number" },
-                { name: "npwp", type: "number" },
+                { name: "nip/no. reg", type: "number" },
+                { name: "npwp", type: "text" },
                 { name: "bidang", type: "text" },
                 { name: "eselon", type: "text" },
                 { name: "sub_bidang", type: "text" },
