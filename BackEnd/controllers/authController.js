@@ -104,7 +104,7 @@ const login = async (req, res) => {
                 email: user.email,
                 no_telpon: user.no_telpon,
                 role: user.role,
-                nip: nip
+                nip: user.employeeNip
             }
         });
     } catch (err) {
@@ -113,7 +113,7 @@ const login = async (req, res) => {
 };
 
 
-// authController.js
+
 // authController.js
 const updateUserDetails = async (req, res) => {
     const { nip, newEmailOrPhone, newPassword } = req.body;
@@ -137,7 +137,7 @@ const updateUserDetails = async (req, res) => {
                 employee.email = newEmailOrPhone; // Update email di tabel Employee
             } else {
                 user.no_telpon = newEmailOrPhone;
-                employee.no_telpon = newEmailOrPhone; // Update nomor telepon di tabel Employee
+                employee.no_telepon = newEmailOrPhone; // Update nomor telepon di tabel Employee
             }
         }
 
