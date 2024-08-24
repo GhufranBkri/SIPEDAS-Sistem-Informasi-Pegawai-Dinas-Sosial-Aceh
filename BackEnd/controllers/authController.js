@@ -117,9 +117,8 @@ const login = async (req, res) => {
 
 
 // authController.js
-
 const updateUserDetails = async (req, res) => {
-    const { nip, newEmailOrPhone, newPassword } = req.body;
+    const { nip, newEmail, newPhone, newPassword } = req.body;
 
     try {
         // Cari user berdasarkan NIP
@@ -130,28 +129,33 @@ const updateUserDetails = async (req, res) => {
         const employee = await Employee.findOne({ nip });
         if (!employee) return res.status(400).json({ message: 'Employee not found' });
 
-        // Tentukan apakah newEmailOrPhone adalah email atau nomor telepon
-        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmailOrPhone);
-
-        // Pengecekan duplikasi email atau nomor telepon
-        if (newEmailOrPhone) {
-            if (isEmail) {
-                // Cek apakah email sudah digunakan oleh user lain
-                const existingUserWithEmail = await User.findOne({ email: newEmailOrPhone });
-                if (existingUserWithEmail && existingUserWithEmail._id.toString() !== user._id.toString()) {
-                    return res.status(400).json({ message: 'Email is already taken' });
-                }
-                user.email = newEmailOrPhone;
-                employee.email = newEmailOrPhone; // Update email di tabel Employee
-            } else {
-                // Cek apakah nomor telepon sudah digunakan oleh user lain
-                const existingUserWithPhone = await User.findOne({ no_telpon: newEmailOrPhone });
-                if (existingUserWithPhone && existingUserWithPhone._id.toString() !== user._id.toString()) {
-                    return res.status(400).json({ message: 'Phone number is already taken' });
-                }
-                user.no_telpon = newEmailOrPhone;
-                employee.no_telepon = newEmailOrPhone; // Update nomor telepon di tabel Employee
+        // Update email jika ada perubahan
+        if (newEmail) {
+            // Cek apakah email sudah digunakan oleh user lain
+            const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail);
+            if (!isEmailValid) {
+                return res.status(400).json({ message: 'Invalid email format' });
             }
+
+            const existingUserWithEmail = await User.findOne({ email: newEmail });
+            if (existingUserWithEmail && existingUserWithEmail._id.toString() !== user._id.toString()) {
+                return res.status(400).json({ message: 'Email is already taken' });
+            }
+
+            user.email = newEmail;
+            employee.email = newEmail; // Update email di tabel Employee
+        }
+
+        // Update nomor telepon jika ada perubahan
+        if (newPhone) {
+            // Cek apakah nomor telepon sudah digunakan oleh user lain
+            const existingUserWithPhone = await User.findOne({ no_telpon: newPhone });
+            if (existingUserWithPhone && existingUserWithPhone._id.toString() !== user._id.toString()) {
+                return res.status(400).json({ message: 'Phone number is already taken' });
+            }
+
+            user.no_telpon = newPhone;
+            employee.no_telepon = newPhone; // Update nomor telepon di tabel Employee
         }
 
         // Update password jika ada perubahan
