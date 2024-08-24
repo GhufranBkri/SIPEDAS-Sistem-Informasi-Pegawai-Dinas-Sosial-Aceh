@@ -24,9 +24,6 @@ const userSchema = new mongoose.Schema({
     },
     no_telpon: {
         type: String,
-        unique: true,
-        trim: true,
-        required: [true, 'No Telpon is required'],
     }
 });
 

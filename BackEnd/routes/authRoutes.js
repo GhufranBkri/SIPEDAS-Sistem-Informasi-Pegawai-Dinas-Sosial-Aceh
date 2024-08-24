@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createFirstAdmin, registerAdmin, login, updateUserDetails, changePassword } = require('../controllers/authController');
+const { createFirstAdmin, registerAdmin, login, updateUserDetails, changePassword, changePasswordAdmin } = require('../controllers/authController');
 const { authenticateToken, authorizeRoles } = require('../middleware/authMiddleware');
 
 // register a new admin first time
@@ -11,6 +11,8 @@ router.post('/register', authenticateToken, authorizeRoles('admin'), registerAdm
 
 // routes/authRoutes.js
 router.put('/update-user-details', authenticateToken, authorizeRoles('admin'), updateUserDetails);
+
+router.put('/change-pass-admin', authenticateToken, authorizeRoles('admin'), changePasswordAdmin);
 
 // Change password (accessible by employees based on NIP)
 router.put('/change-password', authenticateToken, changePassword);
