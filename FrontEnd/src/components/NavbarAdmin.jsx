@@ -73,7 +73,7 @@ function NavbarAdmin() {
         );
         return response.data.data.nama;
       } catch (error) {
-        console.error("Error fetching employee data:", error);
+        setError("Failed to load data. Please try again later.");
         return "Unknown";
       }
     };
@@ -136,7 +136,6 @@ function NavbarAdmin() {
       ).length;
       setUnreadNotifications(countUnread);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
       setError("Failed to load data. Please try again later.");
     } finally {
       setLoading(false);
@@ -170,8 +169,6 @@ function NavbarAdmin() {
   const handleItemClick = (id, nip) => {
     localStorage.setItem("employeeNip", nip); // Store NIP in localStorage
     navigate(`/DetailRequest/${id}`);
-    console.log("ID yang dikirim:", id);
-    console.log("NIP yang disimpan:", nip);
   };
 
   const getNavLinkClass = (path) => {
@@ -305,15 +302,21 @@ function NavbarAdmin() {
               onClick={toggleProfileDropdown}
             />
             {isProfileDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow-lg py-1">
+              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">
                 <a
-                  href="#"
-                  className="flex items-center justify-between font-medium px-4 py-2 text-sm hover:bg-gray-100"
+                  href="/GantiPasswordAdmin"
+                  className="flex justify-between w-full text-left font-medium px-4 py-2 text-sm hover:bg-gray-100"
+                >
+                  Ganti Password
+                  <img className="mt-1" src={logoutIcon} />
+                </a>
+                <button
+                  className="flex justify-between w-full text-left font-medium px-4 py-2 text-sm hover:bg-gray-100"
                   onClick={handleLogout}
                 >
                   Logout
-                  <img src={logoutIcon} />
-                </a>
+                  <img className="mt-1" src={logoutIcon} />
+                </button>
               </div>
             )}
           </div>

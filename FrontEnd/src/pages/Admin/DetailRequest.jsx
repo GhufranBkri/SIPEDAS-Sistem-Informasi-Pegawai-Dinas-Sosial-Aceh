@@ -99,10 +99,6 @@ const DetailRequest = () => {
         setStatus(requestStatus);
         setLoading(false);
       } catch (error) {
-        console.error(
-          "Error fetching data:",
-          error.response ? error.response.data : error.message
-        );
         setLoading(false);
         setError("Failed to load data.");
       }
@@ -156,10 +152,8 @@ const DetailRequest = () => {
         setIsRejectModalOpen(true);
       }
     } catch (error) {
-      console.error(
-        "Error updating request:",
-        error.response ? error.response.data : error.message
-      );
+      setLoading(false);
+      setError("Failed to update request. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -296,8 +290,20 @@ const DetailRequest = () => {
     );
   }
 
+  const getLabelText = (name) => {
+    switch (name) {
+      case "nip":
+        return "NIP/No. Reg";
+      default:
+        return name.replace("_", " ").toUpperCase();
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ paddingTop: "6.5rem" }}
+    >
       <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <div className="flex justify-between">
@@ -389,7 +395,7 @@ const DetailRequest = () => {
             <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { name: "nip/no. reg", type: "number" },
+                { name: "nip", type: "number" },
                 { name: "npwp", type: "text" },
                 { name: "bidang", type: "text" },
                 { name: "eselon", type: "text" },
@@ -407,7 +413,7 @@ const DetailRequest = () => {
               ].map(({ name }) => (
                 <div className="mb-4" key={name}>
                   <label className="block text-gray-700 mb-2">
-                    {name.replace("_", " ").toUpperCase()}
+                    {getLabelText(name)}
                   </label>
                   {renderValue(name)}
                 </div>

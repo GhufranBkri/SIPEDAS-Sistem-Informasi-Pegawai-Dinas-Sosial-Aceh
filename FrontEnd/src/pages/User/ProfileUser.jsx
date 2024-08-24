@@ -65,20 +65,6 @@ const ProfileUser = () => {
       try {
         setLoading(true);
         setError(null);
-        const storedFormData = localStorage.getItem("formData");
-        if (!storedFormData) {
-          navigate("/Dashboard");
-          return;
-        }
-
-        const formDataObject = JSON.parse(storedFormData);
-        const nip = formDataObject.nip;
-        console.log("NIP:", nip);
-
-        if (!nip) {
-          navigate("/Dashboard");
-          return;
-        }
 
         const token = localStorage.getItem("authToken");
         if (!token) {
@@ -86,7 +72,7 @@ const ProfileUser = () => {
         }
 
         const response = await axios.get(
-          `http://localhost:3000/employees/${nip}`,
+          `http://localhost:3000/employees/users/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -94,8 +80,7 @@ const ProfileUser = () => {
           }
         );
 
-        const data = response.data.data;
-        console.log("Fetched data:", data);
+        const data = response.data.employee;
 
         if (data.tanggal_lahir) {
           const date = new Date(data.tanggal_lahir);
@@ -111,7 +96,6 @@ const ProfileUser = () => {
         setFormData(data);
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching data:", error);
         setError("Error fetching data. Please try again later.");
         setLoading(false);
       }
@@ -299,7 +283,7 @@ const ProfileUser = () => {
             <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                "nip/no. reg",
+                { key: "nip", label: "NIP/No. Reg" },
                 "npwp",
                 "bidang",
                 "eselon",
@@ -314,12 +298,17 @@ const ProfileUser = () => {
                 "masa_kerja",
                 "Kelas_jabatan",
                 "no_req_bkn",
-              ].map((key) => (
-                <div className="mb-4" key={key}>
+              ].map((item) => (
+                <div
+                  className="mb-4"
+                  key={typeof item === "string" ? item : item.key}
+                >
                   <label className="block text-gray-700 mb-2">
-                    {key.replace("_", " ").toUpperCase()}
+                    {typeof item === "string"
+                      ? item.replace("_", " ").toUpperCase()
+                      : item.label}
                   </label>
-                  {renderValue(key)}
+                  {renderValue(typeof item === "string" ? item : item.key)}
                 </div>
               ))}
             </div>

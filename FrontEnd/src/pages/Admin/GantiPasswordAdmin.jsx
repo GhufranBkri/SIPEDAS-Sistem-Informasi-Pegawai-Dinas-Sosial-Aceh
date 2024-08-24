@@ -1,11 +1,11 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Alert } from "antd";
+import axios from "axios";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
-const GantiPassword = () => {
+const GantiPasswordAdmin = () => {
   const [formData, setFormData] = useState({
     passwordlama: "",
     passwordbaru: "",
@@ -13,7 +13,7 @@ const GantiPassword = () => {
   });
 
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -23,68 +23,17 @@ const GantiPassword = () => {
     konfirmasipasswordbaru: false,
   });
 
-  const togglePasswordVisibility = (field) => {
-    setIsPasswordVisible((prevVisibility) => ({
-      ...prevVisibility,
-      [field]: !prevVisibility[field],
-    }));
-  };
-
   useEffect(() => {
     // Cek userRole dari localStorage
     const userRole = localStorage.getItem("userRole");
-    if (userRole !== "employee") {
+    if (userRole !== "admin") {
       navigate("/Dashboard");
     }
-  }, [navigate]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const storedFormData = localStorage.getItem("formData");
-        if (!storedFormData) {
-          navigate("/Dashboard");
-          return;
-        }
-
-        const formDataObject = JSON.parse(storedFormData);
-        const nip = formDataObject.nip;
-
-        if (!nip) {
-          navigate("/Dashboard");
-          return;
-        }
-
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          throw new Error("No authorization token found.");
-        }
-
-        const response = await axios.get(
-          `http://localhost:3000/employees/${nip}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = response.data.data;
-
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          passwordlama: data.passwordlama || "",
-          passwordbaru: data.passwordbaru || "",
-          konfirmasipasswordbaru: data.konfirmasipasswordbaru || "",
-        }));
-        setLoading(false);
-      } catch (error) {
-        setError(error.response ? error.response.data : error.message);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    const storedFormData = localStorage.getItem("formData");
+    if (!storedFormData) {
+      navigate("/Dashboard");
+      return;
+    }
   }, [navigate]);
 
   useEffect(() => {
@@ -99,8 +48,19 @@ const GantiPassword = () => {
     }
   }, [formData.passwordbaru, formData.konfirmasipasswordbaru]);
 
+  const togglePasswordVisibility = (field) => {
+    setIsPasswordVisible((prevVisibility) => ({
+      ...prevVisibility,
+      [field]: !prevVisibility[field],
+    }));
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
   const handleCancel = () => {
-    navigate("/ProfileUser");
+    navigate("/Dashboard");
   };
 
   const handleSubmit = async (e) => {
@@ -120,7 +80,7 @@ const GantiPassword = () => {
       }
 
       await axios.put(
-        `http://localhost:3000/auth/change-password`,
+        `http://localhost:3000/auth/change-pass-admin`,
         {
           oldPassword: formData.passwordlama,
           newPassword: formData.passwordbaru,
@@ -135,21 +95,16 @@ const GantiPassword = () => {
       setShowSuccessModal(true);
       setLoading(false);
     } catch (error) {
-      setErrorMessage(error.response ? error.response.data : error.message);
-      alert("Gagal mengganti password. Silakan coba lagi.");
       setLoading(false);
+      setError("Gagal mengubah password. Silakan coba lagi.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    navigate("/ProfileUser", { replace: true });
+    navigate("/Dashboard", { replace: true });
   };
 
   return (
@@ -167,7 +122,7 @@ const GantiPassword = () => {
           )}
           <div className="form-3 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
             <h1 className="text-xl font-bold mb-6 text-start">
-              Akun Login User
+              Akun Login Admin
             </h1>
             <h1 className="text-l mb-6 text-start text-red-600">
               Hati-hati mengubah data ini !
@@ -297,4 +252,4 @@ const GantiPassword = () => {
   );
 };
 
-export default GantiPassword;
+export default GantiPasswordAdmin;

@@ -58,7 +58,6 @@ const RequestEditData = () => {
   const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
   const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
-  const kelasJabatanOptions = ["I", "II", "III", "IV"];
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -103,7 +102,6 @@ const RequestEditData = () => {
         );
 
         const data = response.data.data;
-        console.log("Fetched data:", data);
 
         // Format tanggal_lahir for input
         if (data.tanggal_lahir) {
@@ -121,7 +119,6 @@ const RequestEditData = () => {
         setOldImageUrl(data.foto || "");
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching data:", error);
         setError("Error fetching data. Please try again later.");
         navigate("/ProfileUser");
       }
@@ -283,8 +280,6 @@ const RequestEditData = () => {
     setLoading(true);
 
     try {
-      console.log("Data yang akan dikirim:", formData);
-
       const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("No token found");
@@ -301,8 +296,6 @@ const RequestEditData = () => {
 
         fotoFormData.append("image", formData.foto);
 
-        console.log("Mengirim foto baru:", formData.foto);
-
         try {
           const uploadResponse = await axios.post(
             `http://localhost:3000/profile/upload-foto`,
@@ -315,8 +308,6 @@ const RequestEditData = () => {
             }
           );
 
-          console.log("Respons lengkap dari server:", uploadResponse);
-
           if (
             uploadResponse.data &&
             uploadResponse.data.status === "success" &&
@@ -324,16 +315,10 @@ const RequestEditData = () => {
             uploadResponse.data.data.imageUrl
           ) {
             imageUrl = uploadResponse.data.data.imageUrl;
-            console.log("Foto berhasil diunggah:", imageUrl);
           } else {
-            console.error(
-              "Respons server tidak sesuai format yang diharapkan:",
-              uploadResponse.data
-            );
             throw new Error("Format respons server tidak sesuai");
           }
         } catch (error) {
-          console.error("Error saat mengunggah foto:", error);
           setError("Error uploading image. Please try again later.");
           throw error;
         }
@@ -360,7 +345,7 @@ const RequestEditData = () => {
       };
 
       // Mengirim data lain
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:3000/request/update-request/`,
         payload,
         {
@@ -371,29 +356,11 @@ const RequestEditData = () => {
         }
       );
 
-      console.log("Data berhasil diperbarui:", response.data);
       setShowSuccessModal(true);
     } catch (error) {
-      console.error("Error:", error);
       let errorMessage = "Terjadi kesalahan. Silakan coba lagi nanti.";
-
-      if (error.response) {
-        console.error("Response data:", error.response?.data);
-        console.error("Response status:", error.response?.status);
-        console.error("Response headers:", error.response?.headers);
-
-        if (error.response.data && error.response.data.message) {
-          errorMessage = error.response.data.message;
-        }
-      } else if (error.request) {
-        console.error("Request:", error.request);
-        errorMessage = "Tidak ada respons dari server. Periksa koneksi Anda.";
-      } else {
-        console.error("Error message:", error.message);
-        errorMessage = error.message;
-      }
-
       alert(errorMessage);
+      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -426,6 +393,15 @@ const RequestEditData = () => {
   const preventInvalidInput = (e) => {
     if (["e", "E", "-", "+", "."].includes(e.key)) {
       e.preventDefault();
+    }
+  };
+
+  const getLabelText = (name) => {
+    switch (name) {
+      case "nip":
+        return "NIP/No. Reg";
+      default:
+        return name.replace("_", " ").toUpperCase();
     }
   };
 
@@ -629,7 +605,7 @@ const RequestEditData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: "nip/no. reg", type: "number", disabled: true },
+                  { name: "nip", type: "number", disabled: true },
                   { name: "npwp", type: "text" },
                   { name: "bidang", type: "text" },
                   { name: "eselon", type: "text" },
@@ -642,16 +618,12 @@ const RequestEditData = () => {
                   { name: "tahun_sk_awal", type: "number" },
                   { name: "tahun_sk_akhir", type: "number" },
                   { name: "masa_kerja", type: "number" },
-                  {
-                    name: "Kelas_jabatan",
-                    type: "select",
-                    options: kelasJabatanOptions,
-                  },
+                  { name: "Kelas_jabatan", type: "text" },
                   { name: "no_req_bkn", type: "text" },
                 ].map(({ name, type, options, disabled }) => (
                   <div className="mb-4" key={name}>
                     <label className="block text-gray-700 mb-2" htmlFor={name}>
-                      {name.replace("_", " ").toUpperCase()}
+                      {getLabelText(name)}
                     </label>
                     {type === "select" ? (
                       <select
@@ -698,7 +670,7 @@ const RequestEditData = () => {
                         * Isi ( - ) jika tidak ada
                       </p>
                     )}
-                    {(name === "nip/no. reg") && (
+                    {name === "nip" && (
                       <p className="text-gray-600 font-bold text-sm mt-1">
                         * NIP tidak dapat diubah
                       </p>
