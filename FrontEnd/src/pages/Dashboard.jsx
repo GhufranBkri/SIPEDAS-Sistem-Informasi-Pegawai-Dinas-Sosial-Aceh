@@ -38,7 +38,6 @@ function Dashboard() {
   const fetchData = () => {
     const token = localStorage.getItem("authToken");
     if (!token) {
-      console.error("No authorization token found.");
       setLoading(false);
       setError("Authorization token not found.");
       return;
@@ -56,13 +55,11 @@ function Dashboard() {
         if (Array.isArray(response.data.data)) {
           setData(response.data.data);
         } else {
-          console.error("Expected an array but received:", response.data);
           setError("Invalid data format received from server.");
         }
         setLoading(false);
       })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
+      .catch(() => {
         setError("Error fetching data. Please try again later.");
         setLoading(false);
       })

@@ -61,7 +61,6 @@ const EditData = () => {
   const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
   const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
-  const kelasJabatanOptions = ["I", "II", "III", "IV"];
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -96,7 +95,6 @@ const EditData = () => {
           navigate("/DataKaryawan");
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
         let errorMessage =
           "Terjadi kesalahan saat mengambil data. Silakan coba lagi nanti.";
 
@@ -249,7 +247,7 @@ const EditData = () => {
     }
 
     try {
-      const response = await axios.put(
+      await axios.put(
         `http://localhost:3000/auth/update-user-details`,
         {
           nip: formData.nip,
@@ -263,10 +261,8 @@ const EditData = () => {
         }
       );
 
-      console.log("Password updated successfully:", response.data);
       alert("Password berhasil diperbarui");
     } catch (error) {
-      console.error("Error updating password:", error);
       if (error.response) {
         // Server responded with a status other than 200 range
         alert(`Gagal memperbarui password: ${error.response.data.message}`);
@@ -288,8 +284,6 @@ const EditData = () => {
     setLoading(true);
 
     try {
-      console.log("Data yang akan dikirim:", formData);
-
       const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("No token found");
@@ -307,9 +301,6 @@ const EditData = () => {
         fotoFormData.append("image", formData.foto);
         fotoFormData.append("imageUrl", oldImageUrl);
 
-        console.log("Mengirim foto baru:", formData.foto);
-        console.log("URL foto lama:", oldImageUrl);
-
         try {
           const uploadResponse = await axios.put(
             `http://localhost:3000/profile/edit-foto`,
@@ -322,8 +313,6 @@ const EditData = () => {
             }
           );
 
-          console.log("Respons lengkap dari server:", uploadResponse);
-
           if (
             uploadResponse.data &&
             uploadResponse.data.status === "success" &&
@@ -331,16 +320,11 @@ const EditData = () => {
             uploadResponse.data.data.imageUrl
           ) {
             imageUrl = uploadResponse.data.data.imageUrl;
-            console.log("Foto berhasil diunggah:", imageUrl);
           } else {
-            console.error(
-              "Respons server tidak sesuai format yang diharapkan:",
-              uploadResponse.data
-            );
             throw new Error("Format respons server tidak sesuai");
           }
         } catch (error) {
-          console.error("Error saat mengunggah foto:", error);
+          setErrors({ foto: "Gagal mengunggah foto. Silakan coba lagi." });
           throw error;
         }
       }
@@ -363,22 +347,15 @@ const EditData = () => {
 
       setShowSuccessModal(true);
     } catch (error) {
-      console.error("Error:", error);
       let errorMessage = "Terjadi kesalahan. Silakan coba lagi nanti.";
 
       if (error.response) {
-        console.error("Response data:", error.response.data);
-        console.error("Response status:", error.response.status);
-        console.error("Response headers:", error.response.headers);
-
         if (error.response.data && error.response.data.message) {
           errorMessage = error.response.data.message;
         }
       } else if (error.request) {
-        console.error("Request:", error.request);
         errorMessage = "Tidak ada respons dari server. Periksa koneksi Anda.";
       } else {
-        console.error("Error message:", error.message);
         errorMessage = error.message;
       }
 
@@ -420,6 +397,15 @@ const EditData = () => {
 
   const handleTogglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const getLabelText = (name) => {
+    switch (name) {
+      case "nip":
+        return "NIP/No. Reg";
+      default:
+        return name.replace("_", " ").toUpperCase();
+    }
   };
 
   return (
@@ -679,7 +665,7 @@ const EditData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: "nip/no. reg", type: "number", disabled: true },
+                  { name: "nip", type: "number", disabled: true },
                   { name: "npwp", type: "text" },
                   { name: "bidang", type: "text" },
                   { name: "eselon", type: "text" },
@@ -692,16 +678,12 @@ const EditData = () => {
                   { name: "tahun_sk_awal", type: "number" },
                   { name: "tahun_sk_akhir", type: "number" },
                   { name: "masa_kerja", type: "number" },
-                  {
-                    name: "Kelas_jabatan",
-                    type: "select",
-                    options: kelasJabatanOptions,
-                  },
+                  { name: "Kelas_jabatan", type: "text" },
                   { name: "no_req_bkn", type: "text" },
                 ].map(({ name, type, options, disabled }) => (
                   <div className="mb-4" key={name}>
                     <label className="block text-gray-700 mb-2" htmlFor={name}>
-                      {name.replace("_", " ").toUpperCase()}
+                      {getLabelText(name)}
                     </label>
                     {type === "select" ? (
                       <select
@@ -748,7 +730,7 @@ const EditData = () => {
                         * Isi ( - ) jika tidak ada
                       </p>
                     )}
-                    {(name === "nip/no. reg") && (
+                    {name === "nip" && (
                       <p className="text-gray-600 font-bold text-sm mt-1">
                         * NIP tidak dapat diubah
                       </p>

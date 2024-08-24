@@ -24,7 +24,7 @@ const Struktur = () => {
 
     const token = localStorage.getItem("authToken");
     if (!token) {
-      console.error("No authorization token found.");
+      setError("Unauthorized access. Please log in.");
       return;
     }
 
@@ -43,7 +43,6 @@ const Struktur = () => {
         );
         setImageUrl(response.data.imageUrl); // Use response.data.imageUrl
       } catch (error) {
-        console.error("Error fetching image URL:", error);
         setError("Failed to load data. Please try again later.");
       } finally {
         setLoading(false); // Set loading to false when done fetching
@@ -97,7 +96,7 @@ const Struktur = () => {
           }, "image/png");
         };
       } catch (error) {
-        console.error("Error converting SVG to PNG:", error);
+        setError("Failed to save image. Please try again.");
       }
     }
     setShowModal(false);

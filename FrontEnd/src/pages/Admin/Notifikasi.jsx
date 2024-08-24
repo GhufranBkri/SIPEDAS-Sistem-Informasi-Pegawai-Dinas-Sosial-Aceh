@@ -71,7 +71,7 @@ const Notifikasi = () => {
       );
       return response.data.data.nama;
     } catch (error) {
-      console.error("Error fetching employee data:", error);
+      setError("Failed to load data. Please try again later.");
       return "Unknown";
     }
   };
@@ -80,7 +80,7 @@ const Notifikasi = () => {
   const fetchNotifications = useCallback(async () => {
     const token = localStorage.getItem("authToken");
     if (!token) {
-      console.error("No authorization token found.");
+      setError("Unauthorized access. Please log in.");
       return;
     }
 
@@ -139,7 +139,6 @@ const Notifikasi = () => {
       setNotifications(formattedNotifications);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
       setError("Failed to load data. Please try again later.");
       setLoading(false);
     }
@@ -159,8 +158,6 @@ const Notifikasi = () => {
   const handleItemClick = (id, nip) => {
     localStorage.setItem("employeeNip", nip);
     navigate(`/DetailRequest/${id}`);
-    console.log("ID yang dikirim:", id);
-    console.log("NIP yang disimpan:", nip);
   };
 
   const handleDelete = async (id) => {
@@ -189,7 +186,6 @@ const Notifikasi = () => {
       setIsModalOpen(false);
       setShowSuccessModal(true);
     } catch (error) {
-      console.error("Error deleting notification:", error);
       setError("Failed to delete notification. Please try again later.");
       setIsModalOpen(false);
       setLoading(false);

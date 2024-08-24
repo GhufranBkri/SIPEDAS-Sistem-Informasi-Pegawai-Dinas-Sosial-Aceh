@@ -54,10 +54,8 @@ function Login() {
         // Navigate to the desired page after successful login
         if (user.role === "admin") {
           navigate("/Dashboard");
-          console.log("Login successful:", response.data);
         } else if (user.role === "employee") {
           navigate("/ProfileUser");
-          console.log("Login successful:", response.data);
         } else {
           // Handle other roles or unknown roles if necessary
           setErrorMessage("Unknown role. Please contact support.");
@@ -81,8 +79,6 @@ function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     handleLogin();
-    // Add your debug code here
-    console.log(identifier, password);
   };
 
   return (
@@ -109,7 +105,7 @@ function Login() {
                   htmlFor="email"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Email
+                  Email / No. HP
                 </label>
                 <input
                   type="text"

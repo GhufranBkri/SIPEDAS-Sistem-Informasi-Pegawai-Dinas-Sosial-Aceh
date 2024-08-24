@@ -57,7 +57,6 @@ const TambahData = () => {
   const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
   const golonganDarahOptions = ["A", "B", "AB", "O"];
   const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
-  const kelasJabatanOptions = ["I", "II", "III", "IV"];
 
   useEffect(() => {
     // Cek userRole dari localStorage
@@ -210,9 +209,7 @@ const TambahData = () => {
           // Extract the image URL from the response data
           fotoURL = fotoResponse.data.data.imageUrl;
         } catch (error) {
-          console.error("Photo upload failed:", error);
-          console.log("Photo Data:", fotoData);
-          console.log("Request Headers:", error.config.headers);
+          setErrors({ foto: "Failed to upload photo" });
 
           return; // Stop further execution if photo upload fails
         }
@@ -237,10 +234,6 @@ const TambahData = () => {
           "An employee with this NIP already exists. Please use a different NIP."
         );
       } else {
-        console.error(
-          "Error adding data: ",
-          error.response ? error.response.data : error.message
-        );
         alert(
           `Failed to add data: ${
             error.response ? error.response.data.message : error.message
@@ -282,8 +275,20 @@ const TambahData = () => {
     }
   };
 
+  const getLabelText = (name) => {
+    switch (name) {
+      case "nip":
+        return "NIP/No. Reg";
+      default:
+        return name.replace("_", " ").toUpperCase();
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+    <div
+      className="min-h-screen flex items-center justify-center"
+      style={{ paddingTop: "6.5rem" }}
+    >
       <main className="pb-8 w-full max-w-7xl">
         <div className="form-1 bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6 text-center">
@@ -476,7 +481,7 @@ const TambahData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Pekerjaan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { name: "nip/no. reg", type: "number" },
+                  { name: "nip", type: "number" },
                   { name: "npwp", type: "text" },
                   { name: "bidang", type: "text" },
                   { name: "eselon", type: "text" },
@@ -489,16 +494,12 @@ const TambahData = () => {
                   { name: "tahun_sk_awal", type: "number" },
                   { name: "tahun_sk_akhir", type: "number" },
                   { name: "masa_kerja", type: "number" },
-                  {
-                    name: "Kelas_jabatan",
-                    type: "select",
-                    options: kelasJabatanOptions,
-                  },
+                  { name: "Kelas_jabatan", type: "text" },
                   { name: "no_req_bkn", type: "text" },
                 ].map(({ name, type, options }) => (
                   <div className="mb-4" key={name}>
                     <label className="block text-gray-700 mb-2" htmlFor={name}>
-                      {name.replace("_", " ").toUpperCase()}
+                      {getLabelText(name)}
                     </label>
                     {type === "select" ? (
                       <select
@@ -544,9 +545,10 @@ const TambahData = () => {
                         * Isi ( - ) jika tidak ada
                       </p>
                     )}
-                    {(name === "nip/no. reg") && (
+                    {name === "nip/no. reg" && (
                       <p className="text-gray-600 font-bold text-sm mt-1">
-                        * Isi dengan benar, karena NIP tidak dapat diubah nantinya
+                        * Isi dengan benar, karena NIP tidak dapat diubah
+                        nantinya
                       </p>
                     )}
                   </div>

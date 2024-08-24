@@ -54,7 +54,7 @@ const GantiStruktur = () => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
-        console.error("No authorization token found.");
+        alert("Unauthorized access. Please log in.");
         return;
       }
 
@@ -88,7 +88,6 @@ const GantiStruktur = () => {
 
       setShowSuccessModal(true);
     } catch (error) {
-      console.error("Error saving image:", error);
       alert("Gagal menyimpan gambar.");
     } finally {
       setLoading(false);
@@ -105,7 +104,10 @@ const GantiStruktur = () => {
   };
 
   return (
-    <div className=" flex items-center justify-center" style={{ paddingTop: '6.5rem' }}>
+    <div
+      className=" flex items-center justify-center"
+      style={{ paddingTop: "6.5rem" }}
+    >
       <main className="pb-8 w-full max-w-7xl">
         <div className=" bg-white shadow overflow-hidden sm:rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-8 text-center">

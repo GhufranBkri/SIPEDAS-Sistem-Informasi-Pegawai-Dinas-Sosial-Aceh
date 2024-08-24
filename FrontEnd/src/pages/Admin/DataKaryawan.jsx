@@ -13,7 +13,7 @@ const DataKaryawan = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-  const [sorter, setSorter] = useState(null);
+  const [sorter, setSorter] = useState({ columnKey: null, order: null });
   const [showExportPopup, setShowExportPopup] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -323,11 +323,16 @@ const DataKaryawan = () => {
         ...item,
         key: item.nip,
       }));
-      setRecords(dataWithIds);
-      setFilteredRecords(dataWithIds);
+
+      // Sort the data by 'kelas_jabatan' in descending order (highest first)
+      const sortedData = dataWithIds.sort(
+        (a, b) => b.Kelas_jabatan - a.Kelas_jabatan
+      );
+
+      setRecords(sortedData);
+      setFilteredRecords(sortedData);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching data: ", error);
       setError("Failed to load data. Please try again later.");
     } finally {
       setLoading(false);
@@ -350,14 +355,16 @@ const DataKaryawan = () => {
   const handleTableChange = (pagination, filters, sorter) => {
     setSorter(sorter);
     const sortedRecords = [...filteredRecords].sort((a, b) => {
-      const { order, columnKey } = sorter;
-      const aValue = a[columnKey];
-      const bValue = b[columnKey];
-      if (order === "ascend") {
-        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-      } else {
-        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      if (sorter.columnKey) {
+        const aValue = a[sorter.columnKey];
+        const bValue = b[sorter.columnKey];
+        if (sorter.order === "ascend") {
+          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+        } else {
+          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+        }
       }
+      return 0;
     });
     setFilteredRecords(sortedRecords);
   };
@@ -434,7 +441,6 @@ const DataKaryawan = () => {
         setLoading(false);
         setShowSuccessModal(true);
       } catch (error) {
-        console.error("Error deleting data: ", error);
         setError("Failed to delete data. Please try again later.");
       } finally {
         setLoading(false);
@@ -461,13 +467,13 @@ const DataKaryawan = () => {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     });
 
-    // Sort filteredRecords based on sorter state
-    if (sorter) {
-      filteredRecords.sort((a, b) => {
-        const { columnKey, order } = sorter;
-        const aValue = a[columnKey];
-        const bValue = b[columnKey];
-        if (order === "ascend") {
+    // Sort filteredRecords based on current sorter state
+    let sortedRecords = [...filteredRecords];
+    if (sorter.columnKey && sorter.order) {
+      sortedRecords.sort((a, b) => {
+        const aValue = a[sorter.columnKey];
+        const bValue = b[sorter.columnKey];
+        if (sorter.order === "ascend") {
           return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
         } else {
           return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
@@ -476,7 +482,7 @@ const DataKaryawan = () => {
     }
 
     // Prepare and add data
-    for (let [index, record] of filteredRecords.entries()) {
+    for (let [index, record] of sortedRecords.entries()) {
       const rowData = [
         index + 1, // New sequential "No." column
         ...(await Promise.all(
@@ -524,7 +530,7 @@ const DataKaryawan = () => {
             editAs: "oneCell",
           });
         } catch (error) {
-          console.error(`Failed to add image for row ${index + 1}:`, error);
+          setError("Failed to export data. Please try again later.");
         }
       }
     }
