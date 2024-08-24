@@ -66,14 +66,14 @@ const registerAdmin = async (req, res) => {
 };
 
 const login = async (req, res) => {
-    const { identifier, password } = req.body; // Menggunakan identifier untuk email atau no_telpon
+    const { email, password } = req.body; // Menggunakan identifier untuk email atau no_telpon
 
     try {
         // Mencari user berdasarkan email atau no_telpon
         const user = await User.findOne({
             $or: [
-                { email: identifier.toLowerCase() }, // Mencari berdasarkan email
-                { no_telpon: identifier } // Mencari berdasarkan no_telpon
+                { email: email.toLowerCase() }, // Mencari berdasarkan email
+                { no_telpon: email } // Mencari berdasarkan no_telpon
             ]
         });
 
