@@ -534,7 +534,7 @@ const DataKaryawan = () => {
             editAs: "oneCell",
           });
         } catch (error) {
-          console.error(`Failed to load image for ${record.foto}`, error);
+          setError("Failed to load image data. Please try again later.");
         }
       }
 
