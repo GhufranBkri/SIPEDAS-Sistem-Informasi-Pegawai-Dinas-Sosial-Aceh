@@ -73,8 +73,11 @@ function NavbarAdmin() {
         );
         return response.data.data.nama;
       } catch (error) {
-        setError("Failed to load data. Please try again later.");
-        return "Unknown";
+        return (
+          <span className="bg-red-400 text-white px-1 rounded">
+            User Deleted
+          </span>
+        );
       }
     };
 
@@ -223,7 +226,7 @@ function NavbarAdmin() {
                   <span className="flex justify-between">
                     <span className="flex justify-start font-bold">
                       Notifications
-                      <span className="text-sm text-gray-600 mt-1">
+                      <span className="text-sm text-gray-600">
                         ({notifications.length})
                       </span>
                       <button

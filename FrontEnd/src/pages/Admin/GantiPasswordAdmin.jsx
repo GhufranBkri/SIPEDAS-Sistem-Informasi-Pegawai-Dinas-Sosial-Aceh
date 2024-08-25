@@ -16,6 +16,7 @@ const GantiPasswordAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState({
     passwordlama: false,
@@ -48,6 +49,14 @@ const GantiPasswordAdmin = () => {
     }
   }, [formData.passwordbaru, formData.konfirmasipasswordbaru]);
 
+  useEffect(() => {
+    if (formData.passwordbaru.length > 0 && formData.passwordbaru.length <= 5) {
+      setPasswordError("Password harus lebih dari 5 karakter.");
+    } else {
+      setPasswordError("");
+    }
+  }, [formData.passwordbaru]);
+
   const togglePasswordVisibility = (field) => {
     setIsPasswordVisible((prevVisibility) => ({
       ...prevVisibility,
@@ -66,7 +75,8 @@ const GantiPasswordAdmin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (errorMessage) {
+    if (errorMessage || passwordError) {
+      setError("Silakan periksa kembali form.");
       // Jangan izinkan submit jika ada error
       return;
     }
@@ -141,7 +151,7 @@ const GantiPasswordAdmin = () => {
                   className="border border-gray-300 rounded-md p-2 w-full"
                 />
                 <div
-                  className="absolute inset-y-0 right-0 pr-3 mt-8 flex items-center cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3 mt-2 flex items-center cursor-pointer"
                   onClick={() => togglePasswordVisibility("passwordlama")}
                 >
                   {isPasswordVisible.passwordlama ? (
@@ -155,23 +165,28 @@ const GantiPasswordAdmin = () => {
                 <label className="block text-gray-700 mb-2">
                   Password Baru
                 </label>
-                <input
-                  type={isPasswordVisible.passwordbaru ? "text" : "password"}
-                  name="passwordbaru"
-                  value={formData.passwordbaru}
-                  onChange={handleChange}
-                  className="border border-gray-300 rounded-md p-2 w-full"
-                />
-                <div
-                  className="absolute inset-y-0 right-0 pr-3 top-1/2 flex items-center cursor-pointer"
-                  onClick={() => togglePasswordVisibility("passwordbaru")}
-                >
-                  {isPasswordVisible.passwordbaru ? (
-                    <AiFillEyeInvisible />
-                  ) : (
-                    <AiFillEye />
-                  )}
+                <div className="flex items-center">
+                  <input
+                    type={isPasswordVisible.passwordbaru ? "text" : "password"}
+                    name="passwordbaru"
+                    value={formData.passwordbaru}
+                    onChange={handleChange}
+                    className="border border-gray-300 rounded-md p-2 w-full pr-10"
+                  />
+                  <div
+                    className="absolute inset-y-0 right-0 pr-3 mt-2 flex items-center cursor-pointer"
+                    onClick={() => togglePasswordVisibility("passwordbaru")}
+                  >
+                    {isPasswordVisible.passwordbaru ? (
+                      <AiFillEyeInvisible />
+                    ) : (
+                      <AiFillEye />
+                    )}
+                  </div>
                 </div>
+                <p className="text-gray-500 font-bold text-sm mt-1">
+                  Password harus lebih dari 5 karakter.
+                </p>
               </div>
               <div className="mb-4 relative">
                 <label className="block text-gray-700 mb-2">

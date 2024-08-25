@@ -251,7 +251,9 @@ const EditData = () => {
         `http://localhost:3000/auth/update-user-details`,
         {
           nip: formData.nip,
-          newPassword: newPassword,
+          newPassword: newPassword || "",
+          newEmail: formData.email || "",
+          newPhone: formData.no_telepon || ""
         },
         {
           headers: {
@@ -439,7 +441,6 @@ const EditData = () => {
                   },
                   { name: "nik", type: "number" },
                   { name: "no_kk", type: "number" },
-                  { name: "no_telepon", type: "number" },
                   { name: "no_rekening", type: "text" },
                   { name: "email_gov", type: "text" },
                 ].map(({ name, type, options }) => (
@@ -531,6 +532,25 @@ const EditData = () => {
                 Hati-hati mengubah data ini !
               </h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-4 md:col-span-1">
+                  <label className="block text-gray-700 mb-2" htmlFor="no_telepon">
+                    No. Telepon
+                  </label>
+                  <input
+                    type="number"
+                    id="no_telepon"
+                    name="no_telepon"
+                    value={formData.no_telepon}
+                    onChange={handleChange}
+                    ref={(el) => (inputRefs.current.no_telepon = el)}
+                    className="border border-gray-300 rounded-md p-2 w-full"
+                  />
+                  {errors.no_telepon && (
+                    <p className="text-red-500 text-xs italic mt-2">
+                      {errors.no_telepon}
+                    </p>
+                  )}
+                </div>
                 <div className="mb-4 md:col-span-1">
                   <label className="block text-gray-700 mb-2" htmlFor="email">
                     EMAIL

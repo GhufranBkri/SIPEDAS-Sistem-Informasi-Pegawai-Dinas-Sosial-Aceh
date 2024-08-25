@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Alert } from "antd";
 import axios from "axios";
 
 const DetailRequest = () => {
@@ -266,22 +267,6 @@ const DetailRequest = () => {
     navigate("/Notifikasi", { replace: true });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Loading request data...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-600">Error: {error}</p>
-      </div>
-    );
-  }
-
   if (!formData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -327,6 +312,9 @@ const DetailRequest = () => {
             </div>
           </div>
           <div className="form-2 bg-white shadow-xl overflow-hidden sm:rounded-lg p-6 my-4">
+            {error && (
+              <Alert message={error} type="error" showIcon className="mb-4" />
+            )}
             <h1 className="text-xl font-bold mb-6 text-start">Data Diri</h1>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
@@ -465,7 +453,7 @@ const DetailRequest = () => {
           )}
           {showModal && (
             <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-              <div className="bg-white p-6 rounded-md shadow-md max-w-sm w-full">
+              <div className="bg-white p-6 rounded-md shadow-md max-w-md w-full">
                 <h2 className="text-xl font-bold mb-4">{modalContent.title}</h2>
                 <p className="mb-6">{modalContent.content}</p>
                 <div className="flex justify-end gap-2">

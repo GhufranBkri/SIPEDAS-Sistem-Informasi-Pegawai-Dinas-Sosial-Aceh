@@ -104,10 +104,6 @@ const ProfileUser = () => {
     fetchData();
   }, [navigate]);
 
-  const handleCancel = () => {
-    navigate("/Dashboard");
-  };
-
   const handleSaveAsPDF = () => {
     setShowModal(true);
   };
@@ -120,12 +116,6 @@ const ProfileUser = () => {
     setShowModal(false);
 
     const input = document.getElementById("profile-section");
-    const backButton = document.querySelector(".btn-back");
-
-    // Hide the 'Kembali' button
-    if (backButton) {
-      backButton.style.display = "none";
-    }
 
     html2canvas(input, { useCORS: true, scale: 3 }).then((canvas) => {
       const imgData = canvas.toDataURL("image/jpeg", 0.8); // Menggunakan JPEG dan mengatur kualitas gambar
@@ -147,11 +137,6 @@ const ProfileUser = () => {
       }
 
       pdf.save("ProfileUser.pdf");
-
-      // Show the 'Kembali' button again
-      if (backButton) {
-        backButton.style.display = "";
-      }
     });
   };
 
@@ -312,16 +297,6 @@ const ProfileUser = () => {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="mt-8 flex justify-start">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="bg-gray-300 text-black py-2 px-4 rounded-md hover:bg-gray-400 btn-back"
-            >
-              Kembali
-            </button>
           </div>
         </div>
       </main>

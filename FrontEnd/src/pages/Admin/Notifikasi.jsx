@@ -71,8 +71,11 @@ const Notifikasi = () => {
       );
       return response.data.data.nama;
     } catch (error) {
-      setError("Failed to load data. Please try again later.");
-      return "Unknown";
+      return (
+        <span className="bg-red-400 text-white p-1 rounded">
+          User Deleted
+        </span>
+      );
     }
   };
 
