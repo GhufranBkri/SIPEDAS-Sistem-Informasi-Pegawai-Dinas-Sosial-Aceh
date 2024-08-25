@@ -7,6 +7,8 @@ import { MdRefresh } from "react-icons/md";
 import axios from "axios";
 import ExcelJS from "exceljs";
 import { useNavigate } from "react-router-dom";
+import { Buffer } from "buffer";
+window.Buffer = Buffer;
 
 const DataKaryawan = () => {
   const [records, setRecords] = useState([]);
@@ -35,7 +37,6 @@ const DataKaryawan = () => {
       dataIndex: "no",
       key: "no",
       align: "center",
-      sorter: (a, b) => a.no - b.no,
       fixed: "left",
       render: (_, __, index) => index + 1,
     },
@@ -473,11 +474,18 @@ const DataKaryawan = () => {
       sortedRecords.sort((a, b) => {
         const aValue = a[sorter.columnKey];
         const bValue = b[sorter.columnKey];
-        if (sorter.order === "ascend") {
-          return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
-        } else {
-          return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+
+        // Ensure comparison based on type
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sorter.order === "ascend"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue);
+        } else if (typeof aValue === "number" && typeof bValue === "number") {
+          return sorter.order === "ascend" ? aValue - bValue : bValue - aValue;
+        } else if (aValue instanceof Date && bValue instanceof Date) {
+          return sorter.order === "ascend" ? aValue - bValue : bValue - aValue;
         }
+        return 0; // Default case if types are inconsistent
       });
     }
 
@@ -497,42 +505,43 @@ const DataKaryawan = () => {
                 return `${day}/${month}/${year}`;
               }
               if (col.dataIndex === "foto") {
-                return ""; // Handle images separately
+                return ""; // Placeholder for foto cell
               }
-              return record[col.dataIndex];
+              return record[col.dataIndex] || "";
             })
         )),
       ];
-      worksheet.addRow(rowData);
+      const row = worksheet.addRow(rowData);
+      row.height = 100;
 
-      // Format data rows
-      worksheet.getRow(index + 2).eachCell({ includeEmpty: true }, (cell) => {
-        cell.alignment = { horizontal: "center", vertical: "middle" };
-      });
-    }
-
-    // Add images after data rows are added
-    for (let [index, record] of filteredRecords.entries()) {
       if (record.foto) {
         try {
-          const response = await fetch(record.foto);
-          const buffer = await response.arrayBuffer();
+          // Fetch image data
+          const response = await axios.get(record.foto, {
+            responseType: "arraybuffer",
+          });
+          const imageBase64 = Buffer.from(response.data, "binary").toString(
+            "base64"
+          );
           const imageId = workbook.addImage({
-            buffer: buffer,
+            base64: imageBase64,
             extension: "png",
           });
 
-          worksheet.getRow(index + 2).height = 80; // Adjust row height for images
-
           worksheet.addImage(imageId, {
-            tl: { col: headers.indexOf("Foto"), row: index + 1 },
-            br: { col: headers.indexOf("Foto") + 1, row: index + 2 },
+            tl: { col: headers.indexOf("Foto"), row: row.number - 1 },
+            ext: { width: 80, height: 100 },
             editAs: "oneCell",
           });
         } catch (error) {
-          setError("Failed to export data. Please try again later.");
+          console.error(`Failed to load image for ${record.foto}`, error);
         }
       }
+
+      // Format data rows
+      row.eachCell((cell) => {
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      });
     }
 
     // Auto-fit columns
