@@ -12,6 +12,7 @@ const DetailRequest = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updatedFields, setUpdatedFields] = useState({});
+  const [highlightedFields, setHighlightedFields] = useState({});
   const [status, setStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalContent, setModalContent] = useState({});
@@ -98,6 +99,12 @@ const DetailRequest = () => {
         setFormData(employeeResponse.data.data); // Original data
         setUpdatedFields(updatedData); // Updated data
         setStatus(requestStatus);
+
+        // If status is approved, save updated fields for highlighting
+        if (requestStatus === "approved") {
+          setHighlightedFields(updatedData);
+        }
+
         setLoading(false);
       } catch (error) {
         setLoading(false);
@@ -147,6 +154,10 @@ const DetailRequest = () => {
       setUpdatedFields({});
       setStatus(newStatus);
 
+      if (newStatus === "approved") {
+        setHighlightedFields(updatedFields);
+      }
+
       if (modalType === "approve") {
         setIsApproveModalOpen(true);
       } else if (modalType === "reject") {
@@ -167,14 +178,23 @@ const DetailRequest = () => {
 
     const getStatusClass = () => {
       if (status === "pending") return "border-yellow-500 bg-yellow-100";
-      if (status === "approved") return "border-green-500 bg-green-100";
+      if (status === "approved") return "border-gray-300";
       if (status === "rejected") return "border-red-500 bg-red-100";
       return "border-gray-300";
     };
 
-    const commonClasses = `border p-2 rounded-md w-full ${
-      isUpdated ? getStatusClass() : "border-gray-300"
-    }`;
+    let commonClasses;
+    if (status === "pending" || status === "rejected") {
+      commonClasses = `border p-2 rounded-md w-full ${
+        isUpdated ? getStatusClass() : "border-gray-300"
+      }`;
+    } else {
+      commonClasses = `border p-2 rounded-md w-full ${
+        highlightedFields[key]
+          ? "border-green-500 bg-green-100"
+          : getStatusClass()
+      }`;
+    }
 
     if (key === "foto") {
       return (
@@ -184,7 +204,11 @@ const DetailRequest = () => {
               <img
                 src={updatedFields[key]}
                 alt="Updated Foto"
-                className={`w-32 items-center object-cover mt-4 border-2 ${getStatusClass()} border-4 border-blue-500`}
+                className={`w-32 items-center object-cover mt-4 border-2 ${
+                  highlightedFields[key]
+                    ? "border-green-500 bg-green-100"
+                    : getStatusClass()
+                }`}
               />
             ) : (
               originalValue && (
