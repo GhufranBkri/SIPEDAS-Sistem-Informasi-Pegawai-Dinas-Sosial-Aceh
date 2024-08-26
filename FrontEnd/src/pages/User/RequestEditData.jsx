@@ -55,8 +55,8 @@ const RequestEditData = () => {
   const [error, setError] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const jenisKelaminOptions = ["Laki-Laki", "Perempuan"];
-  const golonganDarahOptions = ["A", "B", "AB", "O"];
+  const jenisKelaminOptions = ["L", "P"];
+  const golonganDarahOptions = ["A", "A-", "A+", "B", "B-", "B+", "AB", "AB-", "AB+", "O", "O-", "O+"];
   const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
   const navigate = useNavigate();
 

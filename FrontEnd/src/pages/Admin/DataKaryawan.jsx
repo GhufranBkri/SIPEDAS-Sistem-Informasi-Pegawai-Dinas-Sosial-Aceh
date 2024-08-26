@@ -22,6 +22,10 @@ const DataKaryawan = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
 
   useEffect(() => {
     // Cek userRole dari localStorage
@@ -38,7 +42,8 @@ const DataKaryawan = () => {
       key: "no",
       align: "center",
       fixed: "left",
-      render: (_, __, index) => index + 1,
+      render: (_, __, index) =>
+        (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: "Foto",
@@ -355,6 +360,7 @@ const DataKaryawan = () => {
 
   const handleTableChange = (pagination, filters, sorter) => {
     setSorter(sorter);
+    setPagination(pagination);
     const sortedRecords = [...filteredRecords].sort((a, b) => {
       if (sorter.columnKey) {
         const aValue = a[sorter.columnKey];
@@ -654,7 +660,18 @@ const DataKaryawan = () => {
             columns={columns}
             dataSource={filteredRecords}
             rowSelection={rowSelection}
-            pagination={true}
+            pagination={{
+              ...pagination,
+              showSizeChanger: true,
+              pageSizeOptions: [
+                "10",
+                "20",
+                "50",
+                "100",
+                filteredRecords.length.toString(),
+              ],
+              showTotal: (total) => `Total ${total} items`,
+            }}
             bordered
             loading={loading}
             onChange={handleTableChange}
