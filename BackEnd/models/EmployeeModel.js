@@ -24,7 +24,6 @@ const employeeSchema = new mongoose.Schema({
     },
     jabatan_terakhir: {
         type: String,
-        maxlength: 50
     },
     gol_ruang: {
         type: String,
@@ -47,7 +46,7 @@ const employeeSchema = new mongoose.Schema({
         maxlength: 50
     },
     tanggal_lahir: {
-        type: Date // Menggunakan tipe data Date
+        type: Date
     },
     nik: {
         type: String,
@@ -84,11 +83,9 @@ const employeeSchema = new mongoose.Schema({
     },
     pendidikan: {
         type: String,
-        maxlength: 50
     },
     jurusan: {
         type: String,
-        maxlength: 50
     },
     tahun_tamat: {
         type: Number
