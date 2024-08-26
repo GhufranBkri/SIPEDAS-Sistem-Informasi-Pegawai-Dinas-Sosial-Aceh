@@ -5,8 +5,9 @@ const Employee = require('../models/EmployeeModel'); // Sesuaikan path jika dipe
 const visualisasiData = async (req, res) => {
     try {
         // Hitung total berdasarkan jenis
+        const totalKaryawan = await Employee.countDocuments();
         const totalPNS = await Employee.countDocuments({ jenis: 'PNS' });
-        const totalTenagaKontrak = await Employee.countDocuments({ jenis: 'tenaga kontrak' });
+        const totalTenagaKontrak = await Employee.countDocuments({ jenis: 'TEKON' });
         const totalPPPK = await Employee.countDocuments({ jenis: 'PPPK' });
 
         // Hitung total setiap jenis kelamin untuk pie chart
@@ -26,12 +27,13 @@ const visualisasiData = async (req, res) => {
 
         // Respond dengan data yang telah dihitung
         res.json({
+            totalKaryawan,
             totalPNS,
             totalTenagaKontrak,
             totalPPPK,
             genderCounts,
             bidangCounts,
-            pendidikanCounts
+            pendidikanCounts,
         });
     } catch (error) {
         console.error(error);
