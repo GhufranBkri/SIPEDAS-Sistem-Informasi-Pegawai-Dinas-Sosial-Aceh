@@ -81,12 +81,8 @@ function Dashboard() {
 
   // Hitung statistik setelah data berhasil diambil
   const totalEmployees = data.length;
-  const totalMale = data.filter(
-    (emp) => emp.jenis_kelamin === "Laki-Laki"
-  ).length;
-  const totalFemale = data.filter(
-    (emp) => emp.jenis_kelamin === "Perempuan"
-  ).length;
+  const totalMale = data.filter((emp) => emp.jenis_kelamin === "L").length;
+  const totalFemale = data.filter((emp) => emp.jenis_kelamin === "P").length;
   const totalPNS = data.filter((emp) => emp.jenis === "PNS").length;
   const totalContract = data.filter(
     (emp) => emp.jenis === "Tenaga Kontrak"
@@ -339,28 +335,26 @@ function Dashboard() {
   const genderData = {
     PNS: {
       male: data.filter(
-        (emp) => emp.jenis_kelamin === "Laki-Laki" && emp.jenis === "PNS"
+        (emp) => emp.jenis_kelamin === "L" && emp.jenis === "PNS"
       ).length,
       female: data.filter(
-        (emp) => emp.jenis_kelamin === "Perempuan" && emp.jenis === "PNS"
+        (emp) => emp.jenis_kelamin === "P" && emp.jenis === "PNS"
       ).length,
     },
     "Tenaga Kontrak": {
       male: data.filter(
-        (emp) =>
-          emp.jenis_kelamin === "Laki-Laki" && emp.jenis === "Tenaga Kontrak"
+        (emp) => emp.jenis_kelamin === "L" && emp.jenis === "Tenaga Kontrak"
       ).length,
       female: data.filter(
-        (emp) =>
-          emp.jenis_kelamin === "Perempuan" && emp.jenis === "Tenaga Kontrak"
+        (emp) => emp.jenis_kelamin === "P" && emp.jenis === "Tenaga Kontrak"
       ).length,
     },
     PPPK: {
       male: data.filter(
-        (emp) => emp.jenis_kelamin === "Laki-Laki" && emp.jenis === "PPPK"
+        (emp) => emp.jenis_kelamin === "L" && emp.jenis === "PPPK"
       ).length,
       female: data.filter(
-        (emp) => emp.jenis_kelamin === "Perempuan" && emp.jenis === "PPPK"
+        (emp) => emp.jenis_kelamin === "P" && emp.jenis === "PPPK"
       ).length,
     },
   };
@@ -441,12 +435,22 @@ function Dashboard() {
               options={barChartEselonSubBidangOptions}
             />
           </div>
-          <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
+          <div className="bg-gray-100 px-4 pt-4 rounded-lg border shadow-md">
             <h2 className="text-xl font-bold mb-8">
               Distribusi Golongan Darah
             </h2>
-            <div className="size-5/6 ml-28">
-              <Pie data={pieChartDataGoldar} options={pieChartOptions} />
+            <div
+              style={{
+                height: "28rem",
+                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ width: "70%", height: "100%" }}>
+                <Pie data={pieChartDataGoldar} options={pieChartOptions} />
+              </div>
             </div>
           </div>
           <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
@@ -455,10 +459,20 @@ function Dashboard() {
             </h2>
             <Bar data={stackedBarChartData} options={stackedBarChartOptions} />
           </div>
-          <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
+          <div className="bg-gray-100 px-4 pt-4 rounded-lg border shadow-md">
             <h2 className="text-xl font-bold mb-8">Distribusi Pendidikan</h2>
-            <div className="size-5/6 ml-28">
-              <Pie data={pieChartDataPendidikan} options={pieChartOptions} />
+            <div
+              style={{
+                height: "24rem",
+                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ width: "70%", height: "100%" }}>
+                <Pie data={pieChartDataPendidikan} options={pieChartOptions} />
+              </div>
             </div>
           </div>
         </div>

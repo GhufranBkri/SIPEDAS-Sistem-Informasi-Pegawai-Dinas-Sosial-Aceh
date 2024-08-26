@@ -86,10 +86,8 @@ function LandingPage() {
 
   // Hitung statistik setelah data berhasil diambil
 
-  const totalMale =
-    genderData.find((item) => item._id === "Laki-Laki")?.count || 0;
-  const totalFemale =
-    genderData.find((item) => item._id === "Perempuan")?.count || 0;
+  const totalMale = genderData.find((item) => item._id === "L")?.count || 0;
+  const totalFemale = genderData.find((item) => item._id === "P")?.count || 0;
   const totalEmployees = totalMale + totalFemale;
 
   // Data untuk grid
@@ -214,8 +212,18 @@ function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="bg-gray-100 p-4 rounded-lg border shadow-md mb-4">
             <h2 className="text-xl font-bold mb-8">Distribusi Gender</h2>
-            <div className="size-5/6 ml-28">
-              <Pie data={pieChartDataGender} options={pieChartOptions} />
+            <div
+              style={{
+                height: "24rem",
+                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ width: "70%", height: "100%" }}>
+                <Pie data={pieChartDataGender} options={pieChartOptions} />
+              </div>
             </div>
           </div>
           <div className="bg-gray-100 p-4 rounded-lg border shadow-md mb-4">
@@ -224,8 +232,18 @@ function LandingPage() {
           </div>
           <div className="bg-gray-100 p-4 rounded-lg border shadow-md mb-4">
             <h2 className="text-xl font-bold mb-8">Distribusi Pendidikan</h2>
-            <div className="size-5/6 ml-28">
-              <Pie data={pieChartDataPendidikan} options={pieChartOptions} />
+            <div
+              style={{
+                height: "24rem",
+                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <div style={{ width: "70%", height: "100%" }}>
+                <Pie data={pieChartDataPendidikan} options={pieChartOptions} />
+              </div>
             </div>
           </div>
         </div>

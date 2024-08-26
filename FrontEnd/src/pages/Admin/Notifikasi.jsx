@@ -142,7 +142,12 @@ const Notifikasi = () => {
       setNotifications(formattedNotifications);
       setLoading(false);
     } catch (error) {
-      setError("Failed to load data. Please try again later.");
+      if (error.response?.data?.message === "No pending update requests found") {
+        // Handle this specific error without showing an error message
+        setNotifications([]);
+      } else {
+        setError(error.response?.data?.message || error.message);
+      }
       setLoading(false);
     }
   }, []);
