@@ -132,27 +132,29 @@ const updateRequestStatus = async (req, res) => {
             }
 
             // Cek apakah terdapat email atau nomor telepon dalam updatedData
-            if (updatedData.email || updatedData.no_telpon) {
+            if (updatedData.email || updatedData.no_telepon) {
                 const user = await User.findOne({ employeeNip: updateRequest.employeeNip });
 
                 if (user) {
-                    // Update data di tabel User jika ditemukan
+                    // Validasi apakah email sudah digunakan
                     if (updatedData.email) {
-                        // Validasi apakah email sudah digunakan
                         const emailExists = await User.findOne({ email: updatedData.email });
                         if (emailExists && emailExists._id.toString() !== user._id.toString()) {
                             return res.status(400).json(formatResponse('error', 400, null, 'Email sudah digunakan'));
                         }
                         user.email = updatedData.email;
                     }
-                    if (updatedData.no_telpon) {
-                        // Validasi apakah nomor telepon sudah digunakan
-                        const phoneExists = await User.findOne({ no_telpon: updatedData.no_telpon });
+
+                    // Validasi apakah nomor telepon sudah digunakan
+                    if (updatedData.no_telepon) {
+                        const phoneExists = await User.findOne({ no_telepon: updatedData.no_telepon });
                         if (phoneExists && phoneExists._id.toString() !== user._id.toString()) {
                             return res.status(400).json(formatResponse('error', 400, null, 'Nomor telepon sudah digunakan'));
                         }
-                        user.no_telpon = updatedData.no_telpon;
+                        user.no_telpon = updatedData.no_telepon;
                     }
+
+                    // Simpan perubahan pada user
                     await user.save();
                 }
             }
@@ -178,6 +180,7 @@ const updateRequestStatus = async (req, res) => {
         res.status(500).json(formatResponse('error', 500, null, err.message));
     }
 };
+
 
 
 
