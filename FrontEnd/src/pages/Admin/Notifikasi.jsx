@@ -47,6 +47,7 @@ const Notifikasi = () => {
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDetailDeletedModal, setShowDetailDeletedModal] = useState(false);
   // eslint-disable-next-line no-unused-vars
   const [notificationToDelete, setNotificationToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,9 +73,7 @@ const Notifikasi = () => {
       return response.data.data.nama;
     } catch (error) {
       return (
-        <span className="bg-red-400 text-white p-1 rounded">
-          User Deleted
-        </span>
+        <span className="bg-red-400 text-white p-1 rounded">User Deleted</span>
       );
     }
   };
@@ -142,7 +141,9 @@ const Notifikasi = () => {
       setNotifications(formattedNotifications);
       setLoading(false);
     } catch (error) {
-      if (error.response?.data?.message === "No pending update requests found") {
+      if (
+        error.response?.data?.message === "No pending update requests found"
+      ) {
         // Handle this specific error without showing an error message
         setNotifications([]);
       } else {
@@ -163,9 +164,13 @@ const Notifikasi = () => {
     fetchNotifications();
   }, [navigate, fetchNotifications]);
 
-  const handleItemClick = (id, nip) => {
-    localStorage.setItem("employeeNip", nip);
-    navigate(`/DetailRequest/${id}`);
+  const handleItemClick = (notification) => {
+    if (typeof notification.title === 'object' && notification.title.props.children === 'User Deleted') {
+      setShowDetailDeletedModal(true);
+    } else {
+      localStorage.setItem("employeeNip", notification.nip);
+      navigate(`/DetailRequest/${notification.id}`);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -303,6 +308,10 @@ const Notifikasi = () => {
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
     navigate("/Notifikasi", { replace: true });
+  };
+
+  const closeDetailDeletedModal = () => {
+    setShowDetailDeletedModal(false);
   };
 
   const closeModal = () => {
@@ -456,9 +465,7 @@ const Notifikasi = () => {
                     <td className="py-4 px-12 border-l border-b">
                       <div className="flex space-x-12">
                         <button
-                          onClick={() =>
-                            handleItemClick(notification.id, notification.nip)
-                          }
+                          onClick={() => handleItemClick(notification)}
                           className="text-blue-500 hover:text-blue-700"
                         >
                           Detail
@@ -544,6 +551,24 @@ const Notifikasi = () => {
             >
               OK
             </button>
+          </div>
+        </div>
+      )}
+      {showDetailDeletedModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4">
+              User Deleted
+            </h2>
+            <div className="mb-4">User ini telah dihapus</div>
+            <div className="flex justify-end">
+              <button
+                onClick={closeDetailDeletedModal}
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
+              >
+                OK
+              </button>
+            </div>
           </div>
         </div>
       )}

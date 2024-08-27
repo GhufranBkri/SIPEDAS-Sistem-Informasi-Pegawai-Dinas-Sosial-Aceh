@@ -16,7 +16,7 @@ const employeeSchema = new mongoose.Schema({
     },
     eselon: {
         type: String,
-        maxlength: 10
+        maxlength: 50
     },
     sub_bidang: {
         type: String,
@@ -110,13 +110,16 @@ const employeeSchema = new mongoose.Schema({
         type: String
     },
     tahun_sk_awal: {
-        type: Number
+        type: String,
+        maxlength: 5
     },
     tahun_sk_akhir: {
-        type: Number
+        type: String,
+        maxlength: 5
     },
     masa_kerja: {
-        type: Number
+        type: String,
+        maxlength: 5
     },
     no_req_bkn: {
         type: String,

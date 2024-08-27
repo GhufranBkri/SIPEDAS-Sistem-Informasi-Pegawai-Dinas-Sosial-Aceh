@@ -100,7 +100,7 @@ function Dashboard() {
   ];
 
   // Process data for charts
-  const bidangLabels = [...new Set(data.map((emp) => emp.bidang))];
+  const bidangLabels = [...new Set(data.map((emp) => emp.bidang))].filter(label => label && label !== "-");
   const bidangData = bidangLabels.map(
     (label) => data.filter((emp) => emp.bidang === label).length
   );
@@ -178,8 +178,8 @@ function Dashboard() {
   };
 
   // Proses data untuk eselon dan sub_bidang
-  const eselonLabels = [...new Set(data.map((emp) => emp.eselon))];
-  const subBidangLabels = [...new Set(data.map((emp) => emp.sub_bidang))];
+  const eselonLabels = [...new Set(data.map((emp) => emp.eselon))].filter(label => label && label !== "-");
+  const subBidangLabels = [...new Set(data.map((emp) => emp.sub_bidang))].filter(label => label && label !== "-");
 
   // Gabungkan label unik
   const combinedLabels = [
@@ -343,10 +343,10 @@ function Dashboard() {
     },
     "Tenaga Kontrak": {
       male: data.filter(
-        (emp) => emp.jenis_kelamin === "L" && emp.jenis === "Tenaga Kontrak"
+        (emp) => emp.jenis_kelamin === "L" && emp.jenis === "TEKON"
       ).length,
       female: data.filter(
-        (emp) => emp.jenis_kelamin === "P" && emp.jenis === "Tenaga Kontrak"
+        (emp) => emp.jenis_kelamin === "P" && emp.jenis === "TEKON"
       ).length,
     },
     PPPK: {

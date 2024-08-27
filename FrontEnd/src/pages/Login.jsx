@@ -53,9 +53,9 @@ function Login() {
 
         // Navigate to the desired page after successful login
         if (user.role === "admin") {
-          navigate("/Dashboard");
+          navigate("/Dashboard", { replace: true });
         } else if (user.role === "employee") {
-          navigate("/ProfileUser");
+          navigate("/ProfileUser", { replace: true });
         } else {
           // Handle other roles or unknown roles if necessary
           setErrorMessage("Unknown role. Please contact support.");

@@ -59,8 +59,21 @@ const EditData = () => {
   const MAX_FILE_SIZE_MB = 1;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const jenisKelaminOptions = ["L", "P"];
-  const golonganDarahOptions = ["A", "A-", "A+", "B", "B-", "B+", "AB", "AB-", "AB+", "O", "O-", "O+"];
-  const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
+  const golonganDarahOptions = [
+    "A",
+    "A-",
+    "A+",
+    "B",
+    "B-",
+    "B+",
+    "AB",
+    "AB-",
+    "AB+",
+    "O",
+    "O-",
+    "O+",
+  ];
+  const jenisOptions = ["PNS", "TEKON", "PPPK"];
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -165,10 +178,18 @@ const EditData = () => {
           delete newErrors[name];
         }
       } else if (
-        ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(name)
+        ["tahun_tamat"].includes(name)
       ) {
         if (!validateYear(value)) {
           newErrors[name] = "Must be a 4-digit year";
+        } else {
+          delete newErrors[name];
+        }
+      }  else if (
+        ["tahun_sk_awal", "tahun_sk_akhir"].includes(name)
+      ) {
+        if (!validateYear(value)) {
+          newErrors[name] = "Must be a 4-digit year or '-'";
         } else {
           delete newErrors[name];
         }
@@ -198,7 +219,7 @@ const EditData = () => {
 
   const validateYear = (year) => {
     const yearRegex = /^\d{4}$/;
-    return yearRegex.test(year);
+    return year === "-" || yearRegex.test(year);
   };
 
   const validateForm = () => {
@@ -218,11 +239,16 @@ const EditData = () => {
             firstErrorElement = inputRefs.current[key];
           }
         }
-      } else if (
-        ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(key)
-      ) {
+      } else if (key === "tahun_tamat") {
         if (!validateYear(formData[key])) {
-          newErrors[key] = "Must be a 4-digit year";
+          newErrors[key] = "Must be a 4-digit year or '-'";
+          if (!firstErrorElement) {
+            firstErrorElement = inputRefs.current[key];
+          }
+        }
+      } else if (key === "tahun_sk_awal" || key === "tahun_sk_akhir") {
+        if (!validateYear(formData[key])) {
+          newErrors[key] = "Must be a 4-digit year or '-'";
           if (!firstErrorElement) {
             firstErrorElement = inputRefs.current[key];
           }
@@ -253,7 +279,7 @@ const EditData = () => {
           nip: formData.nip,
           newPassword: newPassword || "",
           newEmail: formData.email || "",
-          newPhone: formData.no_telepon || ""
+          newPhone: formData.no_telepon || "",
         },
         {
           headers: {
@@ -392,7 +418,7 @@ const EditData = () => {
   };
 
   const preventInvalidInput = (e) => {
-    if (["e", "E", "-", "+", "."].includes(e.key)) {
+    if (["e", "E", "+", "."].includes(e.key) && e.target.value !== "-") {
       e.preventDefault();
     }
   };
@@ -533,7 +559,10 @@ const EditData = () => {
               </h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="mb-4 md:col-span-1">
-                  <label className="block text-gray-700 mb-2" htmlFor="no_telepon">
+                  <label
+                    className="block text-gray-700 mb-2"
+                    htmlFor="no_telepon"
+                  >
                     No. Telepon
                   </label>
                   <input
@@ -695,9 +724,9 @@ const EditData = () => {
                   { name: "jenjang", type: "text" },
                   { name: "jenis", type: "select", options: jenisOptions },
                   { name: "jenis_tekon", type: "text" },
-                  { name: "tahun_sk_awal", type: "number" },
-                  { name: "tahun_sk_akhir", type: "number" },
-                  { name: "masa_kerja", type: "number" },
+                  { name: "tahun_sk_awal", type: "text" },
+                  { name: "tahun_sk_akhir", type: "text" },
+                  { name: "masa_kerja", type: "text" },
                   { name: "Kelas_jabatan", type: "text" },
                   { name: "no_req_bkn", type: "text" },
                 ].map(({ name, type, options, disabled }) => (
@@ -745,7 +774,13 @@ const EditData = () => {
                         {errors[name]}
                       </p>
                     )}
-                    {(name === "sub_bidang" || name === "eselon") && (
+                    {(name === "sub_bidang" ||
+                      name === "eselon" ||
+                      name === "tahun_sk_awal" ||
+                      name === "tahun_sk_akhir" ||
+                      name === "masa_kerja" ||
+                      name === "no_req_bkn" ||
+                      name === "Kelas_jabatan") && (
                       <p className="text-gray-600 font-bold text-sm mt-1">
                         * Isi ( - ) jika tidak ada
                       </p>

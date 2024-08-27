@@ -101,7 +101,16 @@ function LandingPage() {
   ];
 
   // Prepare data for gender pie chart
-  const genderLabels = genderData.map((item) => item._id);
+  const genderLabels = genderData.map((item) => {
+    switch (item._id) {
+      case "L":
+        return "Laki-Laki";
+      case "P":
+        return "Perempuan";
+      default:
+        return item._id;
+    }
+  });
   const genderCounts = genderData.map((item) => item.count);
 
   const pieChartDataGender = {
@@ -115,7 +124,7 @@ function LandingPage() {
   };
 
   // Prepare data for bidang bar chart
-  const bidangLabels = bidangData.map((item) => item._id);
+  const bidangLabels = bidangData.map((item) => item._id).filter(label => label && label !== "-");
   const bidangCounts = bidangData.map((item) => item.count);
 
   const barChartData = {

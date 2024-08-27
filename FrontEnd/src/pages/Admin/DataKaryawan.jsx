@@ -35,6 +35,18 @@ const DataKaryawan = () => {
     }
   }, [navigate]);
 
+  const highlightText = (text, search) => {
+    if (!text || !search) return text;
+    if (typeof text !== "string") {
+      text = text.toString(); // Convert other types to string
+    }
+    const regex = new RegExp(`(${search})`, "gi");
+    return text.replace(
+      regex,
+      (match) => `<span style="background-color: yellow;">${match}</span>`
+    );
+  };
+
   const columns = [
     {
       title: "No.",
@@ -42,6 +54,7 @@ const DataKaryawan = () => {
       key: "no",
       align: "center",
       fixed: "left",
+      width: 60,
       render: (_, __, index) =>
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
@@ -50,6 +63,7 @@ const DataKaryawan = () => {
       dataIndex: "foto",
       key: "foto",
       align: "center",
+      width: 120,
       render: (text) => (
         <div className="flex justify-center items-center w-full">
           <img src={text} alt="Foto" className="w-20 rounded-sm" />
@@ -62,6 +76,12 @@ const DataKaryawan = () => {
       key: "nama",
       sorter: (a, b) => a.nama.localeCompare(b.nama),
       fixed: "left",
+      width: 220,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "NIP/No. REG",
@@ -69,6 +89,12 @@ const DataKaryawan = () => {
       key: "nip",
       align: "center",
       sorter: (a, b) => a.nip.localeCompare(b.nip),
+      width: 170,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Bidang",
@@ -76,6 +102,12 @@ const DataKaryawan = () => {
       key: "bidang",
       align: "center",
       sorter: (a, b) => a.bidang.localeCompare(b.bidang),
+      width: 115,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Eselon",
@@ -83,6 +115,12 @@ const DataKaryawan = () => {
       key: "eselon",
       align: "center",
       sorter: (a, b) => a.eselon.localeCompare(b.eselon),
+      width: 108,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Sub Bidang",
@@ -90,6 +128,12 @@ const DataKaryawan = () => {
       key: "sub_bidang",
       align: "center",
       sorter: (a, b) => a.sub_bidang.localeCompare(b.sub_bidang),
+      width: 130,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Jabatan",
@@ -97,6 +141,12 @@ const DataKaryawan = () => {
       key: "jabatan_terakhir",
       align: "center",
       sorter: (a, b) => a.jabatan_terakhir.localeCompare(b.jabatan_terakhir),
+      width: 400,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Golongan/Ruang",
@@ -104,6 +154,12 @@ const DataKaryawan = () => {
       key: "gol_ruang",
       align: "center",
       sorter: (a, b) => a.gol_ruang.localeCompare(b.gol_ruang),
+      width: 150,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Jenjang",
@@ -111,6 +167,12 @@ const DataKaryawan = () => {
       key: "jenjang",
       align: "center",
       sorter: (a, b) => a.jenjang.localeCompare(b.jenjang),
+      width: 175,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Jenis",
@@ -118,6 +180,12 @@ const DataKaryawan = () => {
       key: "jenis",
       align: "center",
       sorter: (a, b) => a.jenis.localeCompare(b.jenis),
+      width: 90,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Jenis Kelamin",
@@ -125,6 +193,12 @@ const DataKaryawan = () => {
       key: "jenis_kelamin",
       align: "center",
       sorter: (a, b) => a.jenis_kelamin.localeCompare(b.jenis_kelamin),
+      width: 150,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Tempat Lahir",
@@ -132,6 +206,12 @@ const DataKaryawan = () => {
       key: "tempat_lahir",
       align: "center",
       sorter: (a, b) => a.tempat_lahir.localeCompare(b.tempat_lahir),
+      width: 215,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Tanggal Lahir",
@@ -140,12 +220,23 @@ const DataKaryawan = () => {
       align: "center",
       sorter: (a, b) => new Date(a.tanggal_lahir) - new Date(b.tanggal_lahir),
       render: (text) => {
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />;
         const date = new Date(text);
         const day = String(date.getDate()).padStart(2, "0");
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+        const formattedDate = `${day}/${month}/${year}`;
+        return (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: highlightText(formattedDate, searchQuery),
+            }}
+          />
+        );
       },
+      width: 140,
     },
     {
       title: "Umur",
@@ -153,6 +244,12 @@ const DataKaryawan = () => {
       key: "umur",
       align: "center",
       sorter: (a, b) => a.umur - b.umur,
+      width: 80,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "NIK",
@@ -160,6 +257,12 @@ const DataKaryawan = () => {
       key: "nik",
       align: "center",
       sorter: (a, b) => a.nik.localeCompare(b.nik),
+      width: 155,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "NPWP",
@@ -167,6 +270,12 @@ const DataKaryawan = () => {
       key: "npwp",
       align: "center",
       sorter: (a, b) => a.npwp.localeCompare(b.npwp),
+      width: 168,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "No. Rekening",
@@ -174,6 +283,12 @@ const DataKaryawan = () => {
       key: "no_rekening",
       align: "center",
       sorter: (a, b) => a.no_rekening.localeCompare(b.no_rekening),
+      width: 155,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "No. KK",
@@ -181,6 +296,12 @@ const DataKaryawan = () => {
       key: "no_kk",
       align: "center",
       sorter: (a, b) => a.no_kk.localeCompare(b.no_kk),
+      width: 154,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Gol. Darah",
@@ -188,6 +309,12 @@ const DataKaryawan = () => {
       key: "golongan_darah",
       align: "center",
       sorter: (a, b) => a.golongan_darah.localeCompare(b.golongan_darah),
+      width: 130,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "No. HP",
@@ -195,6 +322,12 @@ const DataKaryawan = () => {
       key: "no_telepon",
       align: "center",
       sorter: (a, b) => a.no_telepon.localeCompare(b.no_telepon),
+      width: 125,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Email",
@@ -202,6 +335,12 @@ const DataKaryawan = () => {
       key: "email",
       align: "center",
       sorter: (a, b) => a.email.localeCompare(b.email),
+      width: 300,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Email Gov",
@@ -209,6 +348,12 @@ const DataKaryawan = () => {
       key: "email_gov",
       align: "center",
       sorter: (a, b) => a.email_gov.localeCompare(b.email_gov),
+      width: 260,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Pendidikan",
@@ -216,6 +361,12 @@ const DataKaryawan = () => {
       key: "pendidikan",
       align: "center",
       sorter: (a, b) => a.pendidikan.localeCompare(b.pendidikan),
+      width: 120,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Jurusan",
@@ -223,6 +374,12 @@ const DataKaryawan = () => {
       key: "jurusan",
       align: "center",
       sorter: (a, b) => a.jurusan.localeCompare(b.jurusan),
+      width: 380,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Tahun Tamat",
@@ -230,6 +387,12 @@ const DataKaryawan = () => {
       key: "tahun_tamat",
       align: "center",
       sorter: (a, b) => a.tahun_tamat - b.tahun_tamat,
+      width: 130,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Jalan",
@@ -237,6 +400,12 @@ const DataKaryawan = () => {
       key: "jalan",
       align: "center",
       sorter: (a, b) => a.jalan.localeCompare(b.jalan),
+      width: 320,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Desa",
@@ -244,6 +413,12 @@ const DataKaryawan = () => {
       key: "desa",
       align: "center",
       sorter: (a, b) => a.desa.localeCompare(b.desa),
+      width: 180,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Kecamatan",
@@ -251,6 +426,12 @@ const DataKaryawan = () => {
       key: "kecamatan",
       align: "center",
       sorter: (a, b) => a.kecamatan.localeCompare(b.kecamatan),
+      width: 160,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Kabupaten/Kota",
@@ -258,6 +439,12 @@ const DataKaryawan = () => {
       key: "kabupaten",
       align: "center",
       sorter: (a, b) => a.kabupaten.localeCompare(b.kabupaten),
+      width: 160,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Alamat",
@@ -266,6 +453,12 @@ const DataKaryawan = () => {
       align: "center",
       sorter: (a, b) => a.alamat_lengkap.localeCompare(b.alamat_lengkap),
       editable: true,
+      width: 400,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Tahun SK Awal",
@@ -273,6 +466,12 @@ const DataKaryawan = () => {
       key: "tahun_sk_awal",
       align: "center",
       sorter: (a, b) => a.tahun_sk_awal - b.tahun_sk_awal,
+      width: 150,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Tahun SK Akhir",
@@ -280,6 +479,12 @@ const DataKaryawan = () => {
       key: "tahun_sk_akhir",
       align: "center",
       sorter: (a, b) => a.tahun_sk_akhir - b.tahun_sk_akhir,
+      width: 150,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Masa Kerja",
@@ -287,6 +492,12 @@ const DataKaryawan = () => {
       key: "masa_kerja",
       align: "center",
       sorter: (a, b) => a.masa_kerja - b.masa_kerja,
+      width: 140,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "No. Reg. BKN",
@@ -294,6 +505,12 @@ const DataKaryawan = () => {
       key: "no_req_bkn",
       align: "center",
       sorter: (a, b) => a.no_req_bkn.localeCompare(b.no_req_bkn),
+      width: 140,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Jenis Tekon",
@@ -301,6 +518,12 @@ const DataKaryawan = () => {
       key: "jenis_tekon",
       align: "center",
       sorter: (a, b) => a.jenis_tekon.localeCompare(b.jenis_tekon),
+      width: 140,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
     {
       title: "Kelas Jabatan",
@@ -308,6 +531,12 @@ const DataKaryawan = () => {
       key: "Kelas_jabatan",
       align: "center",
       sorter: (a, b) => a.kelas_jabatan.localeCompare(b.kelas_jabatan),
+      width: 150,
+      render: (text) => (
+        <div
+          dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
+        />
+      ),
     },
   ];
 
@@ -351,9 +580,35 @@ const DataKaryawan = () => {
 
   useEffect(() => {
     const filtered = records.filter((row) => {
-      return Object.values(row).some((val) =>
-        String(val).toLowerCase().includes(searchQuery.toLowerCase())
+      // Fungsi untuk memformat tanggal
+      const formatDate = (date) => {
+        if (!date) return "";
+        const d = new Date(date);
+        return `${String(d.getDate()).padStart(2, "0")}/${String(
+          d.getMonth() + 1
+        ).padStart(2, "0")}/${d.getFullYear()}`;
+      };
+
+      // Cek apakah query adalah format tanggal parsial
+      const isPartialDateQuery = /^\d{1,2}\/(\d{1,2}(\/\d{1,4})?)?$/.test(
+        searchQuery
       );
+
+      return Object.entries(row).some(([key, val]) => {
+        if (key === "tanggal_lahir") {
+          const formattedDate = formatDate(val);
+          if (isPartialDateQuery) {
+            // Jika query adalah format tanggal parsial, gunakan startsWith
+            return formattedDate.startsWith(searchQuery);
+          } else {
+            // Jika bukan, gunakan includes untuk pencarian normal
+            return formattedDate
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase());
+          }
+        }
+        return String(val).toLowerCase().includes(searchQuery.toLowerCase());
+      });
     });
     setFilteredRecords(filtered);
   }, [searchQuery, records]);
@@ -582,6 +837,7 @@ const DataKaryawan = () => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
+    navigate("/DataKaryawan", { replace: true });
   };
 
   const handleRefresh = () => {
@@ -675,8 +931,17 @@ const DataKaryawan = () => {
             bordered
             loading={loading}
             onChange={handleTableChange}
-            scroll={{ x: "max-content" }}
+            scroll={{ x: "max-content", y: 600 }}
+            sticky
           />
+          <style>
+            {`
+          .ant-table-thead > tr > th {
+            white-space: nowrap;
+            width: 9rem;
+          }
+        `}
+          </style>
         </div>
       </div>
 
