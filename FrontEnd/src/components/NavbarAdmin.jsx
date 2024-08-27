@@ -50,7 +50,7 @@ function NavbarAdmin() {
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userRole");
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   const fetchNotifications = async () => {
@@ -139,7 +139,9 @@ function NavbarAdmin() {
       ).length;
       setUnreadNotifications(countUnread);
     } catch (error) {
-      if (error.response?.data?.message === "No pending update requests found") {
+      if (
+        error.response?.data?.message === "No pending update requests found"
+      ) {
         // Handle this specific error without showing an error message
         setNotifications([]);
         setUnreadNotifications(0);

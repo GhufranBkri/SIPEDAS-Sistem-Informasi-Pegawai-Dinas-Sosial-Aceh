@@ -18,7 +18,7 @@ function NavbarUser() {
     localStorage.removeItem("authToken");
     localStorage.removeItem("userRole");
     localStorage.removeItem("formData");
-    navigate("/");
+    navigate("/", { replace: true });
   };
 
   useEffect(() => {

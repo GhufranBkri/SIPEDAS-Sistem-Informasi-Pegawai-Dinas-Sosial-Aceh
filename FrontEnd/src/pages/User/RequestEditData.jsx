@@ -56,8 +56,21 @@ const RequestEditData = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const jenisKelaminOptions = ["L", "P"];
-  const golonganDarahOptions = ["A", "A-", "A+", "B", "B-", "B+", "AB", "AB-", "AB+", "O", "O-", "O+"];
-  const jenisOptions = ["PNS", "Tenaga Kontrak", "PPPK"];
+  const golonganDarahOptions = [
+    "A",
+    "A-",
+    "A+",
+    "B",
+    "B-",
+    "B+",
+    "AB",
+    "AB-",
+    "AB+",
+    "O",
+    "O-",
+    "O+",
+  ];
+  const jenisOptions = ["PNS", "TEKON", "PPPK"];
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -178,10 +191,18 @@ const RequestEditData = () => {
         delete newErrors[name];
       }
     } else if (
-      ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(name)
+      ["tahun_tamat"].includes(name)
     ) {
       if (!validateYear(value)) {
         newErrors[name] = "Must be a 4-digit year";
+      } else {
+        delete newErrors[name];
+      }
+    }  else if (
+      ["tahun_sk_awal", "tahun_sk_akhir"].includes(name)
+    ) {
+      if (!validateYear(value)) {
+        newErrors[name] = "Must be a 4-digit year or '-'";
       } else {
         delete newErrors[name];
       }
@@ -210,7 +231,7 @@ const RequestEditData = () => {
 
   const validateYear = (year) => {
     const yearRegex = /^\d{4}$/;
-    return yearRegex.test(year);
+    return year === "-" || yearRegex.test(year);
   };
 
   const validateForm = () => {
@@ -230,11 +251,16 @@ const RequestEditData = () => {
             firstErrorElement = inputRefs.current[key];
           }
         }
-      } else if (
-        ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(key)
-      ) {
+      } else if (key === "tahun_tamat") {
         if (!validateYear(formData[key])) {
-          newErrors[key] = "Must be a 4-digit year";
+          newErrors[key] = "Must be a 4-digit year or '-'";
+          if (!firstErrorElement) {
+            firstErrorElement = inputRefs.current[key];
+          }
+        }
+      } else if (key === "tahun_sk_awal" || key === "tahun_sk_akhir") {
+        if (!validateYear(formData[key])) {
+          newErrors[key] = "Must be a 4-digit year or '-'";
           if (!firstErrorElement) {
             firstErrorElement = inputRefs.current[key];
           }
@@ -391,7 +417,7 @@ const RequestEditData = () => {
   };
 
   const preventInvalidInput = (e) => {
-    if (["e", "E", "-", "+", "."].includes(e.key)) {
+    if (["e", "E", "+", "."].includes(e.key) && e.target.value !== "-") {
       e.preventDefault();
     }
   };
@@ -615,9 +641,9 @@ const RequestEditData = () => {
                   { name: "jenjang", type: "text" },
                   { name: "jenis", type: "select", options: jenisOptions },
                   { name: "jenis_tekon", type: "text" },
-                  { name: "tahun_sk_awal", type: "number" },
-                  { name: "tahun_sk_akhir", type: "number" },
-                  { name: "masa_kerja", type: "number" },
+                  { name: "tahun_sk_awal", type: "text" },
+                  { name: "tahun_sk_akhir", type: "text" },
+                  { name: "masa_kerja", type: "text" },
                   { name: "Kelas_jabatan", type: "text" },
                   { name: "no_req_bkn", type: "text" },
                 ].map(({ name, type, options, disabled }) => (
@@ -665,7 +691,13 @@ const RequestEditData = () => {
                         {errors[name]}
                       </p>
                     )}
-                    {(name === "sub_bidang" || name === "eselon") && (
+                    {(name === "sub_bidang" ||
+                      name === "eselon" ||
+                      name === "tahun_sk_awal" ||
+                      name === "tahun_sk_akhir" ||
+                      name === "masa_kerja" ||
+                      name === "no_req_bkn" ||
+                      name === "Kelas_jabatan") && (
                       <p className="text-gray-600 font-bold  text-sm mt-1">
                         * Isi ( - ) jika tidak ada
                       </p>

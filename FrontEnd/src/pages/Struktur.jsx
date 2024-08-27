@@ -14,7 +14,7 @@ const Struktur = () => {
   const [zoomStyle, setZoomStyle] = useState({
     display: "block",
     backgroundPosition: "0% 0%",
-    backgroundSize: "1100%",
+    backgroundSize: "1000%",
   });
 
   useEffect(() => {
