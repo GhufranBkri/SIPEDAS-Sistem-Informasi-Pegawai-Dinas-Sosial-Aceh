@@ -144,6 +144,14 @@ const updateEmployeeByNip = async (req, res) => {
             { new: true, runValidators: true }
         );
 
+        if (updatedData.email || updatedData.no_telepon) {
+            const updatedUser = await User.findOneAndUpdate(
+                { employeeNip: nip },
+                { $set: { email: updatedData.email, no_telpon: updatedData.no_telepon } },
+                { new: true, runValidators: true }
+            );
+        }
+
         if (!updatedEmployee) {
             return res.status(404).json(formatResponse('error', 404, null, 'Employee not found'));
         }
