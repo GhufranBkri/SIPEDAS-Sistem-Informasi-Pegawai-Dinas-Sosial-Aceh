@@ -47,7 +47,7 @@ const createEmployee = async (req, res) => {
         // Buat user baru untuk employee yang baru dibuat
         const user = new User({
             email: req.body.email,
-            no_telepon: req.body.no_telepon,
+            no_telpon: req.body.no_telepon,
             password: hashedPassword,
             role: 'employee',
             employeeNip: req.body.nip
@@ -234,7 +234,7 @@ const importEmployeesFromCsv = async (req, res) => {
                             golongan_darah: row.golongan_darah,
                             no_telepon: row.no_telepon,
                             email: row.email,
-                            email_gov : row.email_gov,
+                            email_gov: row.email_gov,
                             pendidikan: row.pendidikan,
                             jurusan: row.jurusan,
                             tahun_tamat: row.tahun_tamat,
