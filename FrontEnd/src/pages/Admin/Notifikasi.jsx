@@ -142,7 +142,7 @@ const Notifikasi = () => {
       setLoading(false);
     } catch (error) {
       if (
-        error.response?.data?.message === "No pending update requests found"
+        error.response?.data?.message === "No update requests found"
       ) {
         // Handle this specific error without showing an error message
         setNotifications([]);
