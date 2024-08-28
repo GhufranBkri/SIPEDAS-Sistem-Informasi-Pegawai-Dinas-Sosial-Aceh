@@ -16,7 +16,13 @@ const port = process.env.PORT || 3000;
 
 console.log('Mongo URI:', process.env.MONGO_URI);
 
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch((err) => {
+        console.error('Failed to connect to MongoDB', err);
+        process.exit(1);
+    });
+
 
 app.use(cors({
     origin: 'http://localhost:5173', // Ganti dengan URL frontend Anda
@@ -37,7 +43,7 @@ app.use('/request', requestRoutes);
 // app.use('/', lanndingPageRoutes);
 
 app.get('/', (req, res) => {
-    res.status(200).send('Backend is running');
+    res.status(200).send('Server is working');
 });
 
 
