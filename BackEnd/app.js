@@ -19,7 +19,7 @@ console.log('Mongo URI:', process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI);
 
 app.use(cors({
-    origin: '*', // Ganti dengan URL frontend Anda
+    origin: 'http://localhost:5173', // Ganti dengan URL frontend Anda
     credentials: true
 }));
 
@@ -43,12 +43,6 @@ app.post('/', (req, res) => {
 app.use((req, res, next) => {
     res.status(404).send('Not Found');
 });
-
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send('Something went wrong!');
-});
-
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
