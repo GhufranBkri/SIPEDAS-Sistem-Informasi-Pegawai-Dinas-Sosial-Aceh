@@ -34,7 +34,12 @@ app.use('/auth', authRoutes);
 app.use('/profile', imageUpload);
 app.use('/struktur', strukturRoutes);
 app.use('/request', requestRoutes);
-app.use('/', lanndingPageRoutes);
+// app.use('/', lanndingPageRoutes);
+
+app.get('/', (req, res) => {
+    res.status(200).send('Backend is running');
+});
+
 
 app.post('/', (req, res) => {
     res.status(200).send('Root Endpoint POST Request');
