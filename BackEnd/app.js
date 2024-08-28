@@ -22,7 +22,8 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
         process.exit(1);
     });
 
-const allowedOrigins = ['http://localhost:5174', 'https://sipedas.vercel.app'];
+// Allowed origins and CORS settings
+const allowedOrigins = ['http://localhost:3000', 'https://sipedas.vercel.app'];
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -32,15 +33,18 @@ app.use(cors({
             callback(new Error('Not allowed by CORS'));
         }
     },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 
-const db = mongoose.connection;
-db.on('error', (error) => console.error('Connection error:', error));
-db.once('open', () => console.log('Connected to MongoDB'));
+// Respond to OPTIONS requests for preflight checks
+app.options('*', cors());
 
+// Body parser
 app.use(bodyParser.json());
 
+// Routes
 app.use('/employees', employeeRoutes);
 app.use('/auth', authRoutes);
 app.use('/profile', imageUpload);
@@ -48,6 +52,7 @@ app.use('/struktur', strukturRoutes);
 app.use('/request', requestRoutes);
 app.use('/', lanndingPageRoutes);
 
+// Root route
 app.get('/', (req, res) => {
     res.status(200).send('Server is working');
 });
@@ -56,10 +61,12 @@ app.post('/', (req, res) => {
     res.status(200).send('Root Endpoint POST Request');
 });
 
+// 404 handling
 app.use((req, res, next) => {
     res.status(404).send('Not Found');
 });
 
+// Start server
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
