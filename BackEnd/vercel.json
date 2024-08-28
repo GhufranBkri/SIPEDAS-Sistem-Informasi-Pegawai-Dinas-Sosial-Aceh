@@ -1,35 +1,9 @@
 {
     "version": 2,
-    "builds": [
+    "rewrites": [
         {
-            "src": "app.js",
-            "use": "@vercel/node"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/employees/(.*)",
-            "dest": "/employees"
-        },
-        {
-            "src": "/auth/(.*)",
-            "dest": "/auth"
-        },
-        {
-            "src": "/profile/(.*)",
-            "dest": "/profile"
-        },
-        {
-            "src": "/struktur/(.*)",
-            "dest": "/struktur"
-        },
-        {
-            "src": "/request/(.*)",
-            "dest": "/request"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/"
+            "source": "/(.*)",
+            "destination": "/api"
         }
     ]
 }
