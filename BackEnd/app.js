@@ -1,4 +1,3 @@
-// app.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
@@ -23,10 +22,16 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
         process.exit(1);
     });
 
-
+const allowedOrigins = ['http://localhost:5174', 'https://sipedas.vercel.app'];
 
 app.use(cors({
-    origin: '*', // Ganti dengan URL frontend Anda
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
@@ -46,7 +51,6 @@ app.use('/', lanndingPageRoutes);
 app.get('/', (req, res) => {
     res.status(200).send('Server is working');
 });
-
 
 app.post('/', (req, res) => {
     res.status(200).send('Root Endpoint POST Request');
