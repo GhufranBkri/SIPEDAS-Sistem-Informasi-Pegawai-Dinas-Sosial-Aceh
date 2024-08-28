@@ -19,7 +19,7 @@ console.log('Mongo URI:', process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI);
 
 app.use(cors({
-    origin: 'http://localhost:5173', // Ganti dengan URL frontend Anda
+    origin: '*', // Ganti dengan URL frontend Anda
     credentials: true
 }));
 

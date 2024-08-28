@@ -8,6 +8,26 @@
     ],
     "routes": [
         {
+            "src": "/employees/(.*)",
+            "dest": "/employees"
+        },
+        {
+            "src": "/auth/(.*)",
+            "dest": "/auth"
+        },
+        {
+            "src": "/profile/(.*)",
+            "dest": "/profile"
+        },
+        {
+            "src": "/struktur/(.*)",
+            "dest": "/struktur"
+        },
+        {
+            "src": "/request/(.*)",
+            "dest": "/request"
+        },
+        {
             "src": "/(.*)",
             "dest": "/"
         }
