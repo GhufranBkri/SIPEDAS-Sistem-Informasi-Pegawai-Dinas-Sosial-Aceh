@@ -63,7 +63,7 @@ const Notifikasi = () => {
         throw new Error("No authorization token found.");
       }
       const response = await axios.get(
-        `http://localhost:3000/employees/${nip}`,
+        `https://sipedas-dinas-sosial-aceh.vercel.app/employees/${nip}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -91,7 +91,7 @@ const Notifikasi = () => {
 
     try {
       const response = await axios.get(
-        "http://localhost:3000/request/update-request",
+        "https://sipedas-dinas-sosial-aceh.vercel.app/request/update-request",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -183,7 +183,7 @@ const Notifikasi = () => {
       setLoading(true);
 
       await axios.delete(
-        `http://localhost:3000/request/deleted-request/${id}`,
+        `https://sipedas-dinas-sosial-aceh.vercel.app/request/deleted-request/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

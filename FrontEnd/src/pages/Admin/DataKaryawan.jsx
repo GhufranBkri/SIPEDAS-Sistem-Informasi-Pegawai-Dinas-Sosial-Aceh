@@ -549,7 +549,7 @@ const DataKaryawan = () => {
         throw new Error("No token found");
       }
 
-      const response = await axios.get("http://localhost:3000/employees/", {
+      const response = await axios.get("https://sipedas-dinas-sosial-aceh.vercel.app/employees/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -674,7 +674,7 @@ const DataKaryawan = () => {
         }
 
         // Hapus foto dari cloud
-        await axios.delete("http://localhost:3000/profile/delete-foto", {
+        await axios.delete("https://sipedas-dinas-sosial-aceh.vercel.app/profile/delete-foto", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -685,7 +685,7 @@ const DataKaryawan = () => {
 
         // Delete the employee data
         await axios.delete(
-          `http://localhost:3000/employees/${selectedData.nip}`,
+          `https://sipedas-dinas-sosial-aceh.vercel.app/employees/${selectedData.nip}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

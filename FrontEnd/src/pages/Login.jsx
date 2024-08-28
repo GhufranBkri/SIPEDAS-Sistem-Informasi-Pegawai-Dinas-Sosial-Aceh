@@ -29,7 +29,7 @@ function Login() {
   const handleLogin = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/auth/login",
+        "https://sipedas-dinas-sosial-aceh.vercel.app/auth/login",
         {
           email,
           password,

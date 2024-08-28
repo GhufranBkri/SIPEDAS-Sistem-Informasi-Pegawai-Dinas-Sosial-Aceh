@@ -90,7 +90,7 @@ const GantiPasswordAdmin = () => {
       }
 
       await axios.put(
-        `http://localhost:3000/auth/change-pass-admin`,
+        `https://sipedas-dinas-sosial-aceh.vercel.app/auth/change-pass-admin`,
         {
           oldPassword: formData.passwordlama,
           newPassword: formData.passwordbaru,
