@@ -1,11 +1,9 @@
-// utils/uploadUtils.js
-
 const multer = require('multer');
 const path = require('path');
 
 // Set storage engine for CSV upload
 const csvStorage = multer.diskStorage({
-    destination: './uploads/',
+    destination: '/tmp/', // Use /tmp directory for serverless environments
     filename: function (req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
     }
