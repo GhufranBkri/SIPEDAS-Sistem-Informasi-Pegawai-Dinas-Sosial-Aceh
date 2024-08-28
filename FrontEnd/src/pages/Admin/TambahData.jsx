@@ -223,7 +223,7 @@ const TambahData = () => {
 
         try {
           const fotoResponse = await axios.post(
-            "https://sipedas-dinas-sosial-aceh.vercel.app/profile/upload-foto",
+            "https://sipedas-api.vercel.app/profile/upload-foto",
             fotoData,
             {
               headers: {
@@ -243,7 +243,7 @@ const TambahData = () => {
 
       const data = { ...formData, foto: fotoURL };
 
-      await axios.post("https://sipedas-dinas-sosial-aceh.vercel.app/employees/", data, {
+      await axios.post("https://sipedas-api.vercel.app/employees/", data, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

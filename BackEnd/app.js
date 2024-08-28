@@ -41,16 +41,16 @@ app.use('/auth', authRoutes);
 app.use('/profile', imageUpload);
 app.use('/struktur', strukturRoutes);
 app.use('/request', requestRoutes);
-// app.use('/', lanndingPageRoutes);
+app.use('/', lanndingPageRoutes);
 
 app.get('/', (req, res) => {
     res.status(200).send('Server is working');
 });
 
 
-// app.post('/', (req, res) => {
-//     res.status(200).send('Root Endpoint POST Request');
-// });
+app.post('/', (req, res) => {
+    res.status(200).send('Root Endpoint POST Request');
+});
 
 app.use((req, res, next) => {
     res.status(404).send('Not Found');

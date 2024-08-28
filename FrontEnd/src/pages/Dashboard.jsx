@@ -46,7 +46,7 @@ function Dashboard() {
     setLoading(true);
 
     axios
-      .get("https://sipedas-dinas-sosial-aceh.vercel.app/employees/visual", {
+      .get("https://sipedas-api.vercel.app/employees/visual", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

@@ -63,7 +63,7 @@ const GantiStruktur = () => {
       formData.append("image", selectedFile);
 
       const uploadResponse = await axios.post(
-        "https://sipedas-dinas-sosial-aceh.vercel.app/profile/upload-foto",
+        "https://sipedas-api.vercel.app/profile/upload-foto",
         formData,
         {
           headers: {
@@ -77,7 +77,7 @@ const GantiStruktur = () => {
 
       // Send the image URL to update the structure
       await axios.post(
-        "https://sipedas-dinas-sosial-aceh.vercel.app/struktur/upload-foto",
+        "https://sipedas-api.vercel.app/struktur/upload-foto",
         { imageUrl },
         {
           headers: {

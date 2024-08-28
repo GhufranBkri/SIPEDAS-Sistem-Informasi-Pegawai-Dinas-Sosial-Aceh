@@ -64,7 +64,7 @@ function NavbarAdmin() {
           throw new Error("No authorization token found.");
         }
         const response = await axios.get(
-          `https://sipedas-dinas-sosial-aceh.vercel.app/employees/${nip}`,
+          `https://sipedas-api.vercel.app/employees/${nip}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -88,7 +88,7 @@ function NavbarAdmin() {
 
     try {
       const response = await axios.get(
-        "https://sipedas-dinas-sosial-aceh.vercel.app/request/pending-request",
+        "https://sipedas-api.vercel.app/request/pending-request",
         {
           headers: {
             Authorization: `Bearer ${token}`,

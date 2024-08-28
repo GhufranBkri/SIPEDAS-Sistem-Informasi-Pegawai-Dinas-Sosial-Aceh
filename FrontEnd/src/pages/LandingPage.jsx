@@ -54,7 +54,7 @@ function LandingPage() {
     setLoading(true);
 
     axios
-      .get("https://sipedas-dinas-sosial-aceh.vercel.app/visualisasi", {})
+      .get("https://sipedas-api.vercel.app/visualisasi", {})
       .then((response) => {
         setGenderData(response.data.genderCounts);
         setBidangData(response.data.bidangCounts);
