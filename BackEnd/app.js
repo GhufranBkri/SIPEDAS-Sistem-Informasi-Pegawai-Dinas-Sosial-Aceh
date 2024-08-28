@@ -24,6 +24,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
     });
 
 
+
 app.use(cors({
     origin: 'http://localhost:5173', // Ganti dengan URL frontend Anda
     credentials: true
@@ -47,9 +48,9 @@ app.get('/', (req, res) => {
 });
 
 
-app.post('/', (req, res) => {
-    res.status(200).send('Root Endpoint POST Request');
-});
+// app.post('/', (req, res) => {
+//     res.status(200).send('Root Endpoint POST Request');
+// });
 
 app.use((req, res, next) => {
     res.status(404).send('Not Found');
