@@ -1,5 +1,4 @@
 {
-    "buildCommand": "npm install --legency-peer-deps",
     "version": 2,
     "builds": [
         {
