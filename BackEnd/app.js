@@ -26,7 +26,7 @@ mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopol
 
 
 app.use(cors({
-    origin: 'https://sipedas.vercel.app/', // Ganti dengan URL frontend Anda
+    origin: '*', // Ganti dengan URL frontend Anda
     credentials: true
 }));
 
