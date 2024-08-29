@@ -47,6 +47,10 @@ const DataKaryawan = () => {
     );
   };
 
+  const handleNameClick = (nip) => {
+    navigate(`/DetailUser/${nip}`);
+  };
+
   const columns = [
     {
       title: "No.",
@@ -77,8 +81,10 @@ const DataKaryawan = () => {
       sorter: (a, b) => a.nama.localeCompare(b.nama),
       fixed: "left",
       width: 220,
-      render: (text) => (
+      render: (text, record) => (
         <div
+          onClick={() => handleNameClick(record.nip)}
+          style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
           dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
         />
       ),

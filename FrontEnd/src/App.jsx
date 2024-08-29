@@ -17,6 +17,7 @@ import Notifikasi from './pages/Admin/Notifikasi';
 import RequestEditData from './pages/User/RequestEditData';
 import DetailRequest from './pages/Admin/DetailRequest';
 import GantiPasswordAdmin from './pages/Admin/GantiPasswordAdmin';
+import DetailUser from './pages/Admin/DetailUser';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route path="/RequestEditData" element={<RequestEditData />} />
             <Route path="/DetailRequest/:id" element={<DetailRequest />} />
             <Route path="/GantiPasswordAdmin" element={<GantiPasswordAdmin />} />
+            <Route path="/DetailUser/:nip" element={<DetailUser />} />
           </Route>
           <Route path="/Login" element={<Login />} />
 
