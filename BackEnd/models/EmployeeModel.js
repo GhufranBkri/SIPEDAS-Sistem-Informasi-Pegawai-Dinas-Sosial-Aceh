@@ -88,7 +88,8 @@ const employeeSchema = new mongoose.Schema({
         type: String,
     },
     tahun_tamat: {
-        type: Number
+        type: String,
+        maxlength: 5
     },
     jalan: {
         type: String,
