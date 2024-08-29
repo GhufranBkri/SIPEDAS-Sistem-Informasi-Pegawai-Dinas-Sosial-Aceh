@@ -101,16 +101,18 @@ function LandingPage() {
   ];
 
   // Prepare data for gender pie chart
-  const genderLabels = genderData.map((item) => {
-    switch (item._id) {
-      case "L":
-        return "Laki-Laki";
-      case "P":
-        return "Perempuan";
-      default:
-        return item._id;
-    }
-  });
+  const genderLabels = genderData
+    .map((item) => {
+      switch (item._id) {
+        case "L":
+          return "Laki-Laki";
+        case "P":
+          return "Perempuan";
+        default:
+          return item._id;
+      }
+    })
+    .filter((label) => label && label !== "-");
   const genderCounts = genderData.map((item) => item.count);
 
   const pieChartDataGender = {
@@ -123,8 +125,33 @@ function LandingPage() {
     ],
   };
 
+  const pieChartOptions = {
+    plugins: {
+      legend: {
+        position: "bottom",
+        labels: {
+          font: {
+            size: 12,
+          },
+        },
+      },
+      tooltip: {
+        callbacks: {
+          label: function (context) {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const value = context.raw;
+            const percentage = ((value / total) * 100).toFixed(2) + "%";
+            return `${context.label}: ${value} (${percentage})`;
+          },
+        },
+      },
+    },
+  };
+
   // Prepare data for bidang bar chart
-  const bidangLabels = bidangData.map((item) => item._id).filter(label => label && label !== "-");
+  const bidangLabels = bidangData
+    .map((item) => item._id)
+    .filter((label) => label && label !== "-");
   const bidangCounts = bidangData.map((item) => item.count);
 
   const barChartData = {
@@ -155,41 +182,66 @@ function LandingPage() {
     },
   };
 
-  // Prepare data for pendidikan pie chart
-  const pendidikanLabels = pendidikanData.map((item) => item._id);
-  const pendidikanCounts = pendidikanData.map((item) => item.count);
+  // Preprocess pendidikanData to merge labels like "S-1" and "S-1 "
+  const mergedPendidikanData = pendidikanData.reduce((acc, item) => {
+    const trimmedLabel = item._id.trim();
+    if (acc[trimmedLabel]) {
+      acc[trimmedLabel] += item.count;
+    } else {
+      acc[trimmedLabel] = item.count;
+    }
+    return acc;
+  }, {});
 
-  const pieChartDataPendidikan = {
-    labels: pendidikanLabels.map(
-      (label, index) => `${label} (${pendidikanCounts[index]})`
-    ),
+  const pendidikanLabels = Object.keys(mergedPendidikanData);
+  const pendidikanCounts = Object.values(mergedPendidikanData);
+
+  const horizontalBarChartData = {
+    labels: pendidikanLabels,
     datasets: [
       {
+        label: "Jumlah Pegawai per Pendidikan",
         data: pendidikanCounts,
-        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
       },
     ],
   };
 
-  const pieChartOptions = {
-    plugins: {
-      legend: {
-        position: "bottom",
-        labels: {
-          font: {
-            size: 16,
+  const horizontalBarChartOptions = {
+    indexAxis: "y", // Horizontal bar chart
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: "Jumlah", // Menambahkan label sumbu X
+        },
+        ticks: {
+          beginAtZero: true,
+          precision: 0, // Menghilangkan desimal
+          callback: function (value) {
+            // Custom callback to display specific tick values
+            const tickValues = [
+              0, 5, 10, 20, 30, 40, 50, 70, 100, 130, 160, 190,
+            ];
+            return tickValues.includes(value) ? value : "";
           },
+        },
+        // Define the custom tick values
+        maxTicksLimit: 12,
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Pendidikan", // Menambahkan label sumbu Y
         },
       },
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const value = context.raw;
-            const percentage = ((value / total) * 100).toFixed(2) + "%";
-            return `${context.label}: ${value} (${percentage})`;
-          },
-        },
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: "top",
       },
     },
   };
@@ -223,14 +275,13 @@ function LandingPage() {
             <h2 className="text-xl font-bold mb-8">Distribusi Gender</h2>
             <div
               style={{
-                height: "24rem",
                 position: "relative",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <div style={{ width: "70%", height: "100%" }}>
+              <div style={{ width: "70%", height: "70%" }}>
                 <Pie data={pieChartDataGender} options={pieChartOptions} />
               </div>
             </div>
@@ -243,16 +294,17 @@ function LandingPage() {
             <h2 className="text-xl font-bold mb-8">Distribusi Pendidikan</h2>
             <div
               style={{
-                height: "24rem",
                 position: "relative",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <div style={{ width: "70%", height: "100%" }}>
-                <Pie data={pieChartDataPendidikan} options={pieChartOptions} />
-              </div>
+              <Bar
+                data={horizontalBarChartData}
+                options={horizontalBarChartOptions}
+                height={250}
+              />
             </div>
           </div>
         </div>

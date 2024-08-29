@@ -89,11 +89,11 @@ const TambahData = () => {
         const allowedTypes = ["image/png", "image/jpeg"];
         if (!allowedTypes.includes(file.type)) {
           newErrors[name] =
-            "Invalid file type. Only PNG, JPG, and JPEG are allowed.";
+            "Kesalahan file type. Hanya PNG, JPG, and JPEG yang diterima.";
           setFormData({ ...formData, [name]: null });
           setFotoPreview(null);
         } else if (file.size > MAX_FILE_SIZE_BYTES) {
-          newErrors[name] = `File size exceeds ${MAX_FILE_SIZE_MB} MB limit.`;
+          newErrors[name] = `File melebihi batas ukuran ${MAX_FILE_SIZE_MB} MB.`;
           setFormData({ ...formData, [name]: null });
           setFotoPreview(null);
         } else {
@@ -104,35 +104,39 @@ const TambahData = () => {
       } else {
         setFormData({ ...formData, [name]: null });
         setFotoPreview(null);
-        newErrors[name] = "This field is required";
+        newErrors[name] = "Input ini harus diisi";
       }
     } else {
       setFormData({ ...formData, [name]: value });
 
-      if (name === "email" || name === "email_gov") {
+      if (name === "email_gov") {
+        if (!validateEmailGov(value)) {
+          newErrors[name] = "Kesalahan format email";
+        } else {
+          delete newErrors[name];
+        }
+      } else if (name === "email") {
         if (!validateEmail(value)) {
-          newErrors[name] = "Invalid email format";
+          newErrors[name] = "Kesalahan format email";
+        } else {
+          delete newErrors[name];
+        }
+      }  else if (name === "no_kk") {
+        if (!validateNoKK(value)) {
+          newErrors[name] = "Input ini harus diisi angka";
         } else {
           delete newErrors[name];
         }
       } else if (
-        ["tahun_tamat"].includes(name)
+        ["tahun_tamat", "tahun_sk_awal", "tahun_sk_akhir"].includes(name)
       ) {
         if (!validateYear(value)) {
-          newErrors[name] = "Must be a 4-digit year";
-        } else {
-          delete newErrors[name];
-        }
-      } else if (
-        ["tahun_sk_awal", "tahun_sk_akhir"].includes(name)
-      ) {
-        if (!validateYear(value)) {
-          newErrors[name] = "Must be a 4-digit year or '-'";
+          newErrors[name] = "Harus tahun 4-digit atau '-'";
         } else {
           delete newErrors[name];
         }
       } else if (value === "" || (name === "foto" && !files.length)) {
-        newErrors[name] = "This field is required";
+        newErrors[name] = "Input ini harus diisi";
       } else {
         delete newErrors[name];
       }
@@ -150,10 +154,20 @@ const TambahData = () => {
     }
   };
 
+  const validateEmailGov = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return email === "-" || emailRegex.test(email);
+  };
+
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
+
+  const validateNoKK = (no_kk) => {
+    const noKKRegex = /^[0-9-.]+$/;
+    return noKKRegex.test(no_kk);
+};
 
   const validateYear = (year) => {
     const yearRegex = /^\d{4}$/;
@@ -166,27 +180,38 @@ const TambahData = () => {
 
     Object.keys(formData).forEach((key) => {
       if (formData[key] === "" || (key === "foto" && !formData[key])) {
-        newErrors[key] = "This field is required";
+        newErrors[key] = "Input ini harus diisi";
         if (!firstErrorElement) {
           firstErrorElement = inputRefs.current[key];
         }
-      } else if (key === "email" || key === "email_gov") {
+      } else if (key === "email_gov") {
+        if (!validateEmailGov(formData[key])) {
+          newErrors[key] = "Kesalahan format email";
+          if (!firstErrorElement) {
+            firstErrorElement = inputRefs.current[key];
+          }
+        }
+      } else if (key === "email") {
         if (!validateEmail(formData[key])) {
-          newErrors[key] = "Invalid email format";
+          newErrors[key] = "Kesalahan format email";
           if (!firstErrorElement) {
             firstErrorElement = inputRefs.current[key];
           }
         }
-      } else if (key === "tahun_tamat") {
-        if (!validateYear(formData[key])) {
-          newErrors[key] = "Must be a 4-digit year";
+      } else if (key === "no_kk") {
+        if (!validateNoKK(formData[key])) {
+          newErrors[key] = "Input ini harus diisi angka";
           if (!firstErrorElement) {
             firstErrorElement = inputRefs.current[key];
           }
         }
-      } else if (key === "tahun_sk_awal" || key === "tahun_sk_akhir") {
+      } else if (
+        key === "tahun_tamat" ||
+        key === "tahun_sk_awal" ||
+        key === "tahun_sk_akhir"
+      ) {
         if (!validateYear(formData[key])) {
-          newErrors[key] = "Must be a 4-digit year or '-'";
+          newErrors[key] = "Harus tahun 4-digit atau '-'";
           if (!firstErrorElement) {
             firstErrorElement = inputRefs.current[key];
           }
@@ -340,7 +365,7 @@ const TambahData = () => {
                     options: golonganDarahOptions,
                   },
                   { name: "nik", type: "number" },
-                  { name: "no_kk", type: "number" },
+                  { name: "no_kk", type: "text" },
                   { name: "no_telepon", type: "number" },
                   { name: "no_rekening", type: "text" },
                   { name: "email", type: "text" },
@@ -421,6 +446,11 @@ const TambahData = () => {
                         * format : bulan/tanggal/tahun
                       </p>
                     )}
+                    {(name === "email_gov" || name === "no_kk" || name === "no_rekening") && (
+                      <p className="text-gray-600 font-bold text-sm mt-1">
+                        * Isi ( - ) jika tidak ada
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -473,7 +503,6 @@ const TambahData = () => {
               <h1 className="text-xl font-bold mb-6 text-start">Pendidikan</h1>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {["pendidikan", "jurusan", "tahun_tamat"].map((key) => {
-                  const isNumberField = ["tahun_tamat"].includes(key);
 
                   return (
                     <div className="mb-4" key={key}>
@@ -481,16 +510,11 @@ const TambahData = () => {
                         {key.replace("_", " ").toUpperCase()}
                       </label>
                       <input
-                        type={isNumberField ? "number" : "text"}
+                        type={"text"}
                         id={key}
                         name={key}
                         value={formData[key]}
                         onChange={handleChange}
-                        onKeyDown={
-                          isNumberField === "number"
-                            ? preventInvalidInput
-                            : null
-                        }
                         ref={(el) => (inputRefs.current[key] = el)}
                         className="border border-gray-300 rounded-md p-2 w-full"
                       />
