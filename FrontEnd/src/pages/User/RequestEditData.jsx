@@ -106,7 +106,7 @@ const RequestEditData = () => {
         }
 
         const response = await axios.get(
-          `http://localhost:3000/employees/${nip}`,
+          `https://sipedas-api.vercel.app/employees/${nip}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -324,7 +324,7 @@ const RequestEditData = () => {
 
         try {
           const uploadResponse = await axios.post(
-            `http://localhost:3000/profile/upload-foto`,
+            `https://sipedas-api.vercel.app/profile/upload-foto`,
             fotoFormData,
             {
               headers: {
@@ -372,7 +372,7 @@ const RequestEditData = () => {
 
       // Mengirim data lain
       await axios.post(
-        `http://localhost:3000/request/update-request/`,
+        `https://sipedas-api.vercel.app/request/update-request/`,
         payload,
         {
           headers: {

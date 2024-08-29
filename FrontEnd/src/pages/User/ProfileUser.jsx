@@ -72,7 +72,7 @@ const ProfileUser = () => {
         }
 
         const response = await axios.get(
-          `http://localhost:3000/employees/users/me`,
+          `https://sipedas-api.vercel.app/employees/users/me`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
