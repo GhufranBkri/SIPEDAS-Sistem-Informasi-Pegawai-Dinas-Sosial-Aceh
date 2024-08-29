@@ -61,7 +61,7 @@ const GantiPassword = () => {
         }
 
         const response = await axios.get(
-          `http://localhost:3000/employees/${nip}`,
+          `https://sipedas-api.vercel.app/employees/${nip}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -120,7 +120,7 @@ const GantiPassword = () => {
       }
 
       await axios.put(
-        `http://localhost:3000/auth/change-password`,
+        `https://sipedas-api.vercel.app/auth/change-password`,
         {
           oldPassword: formData.passwordlama,
           newPassword: formData.passwordbaru,
