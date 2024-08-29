@@ -64,7 +64,7 @@ function NavbarAdmin() {
           throw new Error("No authorization token found.");
         }
         const response = await axios.get(
-          `http://localhost:3000/employees/${nip}`,
+          `https://sipedas-api.vercel.app/employees/${nip}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -88,7 +88,7 @@ function NavbarAdmin() {
 
     try {
       const response = await axios.get(
-        "http://localhost:3000/request/pending-request",
+        "https://sipedas-api.vercel.app/request/pending-request",
         {
           headers: {
             Authorization: `Bearer ${token}`,

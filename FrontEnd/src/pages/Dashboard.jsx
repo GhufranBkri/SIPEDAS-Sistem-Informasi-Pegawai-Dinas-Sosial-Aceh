@@ -46,7 +46,7 @@ function Dashboard() {
     setLoading(true);
 
     axios
-      .get("http://localhost:3000/employees/visual", {
+      .get("https://sipedas-api.vercel.app/employees/visual", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -85,7 +85,7 @@ function Dashboard() {
   const totalFemale = data.filter((emp) => emp.jenis_kelamin === "P").length;
   const totalPNS = data.filter((emp) => emp.jenis === "PNS").length;
   const totalContract = data.filter(
-    (emp) => emp.jenis === "Tenaga Kontrak"
+    (emp) => emp.jenis === "TEKON"
   ).length;
   const totalPPPK = data.filter((emp) => emp.jenis === "PPPK").length;
 

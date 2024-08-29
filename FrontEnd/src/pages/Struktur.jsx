@@ -34,7 +34,7 @@ const Struktur = () => {
       setError(null);
       try {
         const response = await axios.get(
-          "http://localhost:3000/struktur/get-foto",
+          "https://sipedas-api.vercel.app/struktur/get-foto",
           {
             headers: {
               Authorization: `Bearer ${token}`,

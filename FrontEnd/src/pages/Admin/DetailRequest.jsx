@@ -76,7 +76,7 @@ const DetailRequest = () => {
 
         // Fetch employee data based on NIP
         const employeeResponse = await axios.get(
-          `http://localhost:3000/employees/${nip}`,
+          `https://sipedas-api.vercel.app/employees/${nip}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -86,7 +86,7 @@ const DetailRequest = () => {
 
         // Fetch updated data based on request ID
         const requestResponse = await axios.get(
-          `http://localhost:3000/request/update-request/${id}`,
+          `https://sipedas-api.vercel.app/request/update-request/${id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -138,7 +138,7 @@ const DetailRequest = () => {
       setLoading(true);
 
       const response = await axios.put(
-        `http://localhost:3000/request/update-request/${id}`,
+        `https://sipedas-api.vercel.app/request/update-request/${id}`,
         {
           status: newStatus,
           updatedData: updatedFields,

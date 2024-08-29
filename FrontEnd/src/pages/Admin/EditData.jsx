@@ -274,7 +274,7 @@ const EditData = () => {
 
     try {
       await axios.put(
-        `http://localhost:3000/auth/update-user-details`,
+        `https://sipedas-api.vercel.app/auth/update-user-details`,
         {
           nip: formData.nip,
           newPassword: newPassword || "",
@@ -331,7 +331,7 @@ const EditData = () => {
 
         try {
           const uploadResponse = await axios.put(
-            `http://localhost:3000/profile/edit-foto`,
+            `https://sipedas-api.vercel.app/profile/edit-foto`,
             fotoFormData,
             {
               headers: {
@@ -363,7 +363,7 @@ const EditData = () => {
 
       // Mengirim data lain
       await axios.patch(
-        `http://localhost:3000/employees/${formData.nip}`,
+        `https://sipedas-api.vercel.app/employees/${formData.nip}`,
         { ...formData, foto: imageUrl },
         {
           headers: {

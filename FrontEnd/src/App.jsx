@@ -39,7 +39,7 @@ function App() {
             <Route path="/GantiPasswordAdmin" element={<GantiPasswordAdmin />} />
           </Route>
           <Route path="/Login" element={<Login />} />
-          
+
         </Routes>
       </div>
     </Router>
