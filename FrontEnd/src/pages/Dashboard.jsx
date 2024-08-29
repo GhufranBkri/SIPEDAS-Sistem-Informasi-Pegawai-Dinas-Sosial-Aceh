@@ -84,9 +84,7 @@ function Dashboard() {
   const totalMale = data.filter((emp) => emp.jenis_kelamin === "L").length;
   const totalFemale = data.filter((emp) => emp.jenis_kelamin === "P").length;
   const totalPNS = data.filter((emp) => emp.jenis === "PNS").length;
-  const totalContract = data.filter(
-    (emp) => emp.jenis === "TEKON"
-  ).length;
+  const totalContract = data.filter((emp) => emp.jenis === "TEKON").length;
   const totalPPPK = data.filter((emp) => emp.jenis === "PPPK").length;
 
   // Data untuk grid
@@ -100,7 +98,9 @@ function Dashboard() {
   ];
 
   // Process data for charts
-  const bidangLabels = [...new Set(data.map((emp) => emp.bidang))].filter(label => label && label !== "-");
+  const bidangLabels = [...new Set(data.map((emp) => emp.bidang))].filter(
+    (label) => label && label !== "-"
+  );
   const bidangData = bidangLabels.map(
     (label) => data.filter((emp) => emp.bidang === label).length
   );
@@ -145,10 +145,12 @@ function Dashboard() {
     "61-65",
     "66-70",
   ];
-  const ageData = ageRanges.map((range) => {
-    const [start, end] = range.split("-").map(Number);
-    return data.filter((emp) => emp.umur >= start && emp.umur <= end).length;
-  });
+  const ageData = ageRanges
+    .map((range) => {
+      const [start, end] = range.split("-").map(Number);
+      return data.filter((emp) => emp.umur >= start && emp.umur <= end).length;
+    })
+    .filter((label) => label && label !== "-");
 
   const lineChartData = {
     labels: ageRanges,
@@ -177,49 +179,43 @@ function Dashboard() {
     },
   };
 
-  // Proses data untuk eselon dan sub_bidang
-  const eselonLabels = [...new Set(data.map((emp) => emp.eselon))].filter(label => label && label !== "-");
-  const subBidangLabels = [...new Set(data.map((emp) => emp.sub_bidang))].filter(label => label && label !== "-");
+  // Proses data untuk Sub Bidang
+  const subBidangLabels = [
+    ...new Set(data.map((emp) => emp.sub_bidang)),
+  ].filter((label) => label && label !== "-");
+  const subBidangData = subBidangLabels.map(
+    (label) => data.filter((emp) => emp.sub_bidang === label).length
+  );
 
-  // Gabungkan label unik
-  const combinedLabels = [
-    ...new Set([...eselonLabels, ...subBidangLabels]),
-  ].sort();
+  // Proses data untuk Eselon
+  const eselonLabels = [...new Set(data.map((emp) => emp.eselon))].filter(
+    (label) => label && label !== "-"
+  );
+  const eselonData = eselonLabels.map(
+    (label) => data.filter((emp) => emp.eselon === label).length
+  );
 
-  // Hitung data untuk setiap label
-  const combinedData = combinedLabels.map((label) => {
-    const eselonCount = data.filter((emp) => emp.eselon === label).length;
-    const subBidangCount = data.filter(
-      (emp) => emp.sub_bidang === label
-    ).length;
-    return {
-      label,
-      eselonCount,
-      subBidangCount,
-      totalCount: eselonCount + subBidangCount,
-      isEselon: eselonLabels.includes(label),
-      isSubBidang: subBidangLabels.includes(label),
-    };
-  });
-
-  // Data untuk bar chart gabungan
-  const barChartEselonSubBidangData = {
-    labels: combinedLabels,
+  // Data untuk chart Sub Bidang
+  const barChartSubBidangData = {
+    labels: subBidangLabels,
     datasets: [
       {
-        label: "Eselon",
-        data: combinedData.map((item) =>
-          item.isEselon ? item.eselonCount : 0
-        ),
+        label: "Jumlah Pegawai per Sub Bidang",
+        data: subBidangData,
         backgroundColor: "rgba(75, 192, 192, 0.6)",
         borderColor: "rgba(75, 192, 192, 1)",
         borderWidth: 1,
       },
+    ],
+  };
+
+  // Data untuk chart Eselon
+  const barChartEselonData = {
+    labels: eselonLabels,
+    datasets: [
       {
-        label: "Sub Bidang",
-        data: combinedData.map((item) =>
-          item.isSubBidang ? item.subBidangCount : 0
-        ),
+        label: "Jumlah Pegawai per Eselon",
+        data: eselonData,
         backgroundColor: "rgba(153, 102, 255, 0.6)",
         borderColor: "rgba(153, 102, 255, 1)",
         borderWidth: 1,
@@ -227,54 +223,9 @@ function Dashboard() {
     ],
   };
 
-  // Opsi untuk bar chart
-  const barChartEselonSubBidangOptions = {
-    scales: {
-      y: {
-        beginAtZero: true,
-        stacked: true,
-        title: {
-          display: true,
-          text: "Jumlah",
-        },
-        ticks: {
-          precision: 0,
-        },
-      },
-      x: {
-        stacked: true,
-      },
-    },
-    plugins: {
-      legend: {
-        display: true,
-        position: "top",
-      },
-      tooltip: {
-        callbacks: {
-          label: function (context) {
-            const datasetLabel = context.dataset.label || "";
-            const value = context.parsed.y;
-            return `${datasetLabel}: ${value}`;
-          },
-          footer: function (tooltipItems) {
-            let total = 0;
-            const currentLabel = tooltipItems[0].label;
-
-            // Find the total for the current label
-            combinedData.forEach((item) => {
-              if (item.label === currentLabel) {
-                total = item.totalCount; // Total count of Eselon and Sub Bidang combined
-              }
-            });
-            return "Total: " + total;
-          },
-        },
-      },
-    },
-  };
-
-  const goldarLabels = [...new Set(data.map((emp) => emp.golongan_darah))];
+  const goldarLabels = [
+    ...new Set(data.map((emp) => emp.golongan_darah)),
+  ].filter((label) => label && label !== "-");
   const goldarData = goldarLabels.map(
     (label) => data.filter((emp) => emp.golongan_darah === label).length
   );
@@ -286,24 +237,17 @@ function Dashboard() {
     datasets: [
       {
         data: goldarData,
-        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
-      },
-    ],
-  };
-
-  const pendidikanLabels = [...new Set(data.map((emp) => emp.pendidikan))];
-  const pendidikanData = pendidikanLabels.map(
-    (label) => data.filter((emp) => emp.pendidikan === label).length
-  );
-
-  const pieChartDataPendidikan = {
-    labels: pendidikanLabels.map(
-      (label, index) => `${label} (${pendidikanData[index]})`
-    ),
-    datasets: [
-      {
-        data: pendidikanData,
-        backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0"],
+        backgroundColor: [
+          "#FF6384",
+          "#36A2EB",
+          "#FFCE56",
+          "#FF6347",
+          "#8E44AD",
+          "#2ECC71",
+          "#E67E22",
+          "#E74C3C",
+          "#C0392B",
+        ],
       },
     ],
   };
@@ -314,7 +258,7 @@ function Dashboard() {
         position: "bottom",
         labels: {
           font: {
-            size: 16, // Adjust font size here
+            size: 12,
           },
         },
       },
@@ -360,7 +304,7 @@ function Dashboard() {
   };
 
   const stackedBarChartData = {
-    labels: genderTypes,
+    labels: genderTypes.filter((label) => label && label !== "-"),
     datasets: [
       {
         label: "Laki-laki",
@@ -389,6 +333,75 @@ function Dashboard() {
           beginAtZero: true,
           precision: 0, // Remove decimals
         },
+      },
+    },
+  };
+
+  const pendidikanDataMap = data.reduce((acc, emp) => {
+    // Remove spaces and standardize the label
+    const label = emp.pendidikan.replace(/\s/g, "");
+    if (acc[label]) {
+      acc[label]++;
+    } else {
+      acc[label] = 1;
+    }
+    return acc;
+  }, {});
+
+  const pendidikanLabels = Object.keys(pendidikanDataMap).filter(
+    (label) => label && label !== "-"
+  );
+
+  const pendidikanData = pendidikanLabels.map(
+    (label) => pendidikanDataMap[label]
+  );
+
+  const horizontalBarChartData = {
+    labels: pendidikanLabels,
+    datasets: [
+      {
+        label: "Jumlah Pegawai per Pendidikan",
+        data: pendidikanData,
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const horizontalBarChartOptions = {
+    indexAxis: "y", // Horizontal bar chart
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: "Jumlah", // Menambahkan label sumbu X
+        },
+        ticks: {
+          beginAtZero: true,
+          precision: 0, // Menghilangkan desimal
+          callback: function (value) {
+            // Custom callback to display specific tick values
+            const tickValues = [
+              0, 5, 10, 20, 30, 40, 50, 70, 100, 130, 160, 190,
+            ];
+            return tickValues.includes(value) ? value : "";
+          },
+        },
+        // Define the custom tick values
+        maxTicksLimit: 12,
+      },
+      y: {
+        title: {
+          display: true,
+          text: "Pendidikan", // Menambahkan label sumbu Y
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: "top",
       },
     },
   };
@@ -423,35 +436,33 @@ function Dashboard() {
             <Bar data={barChartData} options={barChartOptions} />
           </div>
           <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
-            <h2 className="text-xl font-bold mb-8">Distribusi Umur</h2>
-            <Line data={lineChartData} options={lineChartOptions} />
+            <h2 className="text-xl font-bold mb-8">Distribusi Sub Bidang</h2>
+            <Bar data={barChartSubBidangData} options={barChartOptions} />
           </div>
           <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
-            <h2 className="text-xl font-bold mb-8">
-              Distribusi berdasarkan Sub Bidang dan Eselon
-            </h2>
-            <Bar
-              data={barChartEselonSubBidangData}
-              options={barChartEselonSubBidangOptions}
-            />
+            <h2 className="text-xl font-bold mb-8">Distribusi Eselon</h2>
+            <Bar data={barChartEselonData} options={barChartOptions} />
           </div>
-          <div className="bg-gray-100 px-4 pt-4 rounded-lg border shadow-md">
+          <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
             <h2 className="text-xl font-bold mb-8">
               Distribusi Golongan Darah
             </h2>
             <div
               style={{
-                height: "28rem",
                 position: "relative",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <div style={{ width: "70%", height: "100%" }}>
+              <div style={{ width: "70%", height: "70%" }}>
                 <Pie data={pieChartDataGoldar} options={pieChartOptions} />
               </div>
             </div>
+          </div>
+          <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
+            <h2 className="text-xl font-bold mb-8">Distribusi Umur</h2>
+            <Line data={lineChartData} options={lineChartOptions} />
           </div>
           <div className="bg-gray-100 p-4 rounded-lg border shadow-md">
             <h2 className="text-xl font-bold mb-8">
@@ -459,19 +470,22 @@ function Dashboard() {
             </h2>
             <Bar data={stackedBarChartData} options={stackedBarChartOptions} />
           </div>
-          <div className="bg-gray-100 px-4 pt-4 rounded-lg border shadow-md">
-            <h2 className="text-xl font-bold mb-8">Distribusi Pendidikan</h2>
-            <div
-              style={{
-                height: "24rem",
-                position: "relative",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <div style={{ width: "70%", height: "100%" }}>
-                <Pie data={pieChartDataPendidikan} options={pieChartOptions} />
+          <div className="col-start-2">
+            <div className=" bg-gray-100 p-4 rounded-lg border shadow-md ">
+              <h2 className="text-xl font-bold mb-8">Distribusi Pendidikan</h2>
+              <div
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Bar
+                  data={horizontalBarChartData}
+                  options={horizontalBarChartOptions}
+                  height={250}
+                />
               </div>
             </div>
           </div>

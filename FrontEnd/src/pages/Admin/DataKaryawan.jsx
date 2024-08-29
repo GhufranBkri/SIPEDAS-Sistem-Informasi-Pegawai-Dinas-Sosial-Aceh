@@ -40,7 +40,13 @@ const DataKaryawan = () => {
     if (typeof text !== "string") {
       text = text.toString(); // Convert other types to string
     }
-    const regex = new RegExp(`(${search})`, "gi");
+    // Escape special characters for regex
+    const escapeRegExp = (string) => {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const searchQuery = escapeRegExp(search);
+    const regex = new RegExp(`(${searchQuery})`, "gi");
     return text.replace(
       regex,
       (match) => `<span style="background-color: yellow;">${match}</span>`
@@ -84,7 +90,11 @@ const DataKaryawan = () => {
       render: (text, record) => (
         <div
           onClick={() => handleNameClick(record.nip)}
-          style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
+          style={{
+            cursor: "pointer",
+            color: "blue",
+            textDecoration: "underline",
+          }}
           dangerouslySetInnerHTML={{ __html: highlightText(text, searchQuery) }}
         />
       ),
@@ -536,7 +546,12 @@ const DataKaryawan = () => {
       dataIndex: "Kelas_jabatan",
       key: "Kelas_jabatan",
       align: "center",
-      sorter: (a, b) => a.kelas_jabatan.localeCompare(b.kelas_jabatan),
+      sorter: (a, b) => {
+        const valueA = parseInt(a.Kelas_jabatan) || 0;
+        const valueB = parseInt(b.Kelas_jabatan) || 0;
+        return valueB - valueA; // Sort from highest to lowest
+      },
+      defaultSortOrder: "ascend",
       width: 150,
       render: (text) => (
         <div
@@ -555,23 +570,32 @@ const DataKaryawan = () => {
         throw new Error("No token found");
       }
 
-      const response = await axios.get("https://sipedas-api.vercel.app/employees/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "https://sipedas-api.vercel.app/employees/",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const dataWithIds = response.data.data.map((item) => ({
         ...item,
         key: item.nip,
       }));
 
-      // Sort the data by 'kelas_jabatan' in descending order (highest first)
-      const sortedData = dataWithIds.sort(
-        (a, b) => b.Kelas_jabatan - a.Kelas_jabatan
-      );
+      setRecords(dataWithIds);
+      setFilteredRecords(dataWithIds);
+
+      const sortedData = [...dataWithIds].sort((a, b) => {
+        const valueA = parseInt(a.Kelas_jabatan) || 0;
+        const valueB = parseInt(b.Kelas_jabatan) || 0;
+        return valueB - valueA;
+      });
 
       setRecords(sortedData);
       setFilteredRecords(sortedData);
+      setSorter({ columnKey: "Kelas_jabatan", order: "ascend" });
+
       setLoading(false);
     } catch (error) {
       setError("Failed to load data. Please try again later.");
@@ -667,52 +691,50 @@ const DataKaryawan = () => {
   };
 
   const handleDeleteSelectedRows = async () => {
-    if (selectedRowKeys.length === 1) {
-      const selectedData = records.find(
-        (record) => record.nip === selectedRowKeys[0]
-      );
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("No token found");
+      }
 
-      try {
-        setLoading(true);
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          throw new Error("No token found");
-        }
+      for (const nip of selectedRowKeys) {
+        const selectedData = records.find((record) => record.nip === nip);
 
         // Hapus foto dari cloud
-        await axios.delete("https://sipedas-api.vercel.app/profile/delete-foto", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          data: {
-            imageUrl: selectedData.foto,
-          },
-        });
-
-        // Delete the employee data
         await axios.delete(
-          `https://sipedas-api.vercel.app/employees/${selectedData.nip}`,
+          "https://sipedas-api.vercel.app/profile/delete-foto",
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
+            data: {
+              imageUrl: selectedData.foto,
+            },
           }
         );
 
-        setRecords((prevRecords) =>
-          prevRecords.filter((record) => record.nip !== selectedData.nip)
-        );
-        setFilteredRecords((prevRecords) =>
-          prevRecords.filter((record) => record.nip !== selectedData.nip)
-        );
-        setSelectedRowKeys([]);
-        setLoading(false);
-        setShowSuccessModal(true);
-      } catch (error) {
-        setError("Failed to delete data. Please try again later.");
-      } finally {
-        setLoading(false);
+        // Delete the employee data
+        await axios.delete(`https://sipedas-api.vercel.app/employees/${nip}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
       }
+
+      setRecords((prevRecords) =>
+        prevRecords.filter((record) => !selectedRowKeys.includes(record.nip))
+      );
+      setFilteredRecords((prevRecords) =>
+        prevRecords.filter((record) => !selectedRowKeys.includes(record.nip))
+      );
+      setSelectedRowKeys([]);
+      setLoading(false);
+      setShowSuccessModal(true);
+    } catch (error) {
+      setError("Failed to delete data. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -969,7 +991,8 @@ const DataKaryawan = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <h2 className="text-xl font-bold mb-8">Konfirmasi</h2>
             <p className="mb-8">
-              Apakah Anda yakin ingin menghapus data karyawan ini?
+              Apakah Anda yakin ingin menghapus {selectedRowKeys.length} data
+              karyawan yang dipilih?
             </p>
             <div className="flex justify-end gap-4">
               <button
