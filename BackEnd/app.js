@@ -23,7 +23,7 @@ mongoose.connect(process.env.MONGO_URI)
     });
 
 // Allowed origins and CORS settings
-const allowedOrigins = ['http://localhost:5173', 'https://sipedas.vercel.app'];
+const allowedOrigins = ['http://localhost:5173', 'https://sipedas-api.vercel.app/visualisasi'];
 
 app.use(cors({
     origin: function (origin, callback) {
