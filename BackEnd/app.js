@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const employeeRoutes = require('./routes/employeeRoutes');
 const authRoutes = require('./routes/authRoutes');
 const imageUpload = require('./routes/imageRoutes');
@@ -39,10 +38,10 @@ app.use(cors({
 }));
 
 // Respond to OPTIONS requests for preflight checks
-app.options('*', cors());
+app.options(/.*/, cors());
 
 // Body parser
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Routes
 app.use('/employees', employeeRoutes);
